@@ -925,6 +925,11 @@ on Windows, an RX 580 on Linux with its mirror forced on), it copies back ~50 MB
 results from laptops and other slow PCIe links are wanted. `RX_VK_LOG_WB_SKIPS=1` lists the bindings left out every
 600 submits.
 
+`RX_VK_PROGRAM_CACHE_ZSTD=1` keeps the translated shader programs in `hookshot_programs.zst.bin`, each record
+compressed with zstd and unpacked when it is read. The uncompressed cache is about 6.9 GB; in the reference cache
+(46,587 programs) zstd's level 3 made it 1.83 GB (3.75x). It is a file of its own: an existing
+`hookshot_programs.bin` is left alone, and the first run translates the programs into the compressed cache.
+
 </details>
 
 ## How it works
