@@ -58,11 +58,18 @@ thing (two people fixing the same thing is the most common waste here) or alread
 
 ```
 python -I scripts/team_chat.py status
-python -I scripts/team_chat.py post "Claimed #1234 (worklist 36): missing walls on Intel Arc. Testing on A770, Windows."
+python -I scripts/team_chat.py post "Intel Arc: claimed the missing walls, testing on an A770.
+- Claimed: https://github.com/NotRexed/Hookshot/issues/1234 (worklist 36): missing walls on Intel Arc.
+- Working on: a capture of the broken frame on an A770, Windows."
 ```
 
-- One message, 1 to 4 lines. Lead with the state (Claimed, Found, PR, Blocked, Done), then the link (issue or PR),
-  then the evidence or the ask. Plain text; links as full URLs.
+- **One message: a one-line summary, then a short list.**
+  - The first line says in a few words what changed (it follows the script's 🤖 prefix).
+  - Each line after it starts with `- ` and a label, using only the labels that apply, in this order: `Done:`,
+    `Found:`, `Claimed:`, `PR:`, `Working on:`, `Blocked:`, `Wanted:`.
+  - One plain sentence a line, with the numbers that matter and the link (issue or PR) as a full URL. At most about
+    five list lines.
+- A single short update can stay one line (`Claimed ...`); the list is for anything with more than one item.
 - **The script allows one post an hour** (exit code 3 and the reason otherwise) and refuses the same text twice.
   `--force` skips the hour only when the user asked for an update; otherwise hold the update for the next window and
   fold it into one message.
