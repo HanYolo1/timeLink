@@ -2142,6 +2142,7 @@ def main(a=None):
     kept_lift = []   # (build.py's --kept-lift: the lift skipped, its objects by the kept list)
 
     def translate():
+        nonlocal key
         for _ in range(2):
             if lifted_before(work, key):   # (never on the second pass: its key was taken away below)
                 print("the game was translated with these tools before: translating it again is skipped", flush=True)
@@ -2173,6 +2174,11 @@ def main(a=None):
                 run(PY + ["nx2/lift.py", "--standalone", "--write", "--exefs", exefs, "--work", work], env)
                 if os.path.isfile(os.path.join(work, "sa", "gen", "code_hot.c")):
                     run(PY + ["nx2/split_hot.py", os.path.join(work, "sa", "gen")], env)   # (eight files side by side: ~6 minutes, not 79)
+                # (the lift writes inputs of the next one: split_hot's kept pieces, image/hot_pieces.txt, which the key hashes. Its key is
+                # taken again now, from what the next build reads: taken before, in a fresh work folder (no hot_pieces.txt yet) it never
+                # matched the next build's, which translated the game again for nothing, ~5 minutes on Windows, and a player's first
+                # update after a new install did not keep the translation)
+                key = lift_key(exefs, work, env)
                 write_lift_key(work, key)
             cut = lifted_cut_short(gen_dir)
             if not cut:
