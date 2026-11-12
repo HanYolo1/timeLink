@@ -184,6 +184,14 @@ def main():
             assert code == 0 and len(lines) == 3 and lines[0].endswith("Claimed #123: walls missing on Intel Arc")
             assert lines[2].endswith("PR #124 merged") and "@alice:magicbean.dev" in lines[2], lines
 
+            # into a pipe on Windows, stdout is cp1252, which has no robot: read used to stop with a UnicodeEncodeError
+            pipe = io.TextIOWrapper(io.BytesIO(), encoding="cp1252")
+            with contextlib.redirect_stdout(pipe):
+                code = chat.main(["read", "--limit", "5"])
+            pipe.flush()
+            text = pipe.buffer.getvalue().decode("utf-8")
+            assert code == 0 and pipe.encoding == "utf-8" and text.count("\N{ROBOT FACE}") == 3, text
+
             code, _, err = run(chat, "post", "   ")
             assert code == 1 and "nothing to post" in err
 
