@@ -26,6 +26,14 @@
 
 <p align="center">This website is our Git hosting, similar to GitHub.</p>
 
+> [!NOTE]
+> **This is a personal fork.** It is a copy of [Longshot](https://git.magicbean.dev/MagicBeanDev/Longshot), which is
+> itself a continuation of [Hookshot](https://github.com/NotRexed/Hookshot). It is not the upstream project, and the
+> upstream maintainers do not maintain it. Longshot is free software under the
+> [GNU General Public License, version 3 or later](LICENSE); the license, the copyright notices and every third-party
+> notice are kept as they are. For the official builds, support and issue tracker, go to
+> [longshot.magicbean.dev](https://longshot.magicbean.dev/).
+
 Longshot is a static recompilation of a supported console game. The game's code is translated to C and compiled into a Windows or Linux program, rebuilding the graphics on Vulkan, with the console's system software reimplemented. All of this happens **on your PC, from your own copy of the game**.
 
 Longshot is a continuation of [Hookshot](https://github.com/NotRexed/Hookshot). The top maintainers have moved to this project.
