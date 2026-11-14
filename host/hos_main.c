@@ -267,6 +267,7 @@ static int is_link(const char *p) {
     return lstat(p, &st) == 0 && S_ISLNK(st.st_mode);
 }
 static const char *move_old, *move_from, *move_new;   /* (the user folder on the move, as realpath names it and as given, and the new place) */
+static char move_old_buf[MAX_PATH];   /* (move_old points here: it used to point at a stack buffer of saves_dir's) */
 static int moved_to(char *target, const char *dir) {   /* (a target under dir: named where it will be) */
     char there[MAX_PATH];
     const size_t n = dir && dir[0] == SEP ? strlen(dir) : 0;
@@ -306,7 +307,8 @@ static int has_link(const char *p) {
     }
     return found;
 }
-static int copy_tree(const char *from, const char *to) {
+static int copy_tree_depth(const char *from, const char *to, int depth) {
+    if (depth > 64) return 0;   /* (longshot: no saves folder is this deep; a link loop is not followed for ever) */
     if (is_link(from)) return copy_link(from, to);
     if (!is_dir(from)) {
         FILE *in = fopen(from, "rb"), *out = in ? fopen(to, "wb") : NULL;
@@ -330,13 +332,15 @@ static int copy_tree(const char *from, const char *to) {
             char a[MAX_PATH], b[MAX_PATH];
             snprintf(a, sizeof a, "%s" SEP_S "%s", from, fd.cFileName);
             snprintf(b, sizeof b, "%s" SEP_S "%s", to, fd.cFileName);
-            ok = copy_tree(a, b);
+            ok = copy_tree_depth(a, b, depth + 1);
         } while (ok && FindNextFileA(h, &fd));
         FindClose(h);
     }
     return ok;
 }
-static void delete_tree(const char *p) {
+static int copy_tree(const char *from, const char *to) { return copy_tree_depth(from, to, 0); }
+static void delete_tree_depth(const char *p, int depth) {
+    if (depth > 64) return;   /* (longshot: as copy_tree's) */
     if (!is_dir(p) || is_link(p)) {   /* (a link goes; what it names stays) */
         DeleteFileA(p);
         return;
@@ -350,12 +354,13 @@ static void delete_tree(const char *p) {
             if (!strcmp(fd.cFileName, ".") || !strcmp(fd.cFileName, "..")) continue;
             char a[MAX_PATH];
             snprintf(a, sizeof a, "%s" SEP_S "%s", p, fd.cFileName);
-            delete_tree(a);
+            delete_tree_depth(a, depth + 1);
         } while (FindNextFileA(h, &fd));
         FindClose(h);
     }
     RemoveDirectoryA(p);
 }
+static void delete_tree(const char *p) { delete_tree_depth(p, 0); }
 static const char *saves_dir(const char *beside) {
     static char dir[MAX_PATH];
     const char *xdg = getenv("XDG_DATA_HOME"), *home = getenv("HOME");
@@ -373,8 +378,7 @@ static const char *saves_dir(const char *beside) {
     char pattern[MAX_PATH];
     snprintf(pattern, sizeof pattern, "%s" SEP_S "*", beside);
     int moved = 0, kept = 0;
-    char real[MAX_PATH];
-    move_old = realpath(beside, real), move_from = beside, move_new = dir;
+    move_old = realpath(beside, move_old_buf), move_from = beside, move_new = dir;
     /* (looked at first, then moved: with an entry the new place has already, the old place is kept, and it keeps them all.
        The others used to go all the same, and the game then ran here without them) */
     for (int move = 0; move < 2 && !kept; move++) {

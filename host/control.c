@@ -291,6 +291,7 @@ typedef struct Conn {
 #ifdef _WIN32
     HANDLE pipe;
     OVERLAPPED rov;
+    HANDLE write_event;   /* (longshot) the write's event, made once with the connection */
     char rbuf[4096];
     int reading;
 #else
@@ -1917,6 +1918,9 @@ static void conn_reset(Conn *c) {
     if (G.game->oot_watch) G.game->oot_watch((int)(c - G.conns), NULL);
     free(c->in);
     buf_free(&c->out);
+#ifdef _WIN32
+    if (c->write_event) CloseHandle(c->write_event);
+#endif
     const int gen = c->gen;
     memset(c, 0, sizeof *c);
     c->gen = gen;
@@ -2202,14 +2206,18 @@ static void conn_write(Conn *c) {   /* (blocking, two seconds at most: the bridg
     if (!c->out.n || c->closing) return;
     OVERLAPPED ov;
     memset(&ov, 0, sizeof ov);
-    ov.hEvent = CreateEventA(NULL, TRUE, FALSE, NULL);
+    /* (longshot) The event is the connection's, made with it and closed with it: one CreateEvent/CloseHandle a reply was
+       churn on the bridge's thread, and the handle table's growth with it */
+    if (!c->write_event) c->write_event = CreateEventA(NULL, TRUE, FALSE, NULL);
+    ov.hEvent = c->write_event;
+    if (!ov.hEvent) { c->closing = 1; return; }
+    ResetEvent(ov.hEvent);
     DWORD wrote = 0;
     BOOL ok = WriteFile(c->pipe, c->out.p, (DWORD)c->out.n, NULL, &ov);
     if (!ok && GetLastError() == ERROR_IO_PENDING) {
         if (WaitForSingleObject(ov.hEvent, 2000) != WAIT_OBJECT_0) CancelIoEx(c->pipe, &ov);
         ok = GetOverlappedResult(c->pipe, &ov, &wrote, TRUE);
     } else if (ok) GetOverlappedResult(c->pipe, &ov, &wrote, TRUE);
-    CloseHandle(ov.hEvent);
     if (!ok || wrote == 0) { c->closing = 1; return; }
     memmove(c->out.p, c->out.p + wrote, c->out.n - wrote);
     c->out.n -= wrote;

@@ -103,7 +103,8 @@ void hos_log_flush(void);
 void hos_fatal(Ctx *c, const char *fmt, ...);
 
 /* ---- guest memory (hos_mem.c) */
-uint64_t hos_sys_alloc(uint64_t size, uint64_t align);     /* zeroed, from the system region, never freed */
+uint64_t hos_sys_alloc(uint64_t size, uint64_t align);     /* zeroed, from the system region; hos_sys_free gives it back */
+void hos_sys_free(uint64_t addr, uint64_t size);            /* (longshot) a block hos_sys_alloc gave, for the next of its size */
 uint64_t hos_region_alloc(uint64_t size, uint64_t align);  /* address space above the heap */
 void hos_region_free(uint64_t addr);
 int hos_regions(uint64_t (*out)[2], int cap);   /* the regions: {start, end}, at most cap; how many */

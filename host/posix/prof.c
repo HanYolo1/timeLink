@@ -31,7 +31,7 @@
 #define TRAP_PERF 6
 #endif
 
-int hos_thread_handles(HANDLE *out, const char **names, int max);   /* hos_thread.c */
+int hos_thread_handles(HANDLE *out, char (*names)[64], int max);   /* hos_thread.c */
 void hos_prof_start(void);
 
 /* ---- the process's threads: id, CPU time, name (the guest thread's, else the thread's own: SetThreadDescription) ---- */
@@ -68,7 +68,7 @@ static void task_comm(int tid, char *out, size_t cap) {
 }
 static int tasks(Task *out, int max) {
     static HANDLE gh[1024];
-    static const char *gn[1024];
+    static char gn[1024][64];
     const int ng = hos_thread_handles(gh, gn, 1024);
     static int gtid[1024];
     for (int i = 0; i < ng; i++) gtid[i] = (int)GetThreadId(gh[i]);
@@ -419,7 +419,7 @@ static void watch_arm(const uint64_t *addr, int n, int rw) {
     nwatch_fd = 0;
     if (!rw) return;
     static HANDLE gh[1024];
-    static const char *gn[1024];
+    static char gn[1024][64];
     const int ng = hos_thread_handles(gh, gn, 1024);
     int failed = 0, err = 0;
     for (int t = 0; t < ng; t++) {

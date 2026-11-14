@@ -3177,7 +3177,9 @@ VkImageView texture_view_of(uint32_t handle, VkImageViewType want, ViewUse use, 
         if (tex) level = image_level(tex, has_view ? view_level(&v) : 0);
     }
     if (!view) {   // (what a shader reads as the dummy instead: once per texture slot)
+        static std::mutex told_mu;
         static std::unordered_map<uint32_t, int> told;
+        std::lock_guard told_lk(told_mu);
         if (told.size() < 64 && !told[handle & 0xFFFFF]++) {
             if (!known)
                 logf("vk: texture slot %#x (handle %#x) is not registered: sampled as the dummy", handle & 0xFFFFF, handle);
@@ -6987,23 +6989,55 @@ void mask_stabilize(VkCommandBuffer cmd, Texture* tex, uint32_t level, uint32_t 
     }
     if (!pipe) return;
     const uint32_t w = std::max(1u, tex->width >> level), h = std::max(1u, tex->height >> level);
-    // (the mask's own storage view at that level and layer, made once a texture and level)
-    static std::map<std::tuple<VkImage, uint32_t, uint32_t>, VkImageView> views;
-    VkImageView& mv = views[{tex->image, level, layer}];
+    end_pass(cmd); // History image transitions must be outside dynamic rendering.
+    // (the statics below are shared by every recording thread (RX_VK_PARALLEL): one lock for the view cache and the history.
+    // Taken after end_pass, which records commands of its own)
+    static std::mutex mask_mu;
+    std::lock_guard mask_lk(mask_mu);
+    // (the mask's own storage view at that level and layer, made once a texture and level. Keyed by the texture's id, not its
+    // VkImage: the driver hands a freed image's handle to the next one, and the old view of it would be bound. Bounded, the
+    // oldest view destroyed: a texture that goes leaves its view here otherwise, one per mask ever drawn)
+    struct MaskView { uint32_t id, level, layer; VkImageView view; uint64_t used; };
+    static std::vector<MaskView> views;
+    static uint64_t view_clock = 0;
+    const uint64_t now_view = ++view_clock;
+    VkImageView mv = VK_NULL_HANDLE;
+    for (MaskView& v : views)
+        if (v.id == tex->id && v.level == level && v.layer == layer) { v.used = now_view, mv = v.view; break; }
     if (!mv) {
         VkImageViewCreateInfo vc{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
         vc.image = tex->image, vc.viewType = VK_IMAGE_VIEW_TYPE_2D, vc.format = VK_FORMAT_R8G8B8A8_UNORM;
         vc.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, level, 1, layer, 1};
-        if (vkCreateImageView(dev.device, &vc, nullptr, &mv) != VK_SUCCESS) { mv = VK_NULL_HANDLE; return; }
+        if (vkCreateImageView(dev.device, &vc, nullptr, &mv) != VK_SUCCESS) return;
+        if (views.size() >= 64) {   // (the least recently used goes, its view with it)
+            size_t oldest = 0;
+            for (size_t i = 1; i < views.size(); i++)
+                if (views[i].used < views[oldest].used) oldest = i;
+            if (views[oldest].view) vkDestroyImageView(dev.device, views[oldest].view, nullptr);
+            views[oldest] = views.back();
+            views.pop_back();
+        }
+        views.push_back({tex->id, level, layer, mv, now_view});
     }
     static VkImage hist[2] = {};
     static VmaAllocation hist_mem[2] = {};
     static VkImageView hist_view[2] = {};
     static uint32_t hist_w = 0, hist_h = 0, cur = 0;
     static uint64_t hist_frame = 0;
-    end_pass(cmd); // History image transitions must be outside dynamic rendering.
+    // (the pair a new size replaced: given back 120 presents later, when no work in flight can use them. They were left, the
+    // mask's size changing with the scene's, two images and two views a change)
+    struct OldHist { VkImage image; VmaAllocation mem; VkImageView view; uint64_t frame; };
+    static std::vector<OldHist> old_hist;
+    for (size_t i = 0; i < old_hist.size();) {
+        if (texture_frame_no() - old_hist[i].frame < 120) { i++; continue; }
+        if (old_hist[i].view) vkDestroyImageView(dev.device, old_hist[i].view, nullptr);
+        destroy_image(old_hist[i].image, old_hist[i].mem);
+        old_hist.erase(old_hist.begin() + (ptrdiff_t)i);
+    }
     if (hist_w != w || hist_h != h) {
         for (int i = 0; i < 2; i++) {
+            if (hist[i]) old_hist.push_back({hist[i], hist_mem[i], hist_view[i], texture_frame_no()});
+            hist[i] = VK_NULL_HANDLE, hist_mem[i] = nullptr, hist_view[i] = VK_NULL_HANDLE;
             VkImageCreateInfo ic{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
             ic.imageType = VK_IMAGE_TYPE_2D, ic.format = VK_FORMAT_R8G8B8A8_UNORM;
             ic.extent = {w, h, 1}, ic.mipLevels = 1, ic.arrayLayers = 1, ic.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -7087,8 +7121,18 @@ static std::unordered_map<uint64_t, uint64_t> fallback_held;
 /// Marks the list's colour draw as left out (held) or recorded (!held) this frame.
 static void fallback_list_hold(uint64_t list, bool held) {
     std::lock_guard lk(fallback_held_mu);
-    if (held) fallback_held[list] = texture_frame_no();
-    else fallback_held.erase(list);
+    if (held) {
+        // (a list that stops being drawn never asks again: the entries of the last 120 frames are the ones that matter, and
+        // the map is swept when it grows past this, so a long session does not keep every list it ever held)
+        if (fallback_held.size() >= 4096) {
+            const uint64_t now = texture_frame_no();
+            for (auto it = fallback_held.begin(); it != fallback_held.end();)
+                it = now - it->second > 120 ? fallback_held.erase(it) : std::next(it);
+        }
+        fallback_held[list] = texture_frame_no();
+    } else {
+        fallback_held.erase(list);
+    }
 }
 /// True while the list's colour draw was left out in the last 120 frames (so a list no colour draw uses any more is released).
 static bool fallback_list_held(uint64_t list) {
@@ -8217,49 +8261,57 @@ static bool typed_upscale(VkCommandBuffer cmd, VkImageView input_view, VkImageVi
     // output's size changing with the dynamic resolution. RX_VK_TAAU_HIST_LEAK=1: as before)
     struct OldHist { VkImage image; VmaAllocation mem; VkImageView view; uint64_t frame; };
     static std::vector<OldHist> old_hist;
+    static std::mutex old_hist_mu;   // (the statics here are shared by every recording thread: RX_VK_PARALLEL)
     static const bool leak = env_on("RX_VK_TAAU_HIST_LEAK");
-    for (size_t i = 0; i < old_hist.size();) {
-        if (texture_frame_no() - old_hist[i].frame < 120) { i++; continue; }
-        if (old_hist[i].view) vkDestroyImageView(dev.device, old_hist[i].view, nullptr);
-        destroy_image(old_hist[i].image, old_hist[i].mem);
-        old_hist.erase(old_hist.begin() + (ptrdiff_t)i);
+    VkImageView hist_view_now = VK_NULL_HANDLE;
+    uint32_t hist_valid = 0;
+    {
+        std::lock_guard old_hist_lk(old_hist_mu);
+        for (size_t i = 0; i < old_hist.size();) {
+            if (texture_frame_no() - old_hist[i].frame < 120) { i++; continue; }
+            if (old_hist[i].view) vkDestroyImageView(dev.device, old_hist[i].view, nullptr);
+            destroy_image(old_hist[i].image, old_hist[i].mem);
+            old_hist.erase(old_hist.begin() + (ptrdiff_t)i);
+        }
+        if (hist_w != size[0] || hist_h != size[1]) {
+            // (the one before is kept for the while: work in flight may still use it)
+            if (hist && !leak) old_hist.push_back({hist, hist_mem, hist_view, texture_frame_no()});
+            hist = VK_NULL_HANDLE, hist_view = VK_NULL_HANDLE;
+            VkImageCreateInfo ic{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+            ic.imageType = VK_IMAGE_TYPE_2D, ic.format = VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+            ic.extent = {size[0], size[1], 1}, ic.mipLevels = 1, ic.arrayLayers = 1, ic.samples = VK_SAMPLE_COUNT_1_BIT;
+            ic.tiling = VK_IMAGE_TILING_OPTIMAL, ic.usage = VK_IMAGE_USAGE_STORAGE_BIT;
+            if (!create_image(ic, hist, hist_mem)) { hist = VK_NULL_HANDLE; return false; }
+            VkImageViewCreateInfo vc{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+            vc.image = hist, vc.viewType = VK_IMAGE_VIEW_TYPE_2D, vc.format = ic.format;
+            vc.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+            vkCreateImageView(dev.device, &vc, nullptr, &hist_view);
+            VkImageMemoryBarrier2 ib{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2};   // (UNDEFINED -> GENERAL, once)
+            ib.srcStageMask = VK_PIPELINE_STAGE_2_NONE, ib.srcAccessMask = VK_ACCESS_2_NONE;
+            ib.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+            ib.dstAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT | VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT;
+            ib.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED, ib.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+            ib.srcQueueFamilyIndex = ib.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            ib.image = hist, ib.subresourceRange = vc.subresourceRange;
+            VkDependencyInfo di{VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
+            di.imageMemoryBarrierCount = 1, di.pImageMemoryBarriers = &ib;
+            vkCmdPipelineBarrier2(cmd, &di);
+            hist_w = size[0], hist_h = size[1], hist_frame = 0;
+        }
+        // (bounded when the history is last frame's or so: a pause of the TAAU, a menu, starts again unbounded)
+        const uint64_t now_frame = texture_frame_no();
+        hist_valid = temporal && !no_clamp && hist_frame && now_frame - hist_frame <= 3 ? 1u : 0u;
+        hist_frame = now_frame;
+        hist_view_now = hist_view;
     }
-    if (hist_w != size[0] || hist_h != size[1]) {
-        // (the one before is kept for the while: work in flight may still use it)
-        if (hist && !leak) old_hist.push_back({hist, hist_mem, hist_view, texture_frame_no()});
-        hist = VK_NULL_HANDLE, hist_view = VK_NULL_HANDLE;
-        VkImageCreateInfo ic{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
-        ic.imageType = VK_IMAGE_TYPE_2D, ic.format = VK_FORMAT_B10G11R11_UFLOAT_PACK32;
-        ic.extent = {size[0], size[1], 1}, ic.mipLevels = 1, ic.arrayLayers = 1, ic.samples = VK_SAMPLE_COUNT_1_BIT;
-        ic.tiling = VK_IMAGE_TILING_OPTIMAL, ic.usage = VK_IMAGE_USAGE_STORAGE_BIT;
-        if (!create_image(ic, hist, hist_mem)) { hist = VK_NULL_HANDLE; return false; }
-        VkImageViewCreateInfo vc{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-        vc.image = hist, vc.viewType = VK_IMAGE_VIEW_TYPE_2D, vc.format = ic.format;
-        vc.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
-        vkCreateImageView(dev.device, &vc, nullptr, &hist_view);
-        VkImageMemoryBarrier2 ib{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2};   // (UNDEFINED -> GENERAL, once)
-        ib.srcStageMask = VK_PIPELINE_STAGE_2_NONE, ib.srcAccessMask = VK_ACCESS_2_NONE;
-        ib.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-        ib.dstAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT | VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT;
-        ib.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED, ib.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        ib.srcQueueFamilyIndex = ib.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        ib.image = hist, ib.subresourceRange = vc.subresourceRange;
-        VkDependencyInfo di{VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
-        di.imageMemoryBarrierCount = 1, di.pImageMemoryBarriers = &ib;
-        vkCmdPipelineBarrier2(cmd, &di);
-        hist_w = size[0], hist_h = size[1], hist_frame = 0;
-    }
-    // (bounded when the history is last frame's or so: a pause of the TAAU, a menu, starts again unbounded)
-    const uint64_t now_frame = texture_frame_no();
-    size[2] = temporal && !no_clamp && hist_frame && now_frame - hist_frame <= 3 ? 1u : 0u;
+    size[2] = hist_valid;
     // (the gameplay stand-in's edges: FXAA in the shader. RX_VK_TAAU_FXAA=0: the plain linear upscale as before; 2: the
     // pixels it changed drawn red)
     static const int fxaa = getenv("RX_VK_TAAU_FXAA") ? atoi(getenv("RX_VK_TAAU_FXAA")) : 1;
     if (temporal && fxaa) size[2] |= fxaa == 2 ? 6u : 2u;
-    hist_frame = now_frame;
     const VkDescriptorImageInfo in_info{linear, input_view, VK_IMAGE_LAYOUT_GENERAL};
     const VkDescriptorImageInfo out_info{VK_NULL_HANDLE, output_view, VK_IMAGE_LAYOUT_GENERAL};
-    const VkDescriptorImageInfo hist_info{VK_NULL_HANDLE, hist_view, VK_IMAGE_LAYOUT_GENERAL};
+    const VkDescriptorImageInfo hist_info{VK_NULL_HANDLE, hist_view_now, VK_IMAGE_LAYOUT_GENERAL};
     VkWriteDescriptorSet w[3]{{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}, {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET},
                               {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}};
     w[0].dstBinding = 0, w[0].descriptorCount = 1, w[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;

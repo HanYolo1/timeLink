@@ -330,7 +330,7 @@ void hos_commit_init(void) {
    waits for */
 #ifdef _WIN32
 #include <tlhelp32.h>
-int hos_thread_handles(HANDLE *out, const char **names, int max);   /* hos_thread.c */
+int hos_thread_handles(HANDLE *out, char (*names)[64], int max);   /* hos_thread.c */
 static DWORD WINAPI prof_thread(void *p) {
     const DWORD ms = (DWORD)(uintptr_t)p * 1000;
     enum { MAXT = 512 };
@@ -340,7 +340,7 @@ static DWORD WINAPI prof_thread(void *p) {
     for (;;) {
         Sleep(ms);
         static HANDLE gh[1024];
-        static const char *gn[1024];
+        static char gn[1024][64];
         const int ng = hos_thread_handles(gh, gn, 1024);
         struct { DWORD id; uint64_t cpu, delta; char name[64]; } cur[MAXT];
         int n = 0;
@@ -577,7 +577,7 @@ static LONG CALLBACK watch_handler(EXCEPTION_POINTERS *e) {
 }
 static void watch_arm(const uint64_t *addr, int n, int rw) {
     static HANDLE gh[1024];
-    static const char *gn[1024];
+    static char gn[1024][64];
     const int ng = hos_thread_handles(gh, gn, 1024);
     for (int i = 0; i < ng; i++) {
         if (GetThreadId(gh[i]) == GetCurrentThreadId()) continue;
@@ -670,7 +670,7 @@ static DWORD WINAPI sample_all_thread(void *p) {
             for (int i = 0; i < nt; i++) CloseHandle(th[i]);
             nt = 0;
             static HANDLE gh[1024];
-            static const char *gn[1024];
+            static char gn[1024][64];
             const int ng = hos_thread_handles(gh, gn, 1024);
             HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
             THREADENTRY32 te = {sizeof te};

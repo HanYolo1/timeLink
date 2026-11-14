@@ -3195,13 +3195,17 @@ uint64_t nvn_native_proc(const char *name) {
         if (!addr[i]) addr[i] = hos_hostcall(f->name, f->fn, NULL);
         a = addr[i];
     } else {   /* asked for, maybe never called: it stops the game only when called */
-        static struct { char *name; uint64_t a; } *un;
+        typedef struct { char *name; uint64_t a; } UnImpl;
+        static UnImpl *un;
         static size_t nun;
         size_t k;
         for (k = 0; k < nun && strcmp(un[k].name, name); k++) {}
         if (k == nun) {
-            un = realloc(un, (nun + 1) * sizeof *un);
+            UnImpl *grown = realloc(un, (nun + 1) * sizeof *un);
+            if (!grown) { ReleaseSRWLockExclusive(&lock); return 0; }   /* (out of host memory: no address) */
+            un = grown;
             un[nun].name = _strdup(name);
+            if (!un[nun].name) { ReleaseSRWLockExclusive(&lock); return 0; }
             un[nun].a = hos_hostcall(un[nun].name, unimplemented, un[nun].name);
             nun++;
         }

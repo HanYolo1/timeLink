@@ -867,6 +867,18 @@ std::mutex st_barrier_flags_mu;   // (a parallel replay's threads count their ba
 // game's three queues order their work with events (a command buffer waits for another queue's to reach a stage);
 // replayed on one queue in the order they were submitted, a waiter submitted before its signaller ran first ----
 std::unordered_map<uint64_t, uint32_t> ev_values;
+// (a bound: the game's events are guest objects at reused addresses, and one that goes leaves its entry here. The keys are
+// kept in the order they were first set, and the oldest go past this many. An entry that goes is read from guest memory again
+// (event_value_in), as one never signalled is, so dropping the oldest is safe)
+std::deque<uint64_t> ev_order;
+void ev_set(uint64_t gpu, uint32_t value) {
+    if (ev_values.emplace(gpu, value).second) ev_order.push_back(gpu);
+    else ev_values[gpu] = value;
+    while (ev_order.size() > 4096) {
+        ev_values.erase(ev_order.front());
+        ev_order.pop_front();
+    }
+}
 // (longshot) The CPU's signals, while a replay holds replay_mu: the main thread stopped for it in nvnEventSignal, ~1.7 ms
 // a frame of the critical path. They wait here for the replay's next look at the events (ev_cpu_apply).
 std::mutex ev_cpu_mu;
@@ -886,7 +898,7 @@ std::unordered_set<uint64_t> cpu_events;   // (events the CPU has signalled, nvn
 void ev_cpu_apply() {
     if (!ev_cpu_any.load(std::memory_order_acquire)) return;
     std::lock_guard lk(ev_cpu_mu);
-    for (const auto& e : ev_cpu_pending) ev_values[e.first] = e.second, cpu_events.insert(e.first);
+    for (const auto& e : ev_cpu_pending) ev_set(e.first, e.second), cpu_events.insert(e.first);
     ev_cpu_pending.clear();
     ev_cpu_any.store(false, std::memory_order_release);
 }
@@ -1203,7 +1215,7 @@ void replay(VkCommandBuffer& cmd, NvnState& s, const uint8_t* p, const uint8_t* 
                 auto it = ev_values.find(e.gpu);
                 uint32_t old = it != ev_values.end() ? it->second : 0;
                 if (it == ev_values.end()) host->gpu_read(e.gpu, &old, 4);
-                ev_values[e.gpu] = e.mode == NVN_EVENT_SIGNAL_MODE_ADD ? old + e.value : e.value;
+                ev_set(e.gpu, e.mode == NVN_EVENT_SIGNAL_MODE_ADD ? old + e.value : e.value);
             }
             if (dry) break;
             const auto e = payload<nvn_p_signal>(a, avail);
@@ -5457,7 +5469,7 @@ void replay_thread_main() {
                 memory_take_capture(j.queue, completed());
                 st_resume_captures++;
             }
-            ev_values[j.ev_gpu] = j.ev_value;
+            ev_set(j.ev_gpu, j.ev_value);
             burst_begin(0);
             schedule();
             burst_end();

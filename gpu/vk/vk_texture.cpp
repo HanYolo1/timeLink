@@ -237,6 +237,16 @@ std::unordered_map<const Texture*, uint64_t> remade;   // (made again: how many 
 uint64_t evicted_key(uint64_t gpu, uint32_t w, uint32_t h, uint32_t fmt) {
     return gpu ^ ((uint64_t)w << 48) ^ ((uint64_t)h << 32) ^ ((uint64_t)fmt << 20);
 }
+// (a bound on the two maps above and evicted_from_memory: the oldest entries go, not all of them. Clearing the whole map at
+// the cap threw away the recent history too, right when a session had evicted enough for it to matter)
+void evicted_at_trim_locked(size_t cap) {
+    if (evicted_at.size() <= cap) return;
+    std::vector<std::pair<uint64_t, uint64_t>> by_frame;   // (key, frame)
+    by_frame.reserve(evicted_at.size());
+    for (const auto& kv : evicted_at) by_frame.push_back({kv.first, kv.second.frame});
+    std::sort(by_frame.begin(), by_frame.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+    for (size_t i = 0; i < by_frame.size() - cap; i++) evicted_at.erase(by_frame[i].first);
+}
 bool remade_log_on() {
     static const bool on = getenv("RX_VK_LOG_REMADE") && atoi(getenv("RX_VK_LOG_REMADE")) != 0;
     return on;
@@ -248,6 +258,9 @@ bool remade_log_on() {
 // menu was opened and closed (issue 993). RX_VK_REMADE_SKIP=1: as before
 std::mutex from_memory_mu;
 std::unordered_map<uint64_t, uint64_t> evicted_from_memory;   // (evicted_key -> guest size)
+void evicted_from_memory_trim_locked(size_t cap) {   // (no age kept: any past the cap go)
+    while (evicted_from_memory.size() > cap) evicted_from_memory.erase(evicted_from_memory.begin());
+}
 std::atomic<uint64_t> st_remade_uploaded{0};
 bool remade_skip_old() {
     static const bool on = getenv("RX_VK_REMADE_SKIP") && atoi(getenv("RX_VK_REMADE_SKIP")) != 0;
@@ -349,16 +362,19 @@ void pool_put(Dead& d) {
     pool_bytes += d.bytes, pool_n++;
 }
 /// (texture_frame, each present) the pool over its bound, or all of it while VRAM is short, and what waits in it unused for 120
-/// presents: destroyed, at most 16 a present (64 while VRAM is short). Returns how many
+/// presents: destroyed, at most 16 a present (64 while VRAM is short). Over the bound it drains until it is under it: a frame
+/// that kills more targets than the age sweep takes would otherwise grow the pool without end. Returns how many
 size_t pool_trim() {
     std::lock_guard lk(pool_mu);
     const uint64_t cap = pool_pressed ? 0 : pool_cap();
     const size_t most = pool_pressed ? 64 : 16;
     size_t n = 0;
-    for (auto it = target_pool.begin(); it != target_pool.end() && n < most;) {
+    for (auto it = target_pool.begin(); it != target_pool.end();) {
         auto& v = it->second;
-        for (size_t i = 0; i < v.size() && n < most;) {   // (the oldest of a shape first: the front)
-            if (pool_bytes <= cap && frame_no - v[i].since <= 120) {
+        for (size_t i = 0; i < v.size();) {   // (the oldest of a shape first: the front)
+            /* (over the bound: drain until under it, whatever the age sweep's 16 a present would leave; under it: the
+               idle ones, at most 16 a present) */
+            if (pool_bytes <= cap && (n >= most || frame_no - v[i].since <= 120)) {
                 ++i;
                 continue;
             }
@@ -1368,6 +1384,7 @@ void watch_tex(const Texture* tex, const char* what) {
     static std::unordered_map<uint32_t, uint64_t> told;   // (a texture's events once a frame)
     const bool by_dim = dim.first && tex->width == dim.first && tex->height == dim.second;
     if (by_dim && !strcmp(what, "written")) {   // ("written" once a frame; the rest each time)
+        if (told.size() > 4096) told.clear();   // (a bound: a texture that goes leaves its entry, and only the last frame's matter)
         uint64_t& f = told[tex->id];
         if (f == frame_no || logged >= 20000) return;
         f = frame_no;
@@ -2715,6 +2732,7 @@ Texture* texture_touch(Texture* tex, bool for_sampling) {
         if (tex->uploaded) {
             static int logged;
             static std::unordered_map<uint64_t, int> big;
+            if (big.size() > 4096) big.clear();   // (a bound: a texture that goes leaves its entry)
             if (logged++ < 20 || (tex->guest_size > (4u << 20) && big[tex->gpu]++ < 3)) {
                 uint64_t part = 0, nz = 0, readable = 0;
                 for (const auto& r : dirty) part += r.second - r.first;
@@ -4802,12 +4820,12 @@ void texture_frame(uint64_t completed) {
         watch_tex(tex, "evicted");
         if (!tex->gpu_written && tex->uploaded && !remade_skip_old()) {   // (above: made again, it is uploaded from memory)
             std::lock_guard lk(from_memory_mu);
-            if (evicted_from_memory.size() > 50000) evicted_from_memory.clear();   // (a bound)
+            evicted_from_memory_trim_locked(50000);   // (a bound: the oldest go, not all of them)
             evicted_from_memory[evicted_key(tex->gpu, tex->width, tex->height, tex->nvn_format)] = tex->guest_size;
         }
         if (remade_log_on()) {
             std::lock_guard lk(evicted_mu);
-            if (evicted_at.size() > 20000) evicted_at.clear();   // (a bound: only the recent ones matter)
+            evicted_at_trim_locked(20000);   // (a bound: only the recent ones matter, and the oldest go)
             evicted_at[evicted_key(tex->gpu, tex->width, tex->height, tex->nvn_format)] = {frame_no, tex->gpu_written};
             remade.erase(tex);
         }

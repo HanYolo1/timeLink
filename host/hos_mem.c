@@ -76,8 +76,32 @@ int hos_mem_region(uint64_t addr, uint64_t size) {
     return cls;
 }
 
+/* (longshot) The system region is a bump allocator, and a guest thread's blocks (its TLS block, TLR, ThreadType and stack,
+   ~4 KB + the stack) were never given back: a game that makes and destroys threads ran the region out and hos_sys_alloc
+   stopped the process. Freed blocks go on a first-fit list, and a later allocation of the same size takes one (zeroed, as a
+   fresh one is). The list is small: a thread's four blocks, and the few other one-off allocations. */
+typedef struct SysFree { uint64_t addr, size; struct SysFree *next; } SysFree;
+static SysFree *sys_free;
+
 uint64_t hos_sys_alloc(uint64_t size, uint64_t align) {
+    if (!align) align = 1;
     LOCK();
+    for (SysFree **p = &sys_free; *p; p = &(*p)->next) {
+        SysFree *f = *p;
+        if (f->size < size || (f->addr & (align - 1))) continue;
+        const uint64_t a = f->addr;
+        /* (a block much larger than asked: the rest stays free, so a big one is not spent on a small request) */
+        if (f->size >= size + 0x1000) {
+            f->addr += size, f->size -= size;
+        } else {
+            *p = f->next;
+            free(f);
+        }
+        UNLOCK();
+        memset(GP(a), 0, size);
+        HOS_WRITTEN(GP(a), size);
+        return a;
+    }
     uint64_t a = (sys_next + align - 1) & ~(align - 1);
     if (a + size > HOS_SYSTEM_END) {
         UNLOCK();
@@ -88,6 +112,17 @@ uint64_t hos_sys_alloc(uint64_t size, uint64_t align) {
     memset(GP(a), 0, size);
     HOS_WRITTEN(GP(a), size);
     return a;
+}
+
+/* (longshot) A block hos_sys_alloc gave back, for the next allocation of its size or less. 0: nothing to give back */
+void hos_sys_free(uint64_t addr, uint64_t size) {
+    if (!addr || !size || addr < HOS_SYSTEM_BASE || addr + size > HOS_SYSTEM_END) return;
+    SysFree *f = (SysFree *)calloc(1, sizeof *f);
+    if (!f) return;   /* (out of host memory: the block stays used, as before) */
+    f->addr = addr, f->size = size;
+    LOCK();
+    f->next = sys_free, sys_free = f;
+    UNLOCK();
 }
 
 uint64_t hos_region_alloc(uint64_t size, uint64_t align) {
@@ -123,8 +158,13 @@ uint64_t hos_region_alloc(uint64_t size, uint64_t align) {
         }
     if (found) {
         if (nregions == capregions) {
-            capregions = capregions ? capregions * 2 : 64;
-            regions = (Range *)realloc(regions, capregions * sizeof(Range));
+            const int cap = capregions ? capregions * 2 : 64;
+            Range *grown = (Range *)realloc(regions, (size_t)cap * sizeof(Range));
+            if (!grown) {   /* (out of host memory: the region is not handed out, and the list stays as it was) */
+                UNLOCK();
+                hos_fatal(NULL, "address space: out of memory for the region list (%d regions)", nregions);
+            }
+            regions = grown, capregions = cap;
         }
         memmove(&regions[at + 1], &regions[at], (nregions - at) * sizeof(Range));
         regions[at].addr = found;
@@ -195,6 +235,14 @@ void hos_region_free(uint64_t addr) {
             nregions--;
             break;
         }
+    }
+    /* (longshot) region_floor is the lowest region, and the heap may not grow past it. It was only ever lowered, so after
+       the lowest region was freed the heap could never grow back into that space: recomputed here from what is left. */
+    if (freed_size) {
+        uint64_t floor = ~0ULL;
+        for (int i = 0; i < nregions; i++)
+            if (regions[i].addr < floor && regions[i].addr >= HOS_HEAP_BASE) floor = regions[i].addr;
+        region_floor = floor;
     }
     UNLOCK();
     if (freed_size) discard_pages(freed, freed_size);

@@ -114,7 +114,12 @@ static int64_t collect_in(const uint64_t (*ranges)[2], int nranges, uint32_t **p
                 }
             }
             if (__atomic_load_n(&a64_dirty[p], __ATOMIC_RELAXED) && __atomic_exchange_n(&a64_dirty[p], 0, __ATOMIC_ACQUIRE)) {
-                if (n == cap) out = realloc(out, (cap *= 2) * sizeof *out);
+                if (n == cap) {
+                    const size_t grown_cap = cap * 2;
+                    uint32_t *grown = realloc(out, grown_cap * sizeof *out);
+                    if (!grown) break;   /* (out of host memory: the pages found so far are the answer) */
+                    out = grown, cap = grown_cap;
+                }
                 out[n++] = (uint32_t)p;
             }
             p++;
@@ -306,8 +311,10 @@ static int keep_early(const early_call *c) {
         return 0;
     }
     if (n_early == cap_early) {
-        cap_early = cap_early ? cap_early * 2 : 1024;
-        early = (early_call *)realloc(early, cap_early * sizeof *early);
+        const int cap = cap_early ? cap_early * 2 : 1024;
+        early_call *grown = (early_call *)realloc(early, (size_t)cap * sizeof *early);
+        if (!grown) { ReleaseSRWLockExclusive(&early_lock); return 0; }   /* (out of host memory: the call is not kept) */
+        early = grown, cap_early = cap;
     }
     early[n_early++] = *c;
     ReleaseSRWLockExclusive(&early_lock);

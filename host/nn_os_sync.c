@@ -1161,8 +1161,10 @@ HLE(_ZN2nn2os19LinkMultiWaitHolderEPNS0_13MultiWaitTypeEPNS0_19MultiWaitHolderTy
     Obj *mw = obj(ARG(0), K_MULTIWAIT), *h = obj(ARG(1), K_HOLDER);
     AcquireSRWLockExclusive(&mw_lock);
     if (mw->nlinks == mw->caplinks) {
-        mw->caplinks = mw->caplinks ? mw->caplinks * 2 : 8;
-        mw->links = (Obj **)realloc(mw->links, mw->caplinks * sizeof *mw->links);
+        const int cap = mw->caplinks ? mw->caplinks * 2 : 8;
+        Obj **grown = (Obj **)realloc(mw->links, (size_t)cap * sizeof *mw->links);
+        if (!grown) { ReleaseSRWLockExclusive(&mw_lock); return; }   /* (out of host memory: the holder is not linked) */
+        mw->links = grown, mw->caplinks = cap;
     }
     mw->links[mw->nlinks++] = h;
     h->mw = mw;
@@ -1226,15 +1228,20 @@ HLE(_ZN2nn2os24UnlinkAllMultiWaitHolderEPNS0_13MultiWaitTypeE) {
 HLE(_ZN2nn2os22MoveAllMultiWaitHolderEPNS0_13MultiWaitTypeES2_) {
     Obj *to = obj(ARG(0), K_MULTIWAIT), *from = obj(ARG(1), K_MULTIWAIT);
     AcquireSRWLockExclusive(&mw_lock);
-    for (int i = 0; i < from->nlinks; i++) {
+    int moved = 0;
+    for (; moved < from->nlinks; moved++) {
         if (to->nlinks == to->caplinks) {
-            to->caplinks = to->caplinks ? to->caplinks * 2 : 8;
-            to->links = (Obj **)realloc(to->links, to->caplinks * sizeof *to->links);
+            const int cap = to->caplinks ? to->caplinks * 2 : 8;
+            Obj **grown = (Obj **)realloc(to->links, (size_t)cap * sizeof *to->links);
+            if (!grown) break;   /* (out of host memory: the rest stay on the source) */
+            to->links = grown, to->caplinks = cap;
         }
-        to->links[to->nlinks++] = from->links[i];
-        from->links[i]->mw = to;
+        to->links[to->nlinks++] = from->links[moved];
+        from->links[moved]->mw = to;
     }
-    from->nlinks = 0;
+    /* (the ones that did not move stay linked to the source, in order) */
+    memmove(from->links, from->links + moved, (size_t)(from->nlinks - moved) * sizeof *from->links);
+    from->nlinks -= moved;
     ReleaseSRWLockExclusive(&mw_lock);
 }
 

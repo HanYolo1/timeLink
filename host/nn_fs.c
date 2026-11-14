@@ -224,7 +224,12 @@ static uint64_t new_handle(Handle *h) {
     return 0;
 }
 static Handle *get_handle(Ctx *c, uint64_t id) {
+    /* (longshot) Under the table's lock: a CloseFile on another guest thread freed the handle while a read still walked it.
+       The pointer is returned after the lock is released, as before: the caller's use of it is the guest's own lifetime
+       rule (a handle closed while in use is the game's bug), but the lookup itself no longer races the free. */
+    AcquireSRWLockShared(&handle_lock);
     Handle *h = id && id <= 4096 ? handles[id - 1] : NULL;
+    ReleaseSRWLockShared(&handle_lock);
     if (!h) hos_fatal(c, "fs: bad handle %#llx", (unsigned long long)id);
     return h;
 }
@@ -628,7 +633,11 @@ HLE(_ZN2nn2fs12GetEntryTypeEPNS0_18DirectoryEntryTypeEPKc) {
 /* ---- directories: DirectoryEntry = { char name[0x301]; pad[3]; s8 type at 0x304 (0 directory, 1 file); pad[3]; s64 size at 0x308 } ---- */
 static void add_extra(void *arg, const char *name, int is_dir, uint64_t size) {
     Handle *dh = (Handle *)arg;
-    if (!(dh->nextras & 15)) dh->extras = (ExtraEntry *)realloc(dh->extras, sizeof *dh->extras * (size_t)(dh->nextras + 16));
+    if (!(dh->nextras & 15)) {
+        ExtraEntry *grown = (ExtraEntry *)realloc(dh->extras, sizeof *dh->extras * (size_t)(dh->nextras + 16));
+        if (!grown) return;   /* (out of memory: the entry is left out, as a listing that could not be read) */
+        dh->extras = grown;
+    }
     ExtraEntry *e = &dh->extras[dh->nextras++];
     snprintf(e->name, sizeof e->name, "%s", name);
     e->is_dir = is_dir, e->size = size;

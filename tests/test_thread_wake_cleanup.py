@@ -30,13 +30,38 @@ FIXTURE = r'''
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #define CHECK(test, message) do { if (!(test)) { fprintf(stderr, "%s\n", message); exit(1); } } while (0)
 typedef struct { int closed, kind; } HostHandle;
 typedef HostHandle *HANDLE;
-typedef struct { HANDLE handle, wake; } HosThread;
-static HosThread *threads[1024], *destroying;
-static int nthreads, threads_lock, lock_held, frees, thread_closes, wake_closes, check_free_order;
+typedef struct HosThread {
+    HANDLE handle, wake;
+    uint64_t tls_block, tlr, guest_tt, stack, stack_size;
+    int guest_tt_owned, stack_owned, started;
+    uint32_t kernel_handle;
+    void *run_ctx, *host_fiber;
+    char name[48];
+    struct HosThread *spare;
+} HosThread;
+static HosThread *threads[1024], *destroying, *spare_threads, *cur;
+static int nthreads, threads_lock, lock_held, frees, thread_closes, wake_closes, check_free_order, guest_frees;
+
+#define WAIT_TIMEOUT 258
+static void hos_sys_free(uint64_t addr, uint64_t size);
+
+/* (the thread has ended: the destroy's own check) */
+static int WaitForSingleObject(HANDLE handle, unsigned long ms) {
+    (void)handle, (void)ms;
+    return 0;   /* (WAIT_OBJECT_0) */
+}
+
+static void hos_sys_free(uint64_t addr, uint64_t size) {
+    (void)size;
+    CHECK(addr != 0, "null guest block given back");
+    guest_frees++;
+}
+static void hos_log(const char *fmt, ...) { (void)fmt; }
 
 static void AcquireSRWLockExclusive(int *lock) {
     CHECK(lock == &threads_lock && !lock_held, "invalid registry lock acquisition");
@@ -50,6 +75,13 @@ static void check_unregistered(void) {
     CHECK(!lock_held, "resource released while registry lock held");
     for (int i = 0; i < nthreads; i++)
         CHECK(threads[i] != destroying, "destroyed thread remains registered");
+}
+static void check_retired(void) {
+    CHECK(!lock_held, "the record retired while the registry lock was held");
+    CHECK(destroying->guest_tt == 0 && destroying->kernel_handle == 0, "a retired record still answers a lookup");
+    CHECK(destroying->handle == NULL && destroying->wake == NULL, "a retired record keeps its handles");
+    CHECK(destroying->tls_block == 0 && destroying->tlr == 0, "a retired record keeps its guest blocks");
+    CHECK(spare_threads == destroying, "the retired record is not kept for reuse");
 }
 static int CloseHandle(HANDLE handle) {
     CHECK(handle != NULL, "null handle closed");
@@ -77,37 +109,49 @@ static void checked_free(void *memory) {
 #define free checked_free
 @DESTROY@
 #undef free
-
+__attribute__((unused)) static void keep_checked_free(void) { (void)checked_free; }
 static void cycle(int handles, int registered) {
     HostHandle thread = {0, 1}, wake = {0, 2};
-    HosThread before = {NULL, NULL}, after = {NULL, NULL};
+    HosThread before = {0}, after = {0};
     destroying = (HosThread *)calloc(1, sizeof *destroying);
     CHECK(destroying != NULL, "allocation failed");
     if (handles & 1) destroying->handle = &thread;
     if (handles & 2) destroying->wake = &wake;
+    destroying->tls_block = 0x1000, destroying->tlr = 0x2000;   /* (the blocks setup_guest took: given back) */
+    destroying->guest_tt = 0x9000, destroying->kernel_handle = 7;
     threads[0] = &before;
     if (registered) { threads[1] = destroying; threads[2] = &after; nthreads = 3; }
     else { threads[1] = &after; nthreads = 2; }
+    HosThread *retired = destroying;
     hos_thread_destroy(destroying);
     CHECK(nthreads == 2, "wrong registry size after destroy");
     CHECK(threads[0] == &before && threads[1] == &after, "surviving registry entries changed");
+    /* (the record is retired, not freed: a lookup that took it just before the unlink reads a live record with no keys) */
+    check_retired();
+    spare_threads = NULL;   /* (the next cycle's own) */
     destroying = NULL;
+    (void)retired;
 }
+
 int main(int argc, char **argv) {
     CHECK(argc == 2, "expected test case");
     if (!strcmp(argv[1], "repeated")) {
         for (int i = 0; i < 10000; i++) cycle(3, 1);
-        CHECK(frees == 10000 && thread_closes == 10000, "thread lifecycle count mismatch");
+        CHECK(frees == 0, "a destroyed thread's record was freed (a lookup could read it)");
+        CHECK(thread_closes == 10000, "thread lifecycle count mismatch");
         CHECK(wake_closes == 10000, "wake event leak: expected 10000 closes");
+        CHECK(guest_frees == 20000, "guest blocks leak: expected 2 given back a thread");
     } else if (!strcmp(argv[1], "order")) {
         check_free_order = 1;
         cycle(3, 1);
-        CHECK(frees == 1 && thread_closes == 1 && wake_closes == 1, "close count mismatch");
+        CHECK(thread_closes == 1 && wake_closes == 1, "close count mismatch");
+        CHECK(guest_frees == 2, "guest block count mismatch");
     } else if (!strcmp(argv[1], "nulls")) {
         check_free_order = 1;
         for (int registered = 0; registered < 2; registered++)
             for (int handles = 0; handles < 4; handles++) cycle(handles, registered);
-        CHECK(frees == 8 && thread_closes == 4 && wake_closes == 4, "null-handle lifecycle count mismatch");
+        CHECK(thread_closes == 4 && wake_closes == 4, "null-handle lifecycle count mismatch");
+        CHECK(guest_frees == 16, "guest block count mismatch");
     } else CHECK(0, "unknown test case");
     puts("PASS: thread resources closed once and registry preserved");
     return 0;

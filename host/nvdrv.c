@@ -103,8 +103,10 @@ static void map_add(uint64_t va, uint64_t size, uint64_t guest) {
     while (end < nmaps && maps[end].va < va + size) end++;
     if (end > at) { memmove(&maps[at], &maps[end], (nmaps - end) * sizeof *maps); nmaps -= end - at; }
     if (nmaps == capmaps) {
-        capmaps = capmaps ? capmaps * 2 : 256;
-        maps = (Map *)realloc(maps, capmaps * sizeof *maps);
+        const int cap = capmaps ? capmaps * 2 : 256;
+        Map *grown = (Map *)realloc(maps, (size_t)cap * sizeof *maps);
+        if (!grown) return;   /* (out of host memory: the mapping is not recorded, as one the GPU cannot reach) */
+        maps = grown, capmaps = cap;
     }
     memmove(&maps[at + 1], &maps[at], (nmaps - at) * sizeof *maps);
     maps[at] = (Map){va, size, guest};
@@ -156,8 +158,10 @@ void hos_gpu_track(uint64_t guest, uint64_t size, int on) {
         if (i < ntracked) tracked[i].n++;
         else {
             if (ntracked == captracked) {
-                captracked = captracked ? captracked * 2 : 256;
-                tracked = (Tracked *)realloc(tracked, (size_t)captracked * sizeof *tracked);
+                const int cap = captracked ? captracked * 2 : 256;
+                Tracked *grown = (Tracked *)realloc(tracked, (size_t)cap * sizeof *tracked);
+                if (!grown) { UNLOCK(); return; }   /* (out of host memory: the range is not tracked) */
+                tracked = grown, captracked = cap;
             }
             tracked[ntracked++] = (Tracked){lo, hi, 1};
         }

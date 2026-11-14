@@ -29,6 +29,9 @@ struct HosThread {
     Ctx ctx;
     uint64_t guest_tt, entry, arg, stack, stack_size, id;
     uint64_t tls_block, tlr;
+    /* (longshot) the guest blocks this file allocated for the thread (setup_guest, hos_boot_main_thread): given back to the
+       system region when it is destroyed. The ThreadType and the stack are the game's own for a thread it created */
+    int guest_tt_owned, stack_owned;
     int priority, ideal_core;
     uint64_t core_mask;
     uint64_t tls_slots[HOS_TLS_SLOTS];
@@ -50,6 +53,10 @@ struct HosThread {
        switched to a guest fiber */
     Ctx *volatile run_ctx;
     void *host_fiber;
+    /* (longshot) a destroyed thread's record is kept and reused, not freed: a lookup (hos_thread_of, hos_thread_by_handle)
+       that took the pointer just before the unlink would otherwise read freed memory. A retired record has guest_tt and
+       kernel_handle 0, so no lookup finds it */
+    struct HosThread *spare;
 };
 
 /* The SDK's own mutexes (InternalCriticalSection) tag a lock word with the owner's handle, read from
@@ -75,6 +82,9 @@ static _Thread_local HosThread *cur;
 static SRWLOCK threads_lock = SRWLOCK_INIT;
 static HosThread *threads[1024];
 static int nthreads;
+/* (longshot) destroyed threads' records, reused by the next one (hos_thread_destroy): a lookup that took a pointer just
+   before the unlink reads a record that is still there, with its keys cleared */
+static HosThread *spare_threads;
 static volatile LONG64 next_id = 0x50;
 
 HosThread *hos_self(void) { return cur; }
@@ -147,6 +157,7 @@ static CONDITION_VARIABLE log_cv = CONDITION_VARIABLE_INIT;
 static char *log_q[2048];
 static int log_head, log_count;
 static volatile LONG log_async = -1;
+static volatile LONG log_dropped;   /* (lines a full queue dropped: said once by the writer's next batch) */
 static volatile DWORD log_writer;   /* log_main's thread */
 
 static int log_take_locked(char **out) {
@@ -183,6 +194,10 @@ static void log_write(char **lines, int n) {
             free(lines[i]);
         }
     }
+    /* (longshot) The lines a full queue dropped since the last batch, said once: a burst that overran the queue is not
+       silent, and the count is not a line a second) */
+    const LONG dropped = InterlockedExchange(&log_dropped, 0);
+    if (dropped) fprintf(stderr, "[hos host] log: %ld lines dropped (the queue was full)\n", (long)dropped);
     fflush(stderr);
 }
 
@@ -293,7 +308,10 @@ static int log_queue(const char *line) {
     }
     ReleaseSRWLockExclusive(&log_lock);
     free(s);
-    log_flush();
+    /* (longshot) A full queue drops the line instead of writing it here: log_flush takes log_write_lock, which the writer
+       holds across its fwrite, so a game thread that logged into a full queue waited on the disk (the 140-310 ms stalls the
+       queue exists to avoid). The drops are counted and said once, by the writer's next batch. */
+    InterlockedIncrement(&log_dropped);
     return 0;
 }
 #else
@@ -392,15 +410,22 @@ static void setup_guest(HosThread *t) {
 static void track(HosThread *t) {
     AcquireSRWLockExclusive(&threads_lock);
     if (nthreads < 1024) threads[nthreads++] = t;
+    else hos_log("thread %s: the registry is full (1024): not tracked (its lookups by ThreadType will fail)", t->name);
     ReleaseSRWLockExclusive(&threads_lock);
 }
 
-/* Host handles of every running guest thread, for the profiler (hos_prof.c). */
-int hos_thread_handles(HANDLE *out, const char **names, int max) {
+/* Host handles of every running guest thread, for the profiler (hos_prof.c). The names are copied into the caller's
+   buffers: a thread destroyed after the lock is released would otherwise leave the caller with a pointer into freed
+   memory (the record is retired now, but its name is cleared with it). */
+int hos_thread_handles(HANDLE *out, char (*names)[64], int max) {
     int n = 0;
     AcquireSRWLockShared(&threads_lock);
     for (int i = 0; i < nthreads && n < max; i++)
-        if (threads[i]->handle) { out[n] = threads[i]->handle; names[n] = threads[i]->name; n++; }
+        if (threads[i]->handle) {
+            out[n] = threads[i]->handle;
+            snprintf(names[n], 64, "%s", threads[i]->name);
+            n++;
+        }
     ReleaseSRWLockShared(&threads_lock);
     return n;
 }
@@ -496,9 +521,12 @@ HosThread *hos_thread_of(uint64_t guest_tt) {
 
 Ctx *hos_boot_main_thread(uint64_t stack_size) {
     HosThread *t = (HosThread *)calloc(1, sizeof *t);
+    if (!t) hos_fatal(NULL, "out of memory for the main thread's record");
     t->guest_tt = hos_sys_alloc(0x400, 0x10);      /* a ThreadType for the main thread; the SDK never made one */
+    t->guest_tt_owned = 1;
     t->stack_size = stack_size;
     t->stack = hos_sys_alloc(stack_size, 0x1000);
+    t->stack_owned = 1;
     t->id = InterlockedIncrement64(&next_id);
     t->priority = 44;                              /* main thread priority in TOTK's NPDM range */
     t->ideal_core = 0;
@@ -557,7 +585,13 @@ static DWORD WINAPI thread_main(void *p) {
 
 HosThread *hos_thread_create(uint64_t guest_tt, uint64_t entry, uint64_t arg, uint64_t stack, uint64_t stack_size,
                              int priority, int core) {
-    HosThread *t = (HosThread *)calloc(1, sizeof *t);
+    HosThread *t = NULL;
+    AcquireSRWLockExclusive(&threads_lock);
+    if ((t = spare_threads)) spare_threads = t->spare;
+    ReleaseSRWLockExclusive(&threads_lock);
+    if (!t) t = (HosThread *)calloc(1, sizeof *t);
+    else memset(t, 0, sizeof *t);   /* (a retired record: its keys and blocks were cleared, its context is stale) */
+    if (!t) hos_fatal(NULL, "out of memory for a thread record");
     t->guest_tt = guest_tt;
     t->entry = entry;
     t->arg = arg;
@@ -593,23 +627,54 @@ void hos_thread_start(HosThread *t) {
 void hos_thread_join(HosThread *t) {
     if (!t->handle) return;
     const int away = hos_vcore_away();
-    /* (EvilOOT, 11-07: a freeze after Load, one thread joining another for good: a join of over 10 s says who joins whom, once) */
+    /* (EvilOOT, 11-07: a freeze after Load, one thread joining another for good: a join of over 10 s says who joins whom, once.
+       Then it waits on, but not for ever: a thread that never ends (a deadlock in the game) used to hang the process with no
+       way out but the task manager. After HOS_JOIN_GIVE_UP_S (default 60) the join returns, and the caller goes on as if the
+       thread had ended: the game's own state is already broken, and a log line says so. hos_thread_destroy sees the thread
+       still running and leaves its handle and record alone) */
     if (WaitForSingleObject(t->handle, 10000) == WAIT_TIMEOUT) {
         HosThread *self = hos_self();
         hos_log("thread %s: joining %s for 10 s", self ? hos_thread_name(self) : "?", t->name);
-        WaitForSingleObject(t->handle, INFINITE);
+        static int give_up_s = -1;
+        if (give_up_s < 0) {
+            const char *e = getenv("HOS_JOIN_GIVE_UP_S");
+            give_up_s = e && atoi(e) >= 0 ? atoi(e) : 60;
+        }
+        if (give_up_s && WaitForSingleObject(t->handle, (DWORD)give_up_s * 1000) == WAIT_TIMEOUT)
+            hos_log("thread %s: joining %s for %d s more: given up (it never ended)", self ? hos_thread_name(self) : "?",
+                    t->name, give_up_s);
     }
     if (away) hos_vcore_back();
 }
 
 void hos_thread_destroy(HosThread *t) {
+    /* (longshot) A thread that still runs (a join gave up on it, or it destroys itself) keeps its handle and record: the next
+       thread would otherwise take the record while that thread's context is in it */
+    if (t == cur || (t->handle && WaitForSingleObject(t->handle, 0) == WAIT_TIMEOUT)) {
+        hos_log("thread %s: destroyed while it still runs: its handle and record stay", t->name);
+        return;
+    }
     AcquireSRWLockExclusive(&threads_lock);
     for (int i = 0; i < nthreads; i++)
         if (threads[i] == t) { threads[i] = threads[--nthreads]; break; }
     ReleaseSRWLockExclusive(&threads_lock);
     if (t->handle) CloseHandle(t->handle);
     if (t->wake) CloseHandle(t->wake);
-    free(t);
+    /* (longshot) The guest blocks setup_guest took go back to the system region: a game that makes and destroys threads
+       (OoT's job workers) ran the region out otherwise, and hos_sys_alloc stopped the process. The ThreadType is the game's
+       own (a stack object, or the SDK's), so only the blocks this file allocated are given back. */
+    if (t->tls_block) hos_sys_free(t->tls_block, 0x1000);
+    if (t->tlr) hos_sys_free(t->tlr, 0x200);
+    if (t->guest_tt && t->guest_tt_owned) hos_sys_free(t->guest_tt, 0x400);
+    if (t->stack && t->stack_owned) hos_sys_free(t->stack, t->stack_size);
+    /* (longshot) The record is kept and reused, not freed: a lookup that took the pointer just before the unlink above
+       would otherwise read freed memory. Its keys are cleared, so no lookup finds it, and the next thread takes it. */
+    t->guest_tt = 0, t->kernel_handle = 0, t->handle = NULL, t->wake = NULL;
+    t->tls_block = 0, t->tlr = 0, t->stack = 0, t->stack_size = 0, t->guest_tt_owned = 0, t->stack_owned = 0;
+    t->started = 0, t->run_ctx = NULL, t->host_fiber = NULL;
+    AcquireSRWLockExclusive(&threads_lock);
+    t->spare = spare_threads, spare_threads = t;
+    ReleaseSRWLockExclusive(&threads_lock);
 }
 
 /* The frame's serial threads: OoT's game thread (sead::MainThread, the boot thread's MainThread before the game names
@@ -1242,7 +1307,6 @@ static HosThread *thread_arg(Ctx *c, uint64_t tt) {
     if (!t) hos_fatal(c, "unknown nn::os::ThreadType %#llx", (unsigned long long)tt);
     return t;
 }
-
 /* nn::os::CreateThread(ThreadType*, void (*)(void*), void* arg, void* stack, unsigned long size, int prio) */
 HLE(_ZN2nn2os12CreateThreadEPNS0_10ThreadTypeEPFvPvES3_S3_mi) {
     HOS_TRACE_CALL("CreateThread");
@@ -1588,8 +1652,23 @@ HLE(_ZN2nn2os15InitializeFiberEPNS0_9FiberTypeEPFS2_PvES3_S3_mi) {
 }
 
 HLE(_ZN2nn2os13FinalizeFiberEPNS0_9FiberTypeE) {
-    HosFiber *f = fiber_of_ft(ARG(0));
+    /* (longshot) The record goes with the fiber: it was calloc'd in InitializeFiber and never freed, so every fiber the game
+       made and finalized stayed in the list (and made fiber_of_ft's walk longer). Only one that has returned (done) and is
+       not the running context is freed: another thread may still be switching to a live one. The lookup and the unlink are
+       one critical section, so a fiber finalized twice cannot be freed twice. */
+    HosFiber *f = NULL;
+    AcquireSRWLockExclusive(&fibers_lock);
+    for (HosFiber **p = &fibers; *p; p = &(*p)->next)
+        if ((*p)->ft == ARG(0)) { f = *p; break; }
     if (f && f->host && &f->ctx != c) { DeleteFiber(f->host); f->host = NULL; f->done = 1; }
+    if (f && f->done && &f->ctx != c) {
+        for (HosFiber **p = &fibers; *p; p = &(*p)->next)
+            if (*p == f) { *p = f->next; break; }
+    } else {
+        f = NULL;
+    }
+    ReleaseSRWLockExclusive(&fibers_lock);
+    free(f);
 }
 
 HLE(_ZN2nn2os15GetCurrentFiberEv) {

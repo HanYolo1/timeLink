@@ -459,7 +459,12 @@ static int run_order(const void *a, const void *b) {
 }
 
 static void add_run(Run **runs, size_t *nruns, size_t *cap, uint32_t off, uint32_t len, const uint8_t *data) {
-    if (*nruns == *cap) *runs = (Run *)realloc(*runs, (*cap *= 2) * sizeof **runs);
+    if (*nruns == *cap) {
+        const size_t grown_cap = *cap ? *cap * 2 : 64;
+        Run *grown = (Run *)realloc(*runs, grown_cap * sizeof **runs);
+        if (!grown) return;   /* (out of host memory: the run is left out, as a block that could not be read) */
+        *runs = grown, *cap = grown_cap;
+    }
     (*runs)[*nruns] = (Run){off, len, (uint32_t)*nruns, data};
     (*nruns)++;
 }

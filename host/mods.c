@@ -61,9 +61,16 @@ static void put(const char *key, const char *host, uint64_t size, int is_dir) {
     }
     size_t i = hash_str(key) & (table_cap - 1);
     while (table[i].key && strcmp(table[i].key, key)) i = (i + 1) & (table_cap - 1);
-    if (!table[i].key) table[i].key = _strdup(key), table_n++;
-    else free(table[i].host);
-    table[i].host = _strdup(host);
+    char *host_copy = _strdup(host);
+    if (!host_copy) return;   /* (out of host memory: the entry is left as it was) */
+    if (!table[i].key) {
+        char *key_copy = _strdup(key);
+        if (!key_copy) { free(host_copy); return; }
+        table[i].key = key_copy, table_n++;
+    } else {
+        free(table[i].host);
+    }
+    table[i].host = host_copy;
     table[i].size = size;
     table[i].is_dir = is_dir;
 }
@@ -96,6 +103,12 @@ static int index_romfs(const char *host_dir, const char *rel, int depth) {
         }
         snprintf(key, sizeof key, "%s%s%s", rel, *rel ? "/" : "", fd.cFileName);
         lower_slash(key);
+        /* (longshot) A path too long for the key was silently cut, so two long mod paths could share one key and one file
+           answered for the other. Left out, and said, as a link to a folder is */
+        if (strlen(rel) + (*rel ? 1 : 0) + strlen(fd.cFileName) >= sizeof key) {
+            hos_log("mods: %s: the path is too long for the RomFS index: left out", host);
+            continue;
+        }
         const int is_dir = (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
         put(key, host, ((uint64_t)fd.nFileSizeHigh << 32) | fd.nFileSizeLow, is_dir);
         if (is_dir) {
@@ -121,7 +134,12 @@ static void find_mods(const char *dir, const char *name, int depth) {
     snprintf(probe, sizeof probe, "%s\\exefs", dir);
     const int has_exefs = GetFileAttributesA(probe) != INVALID_FILE_ATTRIBUTES;
     if ((has_romfs || has_exefs) && depth > 0) {
-        if (nmods == cap_mods) mods = (Mod *)realloc(mods, sizeof *mods * (size_t)(cap_mods = cap_mods ? cap_mods * 2 : 16));
+        if (nmods == cap_mods) {
+            const int cap = cap_mods ? cap_mods * 2 : 16;
+            Mod *grown = (Mod *)realloc(mods, sizeof *mods * (size_t)cap);
+            if (!grown) return;   /* (out of host memory: the mod is left out) */
+            mods = grown, cap_mods = cap;
+        }
         snprintf(mods[nmods].path, MAX_PATH, "%s", dir);
         snprintf(mods[nmods].name, MAX_PATH, "%s", name);
         nmods++;
