@@ -291,7 +291,7 @@ static partial class Program
             var tree = Path.Combine(folder, "squashfs-root");
             Directory.CreateDirectory(Path.Combine(tree, "usr", "bin"));
             File.WriteAllText(Path.Combine(tree, "AppRun"), "#!/bin/sh\n");
-            File.WriteAllText(Path.Combine(tree, "usr", "bin", "timeLinkLauncher"), "\x7fELF the launcher");
+            File.WriteAllText(Path.Combine(tree, "usr", "bin", "TimeLinkLauncher"), "\x7fELF the launcher");
             return Task.CompletedTask;
         }
         var launcherChains = new Toolchains(Path.Combine(root, "toolchains-launcher"), forge.Server);
@@ -301,10 +301,10 @@ static partial class Program
                 "The launcher, unpacked in place of the builder, left a version behind.");
         var held = Path.Combine(chains.PathOf("v3.0.0"), "usr", "bin");
         Directory.CreateDirectory(held);
-        File.WriteAllText(Path.Combine(held, "timeLinkLauncher"), "\x7fELF the launcher");
+        File.WriteAllText(Path.Combine(held, "TimeLinkLauncher"), "\x7fELF the launcher");
         Require(!chains.IsInstalled("v3.0.0") && !chains.Installed().Contains("v3.0.0"), "A version that holds the launcher counts as installed.");
         var healed = await ToolsSource.EnsureAsync(chains, releases, "v3.0.0", null, default, Extract);
-        Require(File.Exists(healed.MakeGame) && !File.Exists(Path.Combine(held, "timeLinkLauncher")) && chains.IsInstalled("v3.0.0"),
+        Require(File.Exists(healed.MakeGame) && !File.Exists(Path.Combine(held, "TimeLinkLauncher")) && chains.IsInstalled("v3.0.0"),
                 "A version that holds the launcher was not installed again.");
         forge.Add("v3.0.1", key, files: new() { [ReleaseManifest.BuilderFile("v3.0.1", "linux-x64")] = image },
                   sums: s => s.Replace(ShaOf(image), new string('0', 64)));
