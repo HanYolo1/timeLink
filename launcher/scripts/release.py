@@ -37,7 +37,7 @@ this is; $FORGEJO_API, $FORGEJO_UPLOAD_API):
         a draft release (pre-release unless a stable), every file uploaded and checked, then published: until that last step
         no launcher sees it. A draft left by a failed run of the same tag is reused. The page is the notes under a header
         (release_page): the launcher's, big download links to its own files; timeLink's, "to play, get the timeLink
-        Launcher", with longshot.magicbean.dev's links to the newest launcher of the same channel
+        Launcher", with links to the newest launcher of the same channel
     python -I scripts/release.py prune [--keep 5]
         the nightly releases and their tags past the newest <keep>; nothing else is ever deleted
     python -I scripts/release.py released-as <commit> [--not <tag>]
