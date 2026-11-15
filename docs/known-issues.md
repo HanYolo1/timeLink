@@ -13,8 +13,8 @@ These stop `v0.1.0` from being shippable. Nothing else on this page does.
 
 | # | Issue | Why it blocks | Owner |
 |---|---|---|---|
-| 1 | ~~**`third-party` archive is incomplete: 3 of 11 kits**~~ â€” **misdiagnosed, and the real bug is fixed.** The archive is *correct*: it carries only the prebuilt files (`a64emit.dll`, `lld-link.exe`, `SDL2.dll`, `SDL3.dll`, `zbic.dll`), and the builder zip carries the 11 kits' sources. The real failure was `place_tool` in `builder/setup/setup.c`: it refused **any** file present on both sides, and `SDL2.dll`/`SDL3.dll` are byte-identical in both, so every install stopped at tool 6 of 6. It now compares SHA-256 and accepts identical bytes (the builder's copy stays); different bytes are still refused. Covered by `tests/test_setup_tool_merge.py` | â€” | done |
-| 2 | ~~**`tools.lock` names GitHub assets that do not exist yet**~~ â€” **done**: all 11 archives are uploaded to the `tools` release of **`HanYolo1/timeLink-tools`**, a public repository that holds nothing but these archives, and every `tools.lock` line names it first. Verified unauthenticated: `curl` gets 200 and the right byte count, and `scripts/tools.py fetch sdl2` / `fetch third-party` both download and check their SHA-256 with no token. The tools could not live in `HanYolo1/timeLink` itself: that repository is private, and GitHub does not serve `releases/download/` for a private repository at all â€” not even with a token (the API asset endpoint works, but the builder's setup, the AppImage and the launcher all use the plain URL) | â€” | done |
+| 1 | ~~**`third-party` archive is incomplete: 3 of 11 kits**~~ — **misdiagnosed, and the real bug is fixed.** The archive is *correct*: it carries only the prebuilt files (`a64emit.dll`, `lld-link.exe`, `SDL2.dll`, `SDL3.dll`, `zbic.dll`), and the builder zip carries the 11 kits' sources. The real failure was `place_tool` in `builder/setup/setup.c`: it refused **any** file present on both sides, and `SDL2.dll`/`SDL3.dll` are byte-identical in both, so every install stopped at tool 6 of 6. It now compares SHA-256 and accepts identical bytes (the builder's copy stays); different bytes are still refused. Covered by `tests/test_setup_tool_merge.py` | — | done |
+| 2 | ~~**`tools.lock` names GitHub assets that do not exist yet**~~ — **done**: all 11 archives are uploaded to the `tools` release of **`HanYolo1/timeLink-tools`**, a public repository that holds nothing but these archives, and every `tools.lock` line names it first. Verified unauthenticated: `curl` gets 200 and the right byte count, and `scripts/tools.py fetch sdl2` / `fetch third-party` both download and check their SHA-256 with no token. The tools could not live in `HanYolo1/timeLink` itself: that repository is private, and GitHub does not serve `releases/download/` for a private repository at all — not even with a token (the API asset endpoint works, but the builder's setup, the AppImage and the launcher all use the plain URL) | — | done |
 | 3 | **No release key secret yet** | The public key is in `launcher/Core/ReleaseTrust.cs` (id `774f1dc88462b913`), but `RELEASE_SIGNING_KEY` must be set in the repository's Actions secrets, and `release.pem` backed up offline. Without the secret the publish job stops at *SHA256SUMS, signed* | the repository owner |
 
 ## Verified 2026-11-15: the installer, end to end
@@ -48,7 +48,7 @@ clang -O2 -mwindows -municode setup.c setup_rc.o -lwinhttp -lbcrypt -lcomctl32 -
 ```
 
 **Re-verified end to end** with that binary, on the same zip. The installer now passes all six tools and hands over to the
-builder, which then asks for game files â€” the correct behaviour with none given:
+builder, which then asks for game files — the correct behaviour with none given:
 
 ```
 build: up to 16 compilers at once (one per CPU thread), as the memory allows; TIMELINK_JOBS=<n> to change
@@ -56,8 +56,8 @@ build: up to 16 compilers at once (one per CPU thread), as the memory allows; TI
 ```
 
 State after the run: one complete version folder (no `.part`), `current.txt` written, `parts.txt` holding all **six** tool
-SHA-256s including `third-party`, `tools/third_party` with all **11** kits, and `zbic/zbic.dll` plus `zbic/zbic.lib` â€” which
-the archive carries and the zip does not â€” merged in from the tool. That is the merge working as designed.
+SHA-256s including `third-party`, `tools/third_party` with all **11** kits, and `zbic/zbic.dll` plus `zbic/zbic.lib` — which
+the archive carries and the zip does not — merged in from the tool. That is the merge working as designed.
 
 ## Verified 2026-11-15: shader pre-compilation
 
@@ -77,7 +77,7 @@ to the player (`SettingsStepViewModel.cs:189-198`, "Adds about 8 min here, so th
 | `timeLink_shaders.bin` | 514 MB | shipped shader set |
 | `timeLink_pipeline_states_shipped.bin` | 22 MB | shipped pipeline states |
 
-`timeLink_options.ini` holds `compile_shaders=0`, the ini's own encoding of a level â€” not a build failure; the caches above
+`timeLink_options.ini` holds `compile_shaders=0`, the ini's own encoding of a level — not a build failure; the caches above
 are what the preparation produced.
 
 ## The tools re-host: done
@@ -151,13 +151,13 @@ invisible — the install then fails on a tool the lock appears to list. BOMs we
 | **One tag now means one channel** | Since both products share `v0.1.0` and one release, a launcher hotfix needs a new tag that also rebuilds the game and its builders | Accepted trade of one-release; stated in [versioning.md](versioning.md) |
 | **`check_tag` says "from v0.0.0"** | `"%d.0.0" % first_major` with `first_major = 0`. Cosmetic: no test asserts it | Leave it. Changing the text breaks RELEASING.md, versioning.md and anything matching the message, for no behaviour change |
 | **`FIRST_VERSION` is global** | `release.py` decides a product's first version from `first_major` alone, so it cannot tell a product starting at `v0.1.0` from one starting at `v1.0.0`. Both are 0 today | Derive it per product (repo or name), keeping the global as fallback |
-| **Pre-fork tags still sort as versions** | With the floor at 0, `is_version` accepts `v3.0.0`, so a numerically higher pre-fork tag wins `max()`. `after_fork()` excludes tags before `e2a4d45`, which handles the `v2.x` ones. A `v3.x` tag *after* the rename still counts â€” correct for a real release, wrong for a bogus local tag | Do not re-tag old commits. Note that `origin` carries 81 upstream tags, so `git fetch --tags origin` restores them |
+| **Pre-fork tags still sort as versions** | With the floor at 0, `is_version` accepts `v3.0.0`, so a numerically higher pre-fork tag wins `max()`. `after_fork()` excludes tags before `e2a4d45`, which handles the `v2.x` ones. A `v3.x` tag *after* the rename still counts — correct for a real release, wrong for a bogus local tag | Do not re-tag old commits. Note that `origin` carries 81 upstream tags, so `git fetch --tags origin` restores them |
 
 ## Launcher
 
 | Issue | Detail |
 |---|---|
-| **`HookshotSaves.cs` / `HookshotSettings.cs` (27 KB) are a rename, not an adaptation** | They still carry Hookshot's save and settings layout. They need real work against timeLink's layout before save import and export can be trusted. Untouched |
+| **`HookshotSaves.cs` / `HookshotSettings.cs`: already a fork, not a rename** | Correcting an earlier note that called these untouched: they read Hookshot's layout and write timeLink's. `TargetFiles` is `timeLink_options.ini` and `language.txt`, never a `hookshot*` name; the backup folder is `hookshot-settings-<stamp>` on purpose, so a restore is recognisable. They are wired into the UI (`HookshotImportViewModel`, `HookshotSettingsViewModel`, `Views.cs`) and covered by 64 launcher-core checks (`HookshotChecks.cs` 19, `HookshotSettingsChecks.cs` 45). Both merely *accept* the strings `hookshot` and `Hookshot`; nothing is converted. What is genuinely open is narrower: no check asserts a Hookshot-authored ini lands as `timeLink_options.ini` end to end |
 | **Icon and branding assets** | `Assets/timeLink.ico` and `timeLink.png` are the vendored ones renamed, not redrawn. `scripts/make_icon.py` regenerates from the png |
 | **No CDN** | `CdnFetcher` was deleted (it fronted MagicBeanDev's Cloudflare edge). Release files and lists now come from GitHub directly. No replacement is needed, but a slow GitHub is not cached |
 | **Shaders are not forced by the launcher** | The launcher passes no `--compile-shaders`, so the level comes from `make_game.py`'s default or the build folder's own `compile_shaders=`. It works (`most`), but an explicit flag would make the choice visible in the command line and immune to a future change of default |
@@ -169,7 +169,18 @@ invisible — the install then fails on a tool the lock appears to list. BOMs we
 |---|---|
 | **`launcher/tests/test_release.py`: 1 failure + 5 errors on Windows** | Pre-existing and environmental: CRLF handling in a fixture upload, and jobs that need `Bash`. Identical on unmodified upstream. Not a regression from any fork change |
 | **`test_launcher_core.py --strict` covers 990 checks** | Was 1033 before `CdnFetcher` went; the 43 removed assertions tested the deleted edge only |
-| **Tests that read source by marker strings** | Many checks cut a function out of a source file by its text. Renaming a helper can break a check far from the change â€” run `python -I -B tests/run_all.py` and fix the check in the same change |
+| **Tests that read source by marker strings** | Many checks cut a function out of a source file by its text. Renaming a helper can break a check far from the change — run `python -I -B tests/run_all.py` and fix the check in the same change |
+
+## Where `magicbean` may still appear, and why
+
+Not every reference is a defect. Swept the tree; the remaining ones fall in four groups, and only the first was a bug.
+
+| Where | Why it stays |
+|---|---|
+| **`scripts/forge.py`, `test_requests.py`, `check_pr_description.py`, `docs/forge.md`, `docs/forgejo-runners.md`** | The *team's* Forgejo at `git.magicbean.dev` is where Longshot's own pull requests, test requests and Discord sign-in live. That is not a dependency of the game; it is the collaboration tooling. Rewriting it would break the team's workflow |
+| **`longshot.magicbean.dev` in `README.md`, `docs/common-issues.md`, `docs/getting-started.md`, `docs/tested*`** | Those are links into MagicBeanDev's *support* site (report search, antivirus guide). They are stale for this fork and should point at this fork's docs. Not yet rewritten: 24 in `common-issues.md`, 20 in `README.md`. Low priority, no code path |
+| **`docs/releases.md`, `RELEASING.md`, `launcher/VENDORED.md`, `ReleaseTrust.cs`** | History: where the fork came from, which key was removed, which Forgejo mechanics no longer apply. Accurate as prose |
+| **`builder/timeLinkBuilder/Program.cs`** | **Was a bug, now fixed** — see the Fixed table. A shipped binary was telling players to download the launcher from a domain this fork does not own |
 
 ## Inherited from upstream, not caused by this fork
 
@@ -188,4 +199,6 @@ invisible — the install then fails on a tool the lock appears to list. BOMs we
 | The root `scripts/release.py` still queried MagicBeanDev's Forgejo (`SERVER`, both `repo:` entries) while `release.yml` calls it | Repointed to `https://api.github.com` and `HanYolo1/timeLink`, in both copies |
 | A launcher would take a builder's `v3` release for a newer launcher | Products are told apart by the files a release ships (`ReleaseManifest.Ships`, `release.py ships`), not by the tag |
 | `v2.9.0` fixture depended on the old floor of 3 | Now `v2.9.0-beta`; the C# harness was red at 990 checks until fixed |
+| `launcher/docs/releases.md` still described Forgejo packages, the Cloudflare edge and "seven tools not re-hosted", and `docs/known-issues.md` said `CdnFetcher` "went" when it is deleted | Both corrected against the tree: the `tools` release on `HanYolo1/timeLink-tools`, no CDN, no missing archives. Found by sweeping the docs for wording the code had outgrown — the same one-copy-fixed-one-not bug as `release.py` |
+| **A shipped builder sent players to MagicBeanDev's domain** | `builder/timeLinkBuilder/Program.cs` told players to get the launcher at `https://longshot.magicbean.dev/download` in the text a `timeLinkBuilder.exe` prints when run with no arguments | `LauncherDownload` is now this fork's own releases page |
 | `required(0)` returned `v0.0.0` | Returns `FIRST_VERSION` (`v0.1.0`); covered by `test_the_first_release_of_a_product_that_starts_at_zero` |

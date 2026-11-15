@@ -11,7 +11,7 @@ namespace timeLinkBuilder;
 static class Program
 {
     /// Where players get the launcher (README, "Install and play")
-    public const string LauncherDownload = "https://longshot.magicbean.dev/download";
+    public const string LauncherDownload = "https://github.com/HanYolo1/timeLink/releases/latest";
 
     public const string UseTheLauncher =
         "The timeLink Builder has no window of its own: the timeLink Launcher builds the game and starts it. Get the launcher from " +

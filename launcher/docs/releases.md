@@ -121,34 +121,29 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
   merged in, file by file; a file both have is refused, never replaced. A tool another installed version has, with the
   same SHA-256 and unpacked the same way, is taken from it and not downloaded again (the Windows setup excepts a merged
   tool: it comes from its archive each time). `scripts/tools.py install` does the same, for CI and developers.
-- **Where the archives are: Packages, and the tools.lock blocker.** Every tool is downloaded first from timeLink's copy, a
-  file of a **generic package** of the HanYolo1 organization (its *Packages* tab): the package `<name>-<system>`
-  (`emsdk-windows-x64`, `emsdk-linux-x64`: a tool's Windows and Linux builds have versions of their own), its version the
-  tool's, the file `<sha256>-<name>.zip`, at
-  `https://git.magicbean.dev/api/packages/HanYolo1/generic/<name>-<system>/<version>/<file>`. Forgejo keeps packages in
-  Cloudflare R2, and `git-cdn.magicbean.dev` served the same paths from Cloudflare's edge (cached), so each tool used to
-  have a `git-cdn.magicbean.dev` link first and the same file on git.magicbean.dev second.
+- **Where the archives are: the `tools` release.** Every tool is downloaded first from timeLink's own copy, an asset of the
+  **`tools` release** on `HanYolo1/timeLink-tools`, named `<sha256>-<name>.zip`:
+  `https://github.com/HanYolo1/timeLink-tools/releases/download/tools/<sha256>-<name>.zip`. That repository is **public**
+  and holds nothing but these archives: a private repository's release assets are not served at `releases/download/` at
+  all, not even with a token, so the builder's setup and the AppImage could not fetch them. The name carries the digest and
+  `tools.lock` checks it, so a replaced asset is caught; GitHub lets an asset be deleted and uploaded again, so never reuse
+  a version string. Nothing prunes the release, so an older version's tools stay downloadable. Where an archive came from
+  (upstream for llvm-mingw, NotRexed/Hookshot's `builder-parts` release for those taken from Hookshot) is its fallback URL,
+  so no install depends on a repository we do not control alone. An archive timeLink makes itself (the CPM cache with dav1d,
+  the prebuilt `third_party` files, the Linux tools) has no upstream: its release asset is the only copy.
 
-  **This fork does not use any of that.** The launcher has no Cloudflare edge in front of it any more (`CdnFetcher` went
-  with MagicBeanDev's Forgejo), and seven of `tools.lock`'s lines still point only at MagicBeanDev's package store with no
-  upstream fallback: `cpm` (win), `third-party` (win), and `emsdk`, `ffmpeg`, `sdl2`, `sysroot`, `cpm` (linux). Until those
-  archives are re-hosted, a build that needs them cannot install: `Core/Toolchains.cs` reads `tools.lock`, so the launcher
-  inherits it. Re-hosting is the one thing standing between this fork and a launcher that installs anything.
-
-  Anyone downloads packages with no account. A package version's files never change (Forgejo refuses a second upload of a
-  name), and nothing prunes them, so an older version's tools stay downloadable. Where an archive came from (upstream for
-  llvm-mingw, NotRexed/Hookshot's `builder-parts` release for those taken from Hookshot) is its fallback URL, so no install
-  depends on a repository we do not control alone. An archive timeLink makes itself (the CPM cache with dav1d, the
-  prebuilt `third_party` files, the Linux tools, a play profile) is only in Packages, put there by `scripts/tools.py`.
+  The launcher has no Cloudflare edge in front of it any more (`CdnFetcher` went with MagicBeanDev's Forgejo), so a release
+  file and a release list come from GitHub directly. `Core/Toolchains.cs` reads `tools.lock` like the builder does, so the
+  launcher installs from the same public release.
 - **Bumping a tool** is a pull request that edits `tools.lock`, with the archive uploaded by `scripts/tools.py mirror`,
-  `add` or `assemble`: a new package version, then the line (RELEASING.md, "Bump a tool"). The release workflow refuses a
-  `tools.lock` whose package files are not there with their size and SHA-256, or that lacks a tool the
+  `add` or `assemble`: a new asset in the `tools` release, then the line (RELEASING.md, "Bump a tool"). The release workflow
+  refuses a `tools.lock` whose assets are not there with their size, or that lacks a tool the
   builder needs (`tools.py check --require`), in its first job, before anything is built.
 - **Today's lock.** Windows: Python, emsdk and wgpu-native are taken as they are from Hookshot v2.1.0's Windows builder
   (NotRexed/Hookshot's `builder-parts` release), with their SHA-256; llvm-mingw is upstream's; the CPM cache is Hookshot
   v2.1.0's with dav1d added (`scripts/windows/dav1d.sh`), and `third-party` the prebuilt files of Hookshot v2.1.0's
-  `third_party` part (`assemble third-party`). Linux: `scripts/linux/deps.sh tools`'s. There is no play profile yet: the
-  lock has no `profile` line, and `check --require` does not ask for one.
+  `third_party` part (`assemble third-party`). Linux: `scripts/linux/deps.sh tools`'s. The lock has no play profile:
+    play profiles are committed in `assets/profiles/`.
 - **Linux.** The AppImage carries only the builder: its Python (the tools' download and `make_game.py` run on it,
   and its packages follow `requirements.txt`, which changes with the version), timeLink's sources and the prebuilt Vulkan
   back end. Each `linux-x64` tool's `dest` is where the AppImage had it (`usr/lib/timeLink/emsdk`, `usr/share/timeLink/cpm`,
