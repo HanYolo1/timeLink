@@ -504,7 +504,9 @@ def repo_of(product):
 
 
 def api(method, path, body=None, data=None, content_type=None, upload=False, missing_ok=False):
-    base = (os.environ.get("FORGEJO_UPLOAD_API") if upload else None) or os.environ.get("FORGEJO_API") or SERVER + "/repos"
+    # (every caller passes a path that already starts with /repos/<owner>/<repo>, so the base is the API root: appending
+    # "/repos" here made it /repos/repos/..., which GitHub answers 404)
+    base = (os.environ.get("FORGEJO_UPLOAD_API") if upload else None) or os.environ.get("FORGEJO_API") or SERVER
     headers = {"User-Agent": "timeLink-release", "Accept": "application/json"}
     token = os.environ.get("RELEASE_TOKEN")
     if token:
