@@ -2,9 +2,8 @@
 
 ## Not sure it's a bug?
 
-[Ask on Discord](https://discord.gg/magicbean) first: the team and other players are there, and someone may know the
-fix already. Check [common problems](common-issues.md) and [search the reports](https://github.com/HanYolo1/timeLink/issues)
-too.
+Check [common problems](common-issues.md) and [search the issues](https://github.com/HanYolo1/timeLink/issues) first:
+someone may have hit it already.
 
 ## Report a bug
 
@@ -20,10 +19,8 @@ your user name taken out. Never attach game files, keys or saves.
 
 ## Help with testing
 
-Fixes often need checking on hardware the developer doesn't have: another graphics card, Linux, a Steam Deck. The team
-posts test requests on [Discord](https://discord.gg/magicbean); pick one up, play the change, and say what you saw,
-including what didn't work. The [testing guide](https://github.com/HanYolo1/timeLink/src/branch/main/docs/test-requests.md)
-explains how.
+Fixes often need checking on hardware the developer doesn't have: another graphics card, Linux, a Steam Deck. If you
+can test something, say so on the issue for that change and report what you saw, including what didn't work.
 
 ## Improve the documentation or the code
 

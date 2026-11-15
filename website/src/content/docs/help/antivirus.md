@@ -12,12 +12,9 @@ That doesn't mean you should trust any file with timeLink's name. First check th
 
 ## 1. Check that your download is genuine
 
-Only download timeLink from its two release pages on git.magicbean.dev:
+Only download timeLink from its release page on GitHub:
 
-- [The timeLink Launcher's releases](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases)
 - [timeLink's releases](https://github.com/HanYolo1/timeLink/releases)
-
-The [download page](/download) and its links send you to the first of these.
 
 A copy from anywhere else may not be ours. To check a file you downloaded, compare its SHA-256 with the one the release
 lists in its `SHA256SUMS` file. In PowerShell, in the folder you downloaded it to:
@@ -95,6 +92,7 @@ Every report of a false positive teaches Microsoft that timeLink is safe, for ev
 
 ## Still stuck?
 
-[Search the reports](/progress/#problem-search?q=antivirus) or [ask on Discord](https://discord.gg/magicbean). To
+[Search the issues](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+antivirus) or
+[open a new one](https://github.com/HanYolo1/timeLink/issues/new). To
 report a new problem, include the file's name and version, where you downloaded it from, and the exact detection name.
 Never send game files or keys.

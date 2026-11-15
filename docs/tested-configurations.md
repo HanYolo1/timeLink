@@ -3,11 +3,10 @@
 What has actually been run, where, and how it went. The README's
 [status table](../README.md#project-status) sums this up by vendor; the runs below keep the evidence.
 
-**[Read the combined catalogue on the website](https://longshot.magicbean.dev/tested-configurations/)** for the
-frozen table and new run files together. This source page keeps the existing table visible without running a command.
-The website assembles its view from these repository files; it does not collect results from a service.
+This page is the catalogue: the frozen table and the new run files together. It is assembled from these repository
+files; it does not collect results from a service.
 
-Browse the [new run files](tested/) individually, or use the combined catalogue above. For each new measured run,
+Browse the [new run files](tested/) individually, or read on below. For each new measured run,
 add a self-contained `YYYY-MM-DD-topic-tester-run.md` file under `docs/tested/`, following the
 [format and checking instructions](tested/README.md). The tester's name and a distinct run identifier are required;
 repeat the context instead of saying `as above`. New results belong in those files, not in the table below.

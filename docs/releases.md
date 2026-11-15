@@ -22,9 +22,9 @@ GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot
 
 ## What a release is
 
-Each version is one Forgejo release, made by `.github/workflows/release.yml`:
+Each version is one GitHub release, made by `.github/workflows/release.yml`:
 
-| timeLink (MagicBeanDev/timeLink) | The launcher (MagicBeanDev/timeLink Launcher) |
+| timeLink | The launcher |
 |---|---|
 | `timeLinkBuilder-<v>-windows-x64.zip`: the Windows builder (its setup as `timeLinkBuilder.exe`, the builder and timeLink's sources in `timeLinkBuilder\`, `tools.lock`, `VERSION`, and `recomplauncher.json` at the top) | `timeLinkLauncher-<v>-windows-x64-setup.exe`: one self-contained program that installs itself (below); `timeLinkLauncher-<v>-windows-x64-portable.zip`: the same program as `timeLinkLauncher.exe` with its `portable` file |
 | `timeLink-<v>-x86_64.AppImage`: the Linux builder (the builder, its Python, timeLink's sources, its `tools.lock` and `recomplauncher.json`; the player's build compiles the Vulkan back end); its build tools are not inside | `timeLinkLauncher-<v>-x86_64.AppImage` |
@@ -34,10 +34,9 @@ Each version is one Forgejo release, made by `.github/workflows/release.yml`:
 `SHA256SUMS` is `sha256sum`'s format, one `<64 hex>  <name>` line per file. `SHA256SUMS.sig` is the base64 of the DER ECDSA
 P-256 signature of `SHA256SUMS`'s exact bytes, by the release key. A release's files never change: a fix is the next version.
 
-Release files are Forgejo attachments: `[attachment] MAX_SIZE` (2048 MB on git.magicbean.dev now) caps each file, and
-`[repository.release] ALLOWED_TYPES` must stay empty (every type) for `.AppImage`, `.exe`, `.lock` and `SHA256SUMS`. The
-site is behind Cloudflare, which refuses uploads over 100 MB: CI uploads to the organization variable `RELEASE_UPLOAD_API` (`FORGEJO_UPLOAD_API` to `release.py`), the instance's address
-without Cloudflare in front, when it is set (RELEASING.md, One-time setup). Downloads are not limited.
+GitHub takes a release asset up to 2 GB, so there is no upload proxy to configure and no per-type allow list: the
+`.AppImage`, `.exe`, `.lock` and `SHA256SUMS` files all go up directly. Assets upload to `uploads.github.com`, which is
+what the release's own `upload_url` names.
 
 CI makes each release with the job's own token (`forgejo.token`, given to `release.py` as `RELEASE_TOKEN`), with no
 secret and no bot account: on a push or a tag in the
@@ -247,7 +246,7 @@ right thing:
 
 - **The launcher's releases** start with big download links to that release's own files: *Download for Windows* (the
   installer), *Download for Linux* (the AppImage), and a small link to the portable zip, all straight from GitHub's
-  release assets (the Cloudflare edge that fronted MagicBeanDev's Forgejo is gone with it).
+  release assets.
 - **timeLink's releases** start with "To play, get the timeLink Launcher": the same big links, to the newest launcher of
   the **same channel** (an rc to the launcher's rc, a nightly to its nightly, a stable to its stable) through the links
   below, then "Don't download the files below": they are the builders the launcher installs.
@@ -285,7 +284,7 @@ updates everything), or **RecompLauncher**, with the same builder files.
 - **Forgejo releases, not a package store and pointer files.** A release is what Forgejo already shows people: a tag, notes
   and files. The channels follow from the list, so there is nothing else to publish, keep in step or replay. Drafts make a
   release appear all at once.
-- **A signature on the checksums.** HTTPS says a file came from git.magicbean.dev. A stolen token, a compromised runner or a
+- **A signature on the checksums.** HTTPS says a file came from GitHub. A stolen token, a compromised runner or a
   mistake on the server would otherwise reach every player's PC, and the launcher runs what it installs. One signature
   over `SHA256SUMS` covers every file, however large.
 - **tools.lock, not the tools in every release.** The tools change rarely and weigh gigabytes. A lock file in the repository

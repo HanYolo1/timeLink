@@ -15,7 +15,7 @@
 <p align="center">
   <a href="https://github.com/HanYolo1/timeLink/releases"><b>Releases</b></a> |
   <a href="https://github.com/HanYolo1/timeLink/releases"><b>Download</b></a> |
-  <a href="https://discord.gg/magicbean"><b>Discord</b></a> |
+  <a href="https://github.com/HanYolo1/timeLink/issues"><b>Issues</b></a> |
   <a href="#project-status">Status</a> |
   <a href="#install-and-play">Install and play</a> |
   <a href="#build-from-source">Build from source</a> |
@@ -27,20 +27,18 @@
 <p align="center">A personal fork of timeLink, hosted on GitHub.</p>
 
 > [!NOTE]
-> **This is a personal fork.** It is a copy of timeLink, which is itself a continuation of
-> [Hookshot](https://git.magicbean.dev/MagicBeanDev/Longshot). It is not the upstream project, and the upstream
-> maintainers do not maintain it. timeLink is free software under the
+> **This is a personal fork.** It is a copy of timeLink, which is itself a continuation of Hookshot. It is not the
+> upstream project, and the upstream maintainers do not maintain it. timeLink is free software under the
 > [GNU General Public License, version 3 or later](LICENSE); the license, the copyright notices and every third-party
 > notice are kept as they are.
 >
-> **Issues and pull requests are closed on this fork for now.** Nothing here is a request for contributions. Bug
-> reports and questions go to [Discord](https://discord.gg/magicbean).
+> **Report problems here:** [open an issue](https://github.com/HanYolo1/timeLink/issues).
 
 timeLink is a static recompilation of a supported console game. The game's code is translated to C and compiled into a Windows or Linux program, rebuilding the graphics on Vulkan, with the console's system software reimplemented. All of this happens **on your PC, from your own copy of the game**.
 
-timeLink is a continuation of [Hookshot](https://git.magicbean.dev/MagicBeanDev/Longshot). The top maintainers have moved to this project.
+timeLink is a continuation of Hookshot. The top maintainers have moved to this project.
 
-**[Join us on Discord](https://discord.gg/magicbean)!**
+**[Report a problem](https://github.com/HanYolo1/timeLink/issues)!**
 <br>
 
 > [!IMPORTANT]
@@ -58,8 +56,8 @@ what does not yet. Open problems are collected in tracking issues, linked below.
 | Kokiri Forest: reaching gameplay and walking around | ✅ Works |
 | Sound, controller, keyboard and saves | ✅ Works |
 | In-game menu, frame generation and upscaling | ✅ Works |
-| Flicker (the picture flashing too bright while moving) | ✅ Fixed in v2.0.2 ([#645](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/645)) |
-| Ground fog vanishing when looking down | ✅ Fixed in v2.0.2 ([#638](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/638)) |
+| Flicker (the picture flashing too bright while moving) | ✅ Fixed in v2.0.2 (#645) |
+| Ground fog vanishing when looking down | ✅ Fixed in v2.0.2 (#638) |
 | Models with missing pieces (doors, fences, parts of trees) | ✅ Fixed where tested, more play needed |
 | Stutter when entering new areas | ⚠️ Still happens the first time you visit a place. The next visits are smooth |
 | Performance | ⚠️ Depends on the PC: some reach a steady 60 fps, others stay below it, more so in Hyrule Field |
@@ -69,7 +67,7 @@ what does not yet. Open problems are collected in tracking issues, linked below.
 | AMD cards | ⚠️ Many tested: reports from the RX 6600, RX 6800 XT, RX 7800 XT, RX 7900 XTX and RX 9070 XT. On Windows, the RX 6600 to RX 6950 XT and their mobile and Pro models (Navi 21, 22 and 23) draw task and mesh shaders through the compute fallback by default: the driver lost the GPU on their own mesh shaders on an RX 6700 XT, an RX 6800 XT and, in one report in Mako, an RX 6600 (#1747, #1992, #2215); another RX 6600 played 15-20 minutes on them. The RX 6400 and 6500 XT (Navi 24) keep their own mesh shaders, as no report has them losing the GPU; `RX_VK_TASK_MESH_FALLBACK=1` tries the fallback. Driver crashes and device lost are still reported |
 | Intel cards | ❓ Few reports, many of them black screens or crashes. On Windows, Intel's shader compiler is entered by one thread, and a shader it faults on is left out instead of closing the game, on later starts too. Made for an Intel UHD laptop with 4 threads and 16 GB that crashed in `igvk64.dll` (see [Intel laptops](#intel-laptops)): not yet tested on an Intel GPU |
 | Pre-rendered movies on a slow CPU | ⚠️ Shown rather than skipped when the decoder is slower than the movie, so the picture can fall behind the sound. With 4 logical processors or fewer the decoder uses 2 threads, leaving the game its own. The first picture can still be black on some PCs |
-| Cards without mesh shaders (such as NVIDIA GTX 10 and AMD RX 5000) | ⚠️ Run through the compute fallback (since v2.0.6), which runs the mesh programs as compute shaders on cards with buffer device addresses: slower, and it leaves out the mesh draws that take their count from a buffer ([#640](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/640)) |
+| Cards without mesh shaders (such as NVIDIA GTX 10 and AMD RX 5000) | ⚠️ Run through the compute fallback (since v2.0.6), which runs the mesh programs as compute shaders on cards with buffer device addresses: slower, and it leaves out the mesh draws that take their count from a buffer (#640) |
 | Linux | ✅ Works with the AppImage. Tested on several distributions (CachyOS, Fedora, Bazzite, SteamOS) and cards, with open problems on some AMD cards |
 
 ## Install and play
@@ -86,7 +84,7 @@ the newest is a **release candidate**, and the nightlies are untested. For each 
 **Download the launcher, not the builder.** The files on [timeLink's releases](https://github.com/HanYolo1/timeLink/releases)
 (`timeLinkBuilder-…-windows-x64.zip`, `timeLink-…-x86_64.AppImage`, `tools.lock`) are what the launcher installs for
 you. Windows may flag the launcher as a Trojan: it isn't, it's just not code-signed yet. See
-[antivirus warnings](https://longshot.magicbean.dev/help/antivirus/).
+[antivirus warnings](docs/common-issues.md#downloads-and-antivirus).
 
 timeLink doesn't come ready to play: it is built on your PC, from your own copy of the game. The
 **[timeLink Launcher](https://github.com/HanYolo1/timeLink/releases)** does all of it for you:
@@ -317,13 +315,13 @@ line with the video memory in use against what the driver allows, and DLSS's det
 | "timeLink supports build e0f3ccfa" or "This version isn't supported" | Check that you chose the right game, with its update installed. |
 | "Your antivirus removed part of the build tools" | A false alarm on unsigned programs. Restore the files from Windows Security's Protection history, and add `%LOCALAPPDATA%\timeLink Launcher` and `%LOCALAPPDATA%\Programs\timeLink Launcher` to its exclusions, then build again ([common problems](docs/common-issues.md#your-antivirus-removed-part-of-the-build-tools)). |
 | **Starting** | |
-| The game opens and closes, or the log says "device lost" | Update your graphics driver. AMD cards have known crashes ([#708](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/708), [#614](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/614)). |
+| The game opens and closes, or the log says "device lost" | Update your graphics driver. AMD cards have known crashes (#708, #614). |
 | Windows, Intel: the game closes in the first scene, and the log names `igvk64.dll` | Keep the Debug tab's **Intel shader compiles** row on **One at a time** (the default) and update the graphics driver. See [Intel laptops](#intel-laptops). |
 | The build said "the GPU driver stopped responding", or the log says `the shaders' preparation was skipped at the build` | The game then builds every shader when it is first drawn, and stutters or leaves things out for a long time. Delete `timeLink_prepare_skipped` from the game folder's `cache` folder so that the next start prepares them, or build again with **Prepare shaders now** ticked. |
 | Linux: the game doesn't start, or the picture is broken | The game needs a Vulkan 1.3 driver, ideally with mesh shaders: `vulkaninfo \| grep mesh` should list `VK_EXT_mesh_shader`. Update Mesa or the NVIDIA driver. |
 | Linux: low-memory warning, or the whole desktop becomes unresponsive while loading | Close other programs and check `free -h`: the `Mem` and `Swap` rows are separate. Below 10 GiB of physical RAM the game warns even with plenty of swap; absence of that warning does not mean a run will fit. Do not keep retrying a load that locks up the PC. After restarting, keep the failed session's log before launching again, and check `journalctl -k -b -1` for an out-of-memory kill or a GPU reset (if the previous boot's journal was saved). |
 | **Graphics** | |
-| Parts of the picture are missing, or a message says your card has no mesh shader support | The card or its driver has no mesh shaders, so timeLink draws through its compute fallback, which leaves some draws out. Update the driver; a card with mesh shaders draws everything ([#640](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/640)). |
+| Parts of the picture are missing, or a message says your card has no mesh shader support | The card or its driver has no mesh shaders, so timeLink draws through its compute fallback, which leaves some draws out. Update the driver; a card with mesh shaders draws everything (#640). |
 | A place has a wrong texture, or a floor or wall is missing | Look for `timeLink_damaged_files.txt` in the game folder. The build writes it when your dump is incomplete (about 23.3 GB instead of 23.8 GB), listing each damaged file and what was put in its place. Dump the game again and build from the new dump; the file is then removed. |
 | AMD: blocky textures, solid rectangles in the sky or unusually dark courtyard surfaces | Try the [AMD texture workaround](#amd-texture-workaround). It uses more graphics memory. |
 | **Performance** | |
@@ -331,11 +329,11 @@ line with the video memory in use against what the driver allows, and DLSS's det
 | Windows, NVIDIA: stutter on every start, in places you have seen | The driver's shader cache is too small to keep them all (the first start builds about 2 GB of pipelines). In the NVIDIA Control Panel, under Manage 3D settings, set **Shader Cache Size** to **Unlimited** (or 10 GB). On Linux the game raises the driver's limit itself. |
 | Low FPS | See [Low FPS or stutter](#low-fps-or-stutter) below. |
 | A movie stutters, falls behind its sound, or starts on a black picture | On a CPU with 4 logical processors or fewer, the decoder uses 2 threads; `HOS_DAV1D_THREADS=<n>` in `timeLink_env.txt` sets another count. Run once with `HOS_VIDEO_LOG=1` and attach the log: its `video:` lines say how long each picture took to decode and how far the picture was behind the sound. |
-| Steam Deck: the game freezes and closes in Kokiri Forest or the Great Deku Tree (`gfx_0.0.0 timeout` in `journalctl -k`) | Add `RX_VK_MESH_NOCULL=2c56dc1006942f74` to `timeLink_env.txt`: it gets past it with every model drawn, by turning off the culling pass that runs for seconds. `RX_VK_SKIP_CODE=2c56dc1006942f74` also gets past it, but the models those draws make go missing ([development guide](docs/development.md#switches-for-testing-and-debugging), [#817](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/817)). |
+| Steam Deck: the game freezes and closes in Kokiri Forest or the Great Deku Tree (`gfx_0.0.0 timeout` in `journalctl -k`) | Add `RX_VK_MESH_NOCULL=2c56dc1006942f74` to `timeLink_env.txt`: it gets past it with every model drawn, by turning off the culling pass that runs for seconds. `RX_VK_SKIP_CODE=2c56dc1006942f74` also gets past it, but the models those draws make go missing ([development guide](docs/development.md#switches-for-testing-and-debugging), #817). |
 | **Other** | |
 | The game is in the wrong language | Change the code in `language.txt` in the game folder. The file lists them all, and an update keeps the one you set. |
 
-Still stuck? Ask on [Discord](https://discord.gg/magicbean) with the version, where you were in
+Still stuck? [Open an issue](https://github.com/HanYolo1/timeLink/issues/new) with the version, where you were in
 the game, your graphics card, `timeLink_log.txt` and a screenshot or video, and never game files. **Gameplay → Bug
 report** in the [in-game menu](#in-game-menu) gathers all of it in one press.
 
@@ -372,14 +370,14 @@ It has not been tested on an Intel GPU yet. On such a PC:
    them all again sooner.
 4. Leave **ASTC as RGBA8** off: it is the [AMD texture workaround](#amd-texture-workaround), and its larger textures
    come out of the memory that integrated graphics share with the rest of the PC.
-5. If it still crashes or runs slowly, ask on [Discord](https://discord.gg/magicbean) with
+5. If it still crashes or runs slowly, [open an issue](https://github.com/HanYolo1/timeLink/issues/new) with
    `timeLink_log.txt` from a run with `HOS_VIDEO_LOG=1` in `timeLink_env.txt`, the build's details, and the FPS on the
    title and in the first scene.
 
 #### AMD texture workaround
 
 Some AMD texture artifacts go away when decoded ASTC textures are kept as RGBA8 instead of being re-encoded to BC3
-([#57](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/57)):
+(#57):
 turn on **ASTC as RGBA8** in the menu's Debug tab, under Developer, and restart the game. It is a workaround for these
 artifacts, not a lighting fix, and it can use much more graphics memory, causing stalls when the card runs out. To undo
 it, turn the row off and restart.
@@ -539,7 +537,7 @@ HDR, Detail, and GPU and memory (last: the rows to change when something is wron
   holds the frames to its refresh rate: V-Sync on, or the driver's FIFO mode. `HOS_FPS_MAX=<61-1000>` sets a cap for one
   run.
 - **Bug report** writes a folder `bug-reports/<date>_<time>` in the game folder with what an issue needs: `report.txt`,
-  which answers the [game problem form](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/new?template=1-game-problem.yml)'s
+  which answers the game problem form's
   questions under its own headings (the version, the map you are in, your graphics card and driver, CPU, RAM and
   system, the menu options and the `RX_`/`HOS_` switches you changed) and ends with a link that opens the form with them
   filled in (the switches by name only); `timeLink_log.txt` (this run's log so far) and `timeLink_log.1.txt` (the run
@@ -1152,7 +1150,7 @@ unchanged.
 `RX_VK_SKIP_CODE=<prefix,...>` leaves out the draws of every program with a stage whose native code key starts with one
 of the prefixes (the keys the log prints after "its code:"). On a Steam Deck, `RX_VK_SKIP_CODE=2c56dc1006942f74`
 avoids a GPU hang in Kokiri Forest and the Great Deku Tree: the GPU runs for seconds in the programs that share that
-task shader (a culling pass) until the kernel resets it ([#817](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/817)).
+task shader (a culling pass) until the kernel resets it (#817).
 It is a workaround, not a fix: those are task + mesh programs, so the geometry they draw goes with them, and key models
 are missing while it is set. Off unless set.
 
@@ -1193,8 +1191,7 @@ More detail is in the [development guide](docs/development.md) and the [design n
 ## Want to help?
 
 Testing on other graphics cards and reporting the result already helps a lot, and so does playing further into the
-game than anyone has yet. **This fork takes no pull requests and no issues**; send what you find to
-[Discord](https://discord.gg/magicbean).
+game than anyone has yet. **Report what you find by [opening an issue](https://github.com/HanYolo1/timeLink/issues).**
 
 ### Send your pipeline list
 
@@ -1241,10 +1238,10 @@ Time are trademarks of Nintendo.
 
 ## Credits
 
-timeLink is a fork of NotRexed's [Hookshot](https://git.magicbean.dev/MagicBeanDev/Longshot), and exists thanks to the work of many
+timeLink is a fork of NotRexed's Hookshot, and exists thanks to the work of many
 people:
 
-- **NotRexed**: [Hookshot](https://git.magicbean.dev/MagicBeanDev/Longshot), which timeLink is a fork of, BlueShell (Mario Kart World),
+- **NotRexed**: Hookshot, which timeLink is a fork of, BlueShell (Mario Kart World),
   Skybound (Tears of the Kingdom) and the a64-kit tools.
 - **[Eden](https://git.eden-emu.dev/eden-emu/eden)** and **Eglantine**: the shader recompiler and Switch 2 shader work.
 - **suyu**: the graphics decoders and the AArch64 translator.

@@ -23,7 +23,7 @@ Or: "timeLink supports build e0f3ccfa". timeLink builds from one version of the 
 2. **Check the files you chose.** Use a `.nup` file, or the `romfs` and `exefs` folders. The launcher looks for `.nup`
    files in your Downloads, Desktop and Documents folders; if the right one isn't listed, point it at the file.
 
-[Search version reports](https://longshot.magicbean.dev/progress/#problem-search?q=version)
+[Search version reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+version)
 
 ### "Your antivirus removed part of the build tools"
 
@@ -37,10 +37,9 @@ A false alarm on unsigned programs: timeLink isn't code-signed yet.
    `%LOCALAPPDATA%\timeLink Launcher\toolchains` (it is named after the version, such as `v0.1.0`): the next build
    downloads it again and checks it.
 
-The [antivirus guide](https://longshot.magicbean.dev/help/antivirus/) shows each step, and how to check first that the
-download is genuine.
+The steps below show each one, and how to check first that the download is genuine.
 
-[Search antivirus reports](https://longshot.magicbean.dev/progress/#problem-search?q=antivirus)
+[Search antivirus reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+antivirus)
 
 ### The build is very slow, or runs out of space
 
@@ -49,7 +48,7 @@ download is genuine.
    measurement). A hard drive works, but builds are much slower than on an SSD.
 2. **Free about 60 GB** before building. The build's own files (about 4 GB) are deleted once the game is ready.
 
-[Search build reports](https://longshot.magicbean.dev/progress/#problem-search?q=build)
+[Search build reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+build)
 
 ### Linux: the launcher or the build won't start
 
@@ -58,7 +57,7 @@ download is genuine.
 2. **Check your system.** Linux needs glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or newer). A CPU without AVX2
    builds and plays too: the game and its renderer are built for your processor.
 
-[Search Linux reports](https://longshot.magicbean.dev/progress/#problem-search?q=linux)
+[Search Linux reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+Linux)
 
 ## Starting the game
 
@@ -74,7 +73,7 @@ download is genuine.
 4. **Read the end of the log.** `timeLink_log.txt` in the game folder's `logs` folder has the last run; its last lines usually say what
    failed.
 
-[Search crash reports](https://longshot.magicbean.dev/progress/#problem-search?q=crash) · [Search black-screen reports](https://longshot.magicbean.dev/progress/#problem-search?q=black+screen)
+[Search crash reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+crash) · [Search black-screen reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+black-screen)
 
 ### Linux: the game doesn't start, or the picture is broken
 
@@ -82,14 +81,14 @@ download is genuine.
    Vulkan 1.3 driver, ideally with mesh shaders.
 2. **Update Mesa or the NVIDIA driver** if it doesn't.
 
-[Search Linux reports](https://longshot.magicbean.dev/progress/#problem-search?q=linux)
+[Search Linux reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+Linux)
 
 ### Linux: Play closed before the game's log appeared
 
 Wait for the game to exit, then open `timeLink_startup.log` in the game folder's `logs` folder: it has up to 64 KiB of the game's
 startup errors and its exit status. Started from a terminal, the game prints there instead.
 
-[Search startup reports](https://longshot.magicbean.dev/progress/#problem-search?q=startup)
+[Search startup reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+startup)
 
 ## In game: graphics
 
@@ -102,7 +101,7 @@ Without mesh shaders, timeLink draws through its compute fallback, which leaves 
    newer, AMD RX 6000 series and newer, and Intel Arc have them.
 2. **Check your card** against [what you need](../README.md#what-you-need).
 
-[Search graphics reports](https://longshot.magicbean.dev/progress/#problem-search?q=graphics)
+[Search graphics reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+graphics)
 
 ### One place has a wrong texture, or a floor or wall is missing
 
@@ -110,7 +109,7 @@ Without mesh shaders, timeLink draws through its compute fallback, which leaves 
    incomplete (about 23.3 GB instead of 23.8 GB), listing each damaged file and what was put in its place.
 2. **Dump the game again** and build from the new dump. The file is removed once the dump is whole.
 
-[Search texture reports](https://longshot.magicbean.dev/progress/#problem-search?q=texture)
+[Search texture reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+texture)
 
 ### AMD: blocky textures, solid rectangles in the sky, or dark courtyard surfaces
 
@@ -122,7 +121,7 @@ Without mesh shaders, timeLink draws through its compute fallback, which leaves 
 If the row can't be changed, `timeLink_env.txt` sets it: remove its `RX_VK_ASTC_RGBA8=1` line. The
 [AMD texture workaround](../README.md#amd-texture-workaround) has the details.
 
-[Search AMD reports](https://longshot.magicbean.dev/progress/#problem-search?q=amd)
+[Search AMD reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+AMD)
 
 ## In game: performance and freezes
 
@@ -132,7 +131,7 @@ Normal for now: the game prepares each new shader the first time it needs it, an
 You can help remove it for everyone: [send your pipeline list](../README.md#send-your-pipeline-list) (**Debug → Save my
 pipeline list** in the menu).
 
-[Search stutter reports](https://longshot.magicbean.dev/progress/#problem-search?q=stutter)
+[Search stutter reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+stutter)
 
 ### Windows, NVIDIA: it stutters on every start, in places you have seen
 
@@ -140,7 +139,7 @@ The driver's shader cache is too small to keep them all (the first start builds 
 Panel**, then **Manage 3D settings**, and set **Shader Cache Size** to **Unlimited** (or 10 GB). On Linux the game raises
 the driver's limit itself.
 
-[Search stutter reports](https://longshot.magicbean.dev/progress/#problem-search?q=stutter)
+[Search stutter reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+stutter)
 
 ### Low FPS, or it slows down after a while
 
@@ -155,7 +154,7 @@ the driver's limit itself.
    The [low FPS checklist](../README.md#low-fps-or-stutter) lists the log lines that matter, and a switch that times
    each GPU pass.
 
-[Search performance reports](https://longshot.magicbean.dev/progress/#problem-search?q=performance)
+[Search performance reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+performance)
 
 ### Steam Deck: the game freezes and closes in the starting area or first dungeon
 
@@ -163,7 +162,7 @@ the driver's limit itself.
 the game folder: it turns off the culling pass that runs for seconds there, and every model is still drawn
 ([#817](https://github.com/NotRexed/Hookshot/issues/817)).
 
-[Search Steam Deck reports](https://longshot.magicbean.dev/progress/#problem-search?q=steam+deck)
+[Search Steam Deck reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+Steam Deck)
 
 ## In game: controls, saves and language
 
@@ -173,7 +172,7 @@ Press <kbd>F1</kbd>: it always works. <kbd>Insert</kbd> and <kbd>Esc</kbd> do to
 was changed. On a controller, press Home, or Select and Start together; on a DualShock 4 or DualSense, click the
 touchpad.
 
-[Search menu reports](https://longshot.magicbean.dev/progress/#problem-search?q=menu)
+[Search menu reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+menu)
 
 ### A and B are swapped, or a button does the wrong thing
 
@@ -186,7 +185,7 @@ touchpad.
 
 The [controls reference](../README.md#controls) covers the keyboard, the mouse and rumble.
 
-[Search controller reports](https://longshot.magicbean.dev/progress/#problem-search?q=controller)
+[Search controller reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+controller)
 
 ### A save is missing, or a save transfer or update went wrong
 
@@ -198,13 +197,13 @@ The [controls reference](../README.md#controls) covers the keyboard, the mouse a
 
 Keep save files private: don't post them.
 
-[Search save reports](https://longshot.magicbean.dev/progress/#problem-search?q=save)
+[Search save reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+save)
 
 ### The game is in the wrong language
 
 Change the code in `language.txt` in the game folder: the file lists them all, and an update keeps the one you set.
 
-[Search language reports](https://longshot.magicbean.dev/progress/#problem-search?q=language)
+[Search language reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+language)
 
 ## Downloads and antivirus
 
@@ -214,10 +213,10 @@ timeLink isn't code-signed yet, so Defender often guesses `Trojan:Win32/Wacatac.
 means a guess, not a known virus.
 
 1. **Check where it came from.** Only [timeLink's releases](https://github.com/HanYolo1/timeLink/releases) are official.
-2. **Let it through safely.** The [antivirus guide](https://longshot.magicbean.dev/help/antivirus/) shows how to check
-   the file, restore it, and exclude only timeLink's folders.
+2. **Let it through safely.** Check the file against the release's signed `SHA256SUMS`, restore it from Windows
+   Security's Protection history, and exclude only timeLink's folders.
 
-[Search antivirus reports](https://longshot.magicbean.dev/progress/#problem-search?q=antivirus)
+[Search antivirus reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+antivirus)
 
 ## Still stuck?
 
@@ -227,10 +226,9 @@ means a guess, not a known virus.
 2. **Or find the log yourself,** if the game doesn't get that far: `timeLink_log.txt` in the game folder's `logs` folder is the last
    run, and `timeLink_log.1.txt` to `.4.txt` the four before it. On Linux, `timeLink_startup.log` has the startup
    errors.
-3. **Search the reports.** [Someone may have had it already](https://longshot.magicbean.dev/progress/#problem-search),
+3. **Search the reports.** [Someone may have had it already](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue),
    with a workaround.
-4. **Ask on [Discord](https://discord.gg/magicbean).** The team and other players are there.
-5. **Report it** with the [report form](https://github.com/HanYolo1/timeLink/issues/new): your version,
+4. **Report it** with the [report form](https://github.com/HanYolo1/timeLink/issues/new): your version,
    where you were in the game, your graphics card and driver, the log and a screenshot.
    [What to include](reporting-and-contributing.md) has the details.
 

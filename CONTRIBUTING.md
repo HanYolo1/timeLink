@@ -4,10 +4,15 @@ timeLink is a static recompilation of a supported console game: the game's AArch
 code is lifted to C, the Horizon OS and NVN2 are implemented natively, and the GPU work is replayed on Vulkan. No
 emulator is involved, and the game is built on your PC from your own copy.
 
-It lives on the team's Forgejo, [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink).
-This page gets you set up, then covers what to send, how to build and test it, and the rules that keep the project
-out of trouble. The [development guide](docs/development.md) has the full pipeline; the [design notes](docs/design.md)
-have the architecture.
+It lives at [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink), a personal fork of the upstream
+project on the team's Forgejo. This page gets you set up, then covers what to send, how to build and test it, and the
+rules that keep the project out of trouble. The [development guide](docs/development.md) has the full pipeline; the
+[design notes](docs/design.md) have the architecture.
+
+**This fork takes no pull requests and no issues.** Issues and pull requests are switched off on the repository, and
+nothing is merged back here: it is one person's fork, kept in step with upstream by hand. Everything below still
+applies to work on your own copy, and a fork of your own is welcome under the GPL - it just will not be merged into
+this one. Send fixes upstream, or ask on Discord.
 
 ## The rule with no exceptions
 
@@ -75,7 +80,7 @@ break.
 | **Test on other hardware** | NVIDIA cards are the most tested; the README's [status table](README.md#project-status) says what works where, and the [tested configurations catalogue](https://longshot.magicbean.dev/tested-configurations/) lists the runs behind it. Reports from AMD and Intel cards, other drivers, other distributions and SteamOS help even when everything works. Pull requests that need a run on your hardware are queued as [test requests](docs/test-requests.md). |
 | **Play further** | The tested area is the start of the game. Reaching new areas, cutscenes, menus and items finds problems nobody has seen. |
 | **Report what is broken** | Use the [issue forms](https://github.com/HanYolo1/timeLink/issues/new/choose): game problem, install or build problem, save problem or idea. Include the version, your hardware, where you were and `timeLink_log.txt`. |
-| **Send a fix** | Branch, fix, test, open a pull request from your fork ([how](#commits-and-pull-requests)). Small, focused changes are the easiest to review. |
+| **Send a fix** | Branch, fix, test, and open a pull request **upstream** ([how](#commits-and-pull-requests)). Small, focused changes are easiest to review. This fork does not take them: see the note at the top |
 | **Improve the docs** | The README, the development guide and the design notes are part of the project. |
 
 ## Before you open an issue or a PR

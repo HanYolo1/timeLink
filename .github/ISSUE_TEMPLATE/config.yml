@@ -1,14 +1,11 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
 contact_links:
   - name: Looking for the game or a ROM
-    url: https://github.com/HanYolo1/timeLink/issues/19
+    url: https://github.com/HanYolo1/timeLink#what-you-need
     about: We don't share the game, ROMs or keys, and don't help find them. timeLink needs your own copy.
-  - name: Share your pipeline list
-    url: https://github.com/HanYolo1/timeLink/issues/14
-    about: Send the pipeline list your game wrote, to cut first-load stutter for everyone. It goes as a comment on issue 14, not a new issue.
   - name: Newest release
     url: https://github.com/HanYolo1/timeLink/releases
     about: Every release has all the fixes before it. Try the newest before reporting.
-  - name: Ask in Discord
-    url: https://discord.gg/magicbean
-    about: Questions, help with setup, and talk with the team.
+  - name: Common problems
+    url: https://github.com/HanYolo1/timeLink/blob/main/docs/common-issues.md
+    about: Antivirus warnings, device lost, missing textures, low FPS and the other usual ones, with what to do.
