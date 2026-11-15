@@ -10,8 +10,10 @@ namespace timeLinkBuilder;
 ///   timeLinkBuilder.exe                                  anything else: a message, get the timeLink Launcher
 static class Program
 {
-    /// Where players get the launcher (README, "Install and play")
-    public const string LauncherDownload = "https://github.com/HanYolo1/timeLink/releases/latest";
+    /// Where players get the launcher (README, "Install and play"). A link in printed help text, not a lookup: a builder must
+    /// not ask a server for a release (tests/test_no_release_lookup.py), so this is the fork's own docs page rather than a
+    /// releases URL, matching Core/SystemRequirements.cs's link in the launcher.
+    public const string LauncherDownload = "https://github.com/HanYolo1/timeLink/blob/main/docs/getting-started.md";
 
     public const string UseTheLauncher =
         "The timeLink Builder has no window of its own: the timeLink Launcher builds the game and starts it. Get the launcher from " +
