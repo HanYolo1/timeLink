@@ -277,10 +277,10 @@ Steps 3 to 5 are done; 1, 2 and 6 are what a maintainer still does. In order:
    so the Cloudflare cut and the `RELEASE_UPLOAD_API` workaround the Forgejo setup needed are gone. `release.py` uploads
    straight to `uploads.github.com`.
 4. **The tools' release.** Done: the 11 archives are assets of the `tools` release on **`HanYolo1/timeLink-tools`**, a
-   public repository that holds nothing but them (docs/releases.md, *Where the archives are*). They cannot live in
-   `HanYolo1/timeLink`: that repository is private, and GitHub does not serve `releases/download/` for a private repository
-   at all, not even with a token. `python -I scripts/tools.py check --require` must pass; `release.yml` stops in its first
-   job, before anything is built, when it does not.
+   public repository that holds nothing but them (docs/releases.md, *Where the archives are*). They are kept out of
+   `HanYolo1/timeLink` so that the tools stay downloadable even if this repository is ever made private again: GitHub does
+   not serve `releases/download/` for a private repository at all, not even with a token. `python -I scripts/tools.py
+   check --require` must pass; `release.yml` stops in its first job, before anything is built, when it does not.
 5. **Actions.** Enabled on the repository. Every job runs on Linux: timeLink's Windows files are cross-built there, and what
    only Windows can check is a tester's.
 6. **The first release.** `v0.1.0-rc.1`, then `v0.1.0`: one tag, both products' files.

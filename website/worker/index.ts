@@ -88,8 +88,8 @@ async function fetchReleases(ctx, token) {
   const all = [];
   for (let page = 1; page <= 5; page++) {
     const r = await fetch(`${FORGE}/repos/${REPO}/releases?per_page=50&page=${page}`, {
-      // (Cloudflare refuses requests with no browser or tool User-Agent; GitHub wants one too, and a token when the
-      // repository is private, which this one is until it is published)
+      // (Cloudflare refuses requests with no browser or tool User-Agent; GitHub wants one too. The repository is public,
+      // so no token is needed; GITHUB_TOKEN is still sent when set, for a fork that keeps its releases private)
       headers: { "User-Agent": "timeLink-website", Accept: "application/vnd.github+json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     });
     if (!r.ok) throw new Error(`api.github.com answered ${r.status}`);
