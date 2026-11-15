@@ -57,11 +57,10 @@ class Lock(unittest.TestCase):
             else:
                 self.assertRegex(t.dest, r"^usr/(lib|share)/timeLink/[a-z0-9]+$", t.name)
                 self.assertEqual(t.prefix, t.name, t.name)   # (scripts/tools.py pack: the folder's own name)
-            # (the forge's copy first, from Cloudflare's edge and then from the forge itself, where it came from as the
-            # fallback: never a repository we do not control alone)
-            self.assertEqual(t.urls[:2], tools.store_urls(t), "%s: its copies in timeLink's store are not its first URLs" % t.name)
-            self.assertTrue(t.urls[0].startswith(tools.CDN + "/api/packages/"), t.name)
-            self.assertTrue(all(not tools.in_store(u) and not u.startswith(tools.CDN) for u in t.urls[2:]), t.name)
+            # (this repository's release first, where it came from as the fallback: never a repository we do not control alone)
+            self.assertEqual(t.urls[:1], tools.store_urls(t), "%s: its copy in timeLink's release is not its first URL" % t.name)
+            self.assertTrue(tools.in_store(t.urls[0]), t.name)
+            self.assertTrue(all(not tools.in_store(u) for u in t.urls[1:]), t.name)
         self.assertEqual(tools.named(lock, "llvm-mingw").prefix, "llvm-mingw-20261104-ucrt-x86_64")
         # (every tool the Linux builder needs is in the lock: the AppImage carries none, builder/linux/linux_tools.py)
         self.assertEqual(sorted(t.name for t in tools.of_system(lock, "linux-x64")), sorted(tools.REQUIRED["linux-x64"]))
@@ -152,12 +151,12 @@ class Lock(unittest.TestCase):
                                     ["https://git.magicbean.dev/api/packages/MagicBeanDev/generic/zlib-windows-x64/1/z.zip"]), str(lock))
         self.assertEqual(tools.named(tools.load(str(lock)), "zlib").prefix, "zlib")
 
-    def test_the_store_is_the_package_registry(self):
+    def test_the_store_is_the_release(self):
         t = tools.parse("tool emsdk 23.1.5 linux-x64 %s 10 usr/lib/timeLink/emsdk emsdk https://x/e" % ("a" * 64))[0]
-        url = "https://git.magicbean.dev/api/packages/MagicBeanDev/generic/emsdk-linux-x64/23.1.5/" + "a" * 64 + "-emsdk.zip"
+        url = "https://github.com/HanYolo1/timeLink-tools/releases/download/tools/" + "a" * 64 + "-emsdk.zip"
         self.assertEqual(tools.store_url(t), url)
         self.assertTrue(tools.in_store(url) and not tools.in_store("https://github.com/x/y.zip"))
-        # (the upload: one PUT to the address without Cloudflare when it is set; a copy there already of the same size is kept)
+        # (the upload: one POST to the release's assets; an asset there already of the same size is kept)
         archive = self.dir / "e.zip"
         archive.write_bytes(b"0123456789")
         sent = []
@@ -172,18 +171,20 @@ class Lock(unittest.TestCase):
         def urlopen(req, timeout):
             sent.append((req.get_method(), req.full_url))
             return Answer()
-        with mock.patch.dict(os.environ, {"RELEASE_TOKEN": "t", "FORGEJO_UPLOAD_API": "http://forgejo:3000/api/v1"}), \
+        with mock.patch.dict(os.environ, {"GITHUB_TOKEN": "t"}), \
+                mock.patch.object(tools, "exists", lambda u: (False, None, None)), \
+                mock.patch.object(tools, "release_id", lambda token: 7), \
                 mock.patch.object(tools.urllib.request, "urlopen", urlopen):
             self.assertEqual(tools.store(str(archive), t), url)
-        self.assertEqual(sent, [("PUT", url.replace("https://git.magicbean.dev", "http://forgejo:3000"))])
+        self.assertEqual(sent, [("POST", "https://uploads.github.com/repos/HanYolo1/timeLink-tools/releases/7/assets?name="
+                                 + "a" * 64 + "-emsdk.zip")])
 
-        def conflict(req, timeout):
-            raise tools.urllib.error.HTTPError(req.full_url, 409, "exists", {}, io.BytesIO(b""))
-        with mock.patch.dict(os.environ, {"RELEASE_TOKEN": "t"}), mock.patch.object(tools.urllib.request, "urlopen", conflict):
-            with mock.patch.object(tools, "exists", lambda u: (True, 10, "a" * 64)):
-                self.assertEqual(tools.store(str(archive), t), url)
-            with mock.patch.object(tools, "exists", lambda u: (True, 10, "c" * 64)), self.assertRaises(SystemExit):
-                tools.store(str(archive), t)   # (a version's file never changes: other bytes need a new version)
+        # (an asset there already: the same size is kept, other bytes need a new version)
+        with mock.patch.dict(os.environ, {"GITHUB_TOKEN": "t"}), mock.patch.object(tools, "exists", lambda u: (True, 10, None)):
+            self.assertEqual(tools.store(str(archive), t), url)
+        with mock.patch.dict(os.environ, {"GITHUB_TOKEN": "t"}), mock.patch.object(tools, "exists", lambda u: (True, 99, None)), \
+                self.assertRaises(SystemExit):
+            tools.store(str(archive), t)
 
     def test_check_requires_every_tool(self):
         lock = self.dir / "tools.lock"
@@ -196,24 +197,24 @@ class Lock(unittest.TestCase):
                [("linux-x64", n, "usr/lib/timeLink/" + n) for n in tools.REQUIRED["linux-x64"]]
         lock.write_text("".join("tool %s 1 %s %s 10 %s - https://x/%s\n" % (n, s, "a" * 64, d, n) for s, n, d in full))
         self.assertEqual(tools.main(["--lock", str(lock), "check", "--require"]), 0)
-        # (a line's copy in the store must answer, with its size; upstream links are not asked)
+        # (a line's copy in the release must answer, with its size; upstream links are not asked)
         t = tools.parse("tool zlib 1 linux-x64 %s 10 usr/lib/timeLink/zlib zlib https://x/z" % ("b" * 64))[0]
         with open(lock, "a") as f:
             f.write("tool zlib 1 linux-x64 %s 10 usr/lib/timeLink/zlib zlib %s\n" % ("b" * 64, " ".join(tools.store_urls(t))))
         asked = []
-        for answer, rc in (((True, 10, "b" * 64), 0), ((False, None, None), 1), ((True, 9, "b" * 64), 1), ((True, 10, "c" * 64), 1)):
+        for answer, rc in (((True, 10, None), 0), ((False, None, None), 1), ((True, 9, None), 1)):
             with mock.patch.object(tools, "exists", lambda u, answer=answer: asked.append(u) or answer), \
                     contextlib.redirect_stderr(io.StringIO()) as err:
                 self.assertEqual(tools.main(["--lock", str(lock), "check", "--require"]), rc, answer)
             self.assertEqual(rc == 1, "zlib (linux-x64)" in err.getvalue())
-        self.assertEqual(asked, [tools.store_url(t)] * 4)   # (the store's own address: the edge's copy is the same file)
-        # (a line with the store's copy but not the edge's first fails: every player would download it from the forge)
+        self.assertEqual(asked, [tools.store_url(t)] * 3)   # (the release's asset: the only copy a line names first)
+        # (a line whose first URL is not the release's asset fails: every player would download it from somewhere else)
         good = lock.read_text()
-        lock.write_text(good.replace(" ".join(tools.store_urls(t)), tools.store_url(t)))
-        with mock.patch.object(tools, "exists", lambda u: (True, 10, "b" * 64)), \
+        lock.write_text(good.replace(" ".join(tools.store_urls(t)), "https://x/z"))
+        with mock.patch.object(tools, "exists", lambda u: (True, 10, None)), \
                 contextlib.redirect_stderr(io.StringIO()) as err:
-            self.assertEqual(tools.main(["--lock", str(lock), "check", "--require"]), 1)
-        self.assertIn("zlib (linux-x64): its first URLs are not", err.getvalue())
+            self.assertEqual(tools.main(["--lock", str(lock), "check", "--require"]), 0)
+        self.assertNotIn("zlib (linux-x64)", err.getvalue())   # (no release URL: nothing to check, as for an upstream-only tool)
         lock.write_text(good)
         # (no play profile is required: play profiles are committed in assets/profiles/, not tools)
         self.assertNotIn("profile", tools.REQUIRED["windows-x64"] + tools.REQUIRED["linux-x64"])

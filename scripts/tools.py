@@ -45,11 +45,14 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOCK = os.path.join(ROOT, "tools.lock")
 CACHE = os.path.join(ROOT, "build-tools-cache")
-REPO = "MagicBeanDev/timeLink"
-SERVER = "https://git.magicbean.dev"
-# (the same files from Cloudflare's edge: git-cdn serves git.magicbean.dev's package paths from its R2 store, cached)
-CDN = "https://git-cdn.magicbean.dev"
-OWNER = REPO.split("/")[0]
+# (the tools are assets of a repository of their own, public: a private repository's release assets are not served at
+# releases/download/ at all, not even with a token, so the builder's setup and the AppImage could not fetch them)
+TOOLS_REPO = "HanYolo1/timeLink-tools"
+# (the release the tools are assets of: one tag, every system's archives, each named <sha256>-<name>.zip)
+TAG = "tools"
+API = "https://api.github.com"
+DOWNLOADS = "https://github.com"
+OWNER = TOOLS_REPO.split("/")[0]
 SYSTEMS = ("windows-x64", "linux-x64")
 # (the tools each builder needs: the release workflow refuses a lock without one of them. The Linux builder's AppImage carries
 # its Python; the rest is here, builder/linux/linux_tools.py). No play profile is a tool: play profiles are committed in
@@ -426,84 +429,144 @@ def assemble_third_party(source, prefix, out, tracked):
     return result
 
 
-# ---- timeLink's store: Forgejo's generic package registry ----
-# Each archive timeLink keeps a copy of, or makes, is a file of a generic package of the MagicBeanDev organization (its
-# Packages tab): the package <name>-<system>, its version the tool's version, the file <sha256>-<name>.zip. A package
-# version's files never change (Forgejo refuses a second upload of a name, HTTP 409), and nothing prunes them: an older
-# version's tools stay downloadable. Anyone downloads them, with no account (the organization is public). Each system has its
-# own package because a tool's Windows and Linux builds have versions of their own (emsdk: Hookshot v2.1.0's, LLVM 23.1.5).
+# ---- timeLink's store: this repository's `tools` release ----
+# Each archive timeLink keeps a copy of, or makes, is an asset of the `tools` release on HanYolo1/timeLink, named
+# <sha256>-<name>.zip. The name carries the digest, and tools.lock checks it, so a replaced asset is caught; GitHub lets an
+# asset be deleted and uploaded again, so never reuse a version string. Nothing prunes the release: an older version's tools
+# stay downloadable. A private repository needs a token to read them (GITHUB_TOKEN or RELEASE_TOKEN); a public one does not.
+# Each system has its own asset because a tool's Windows and Linux builds have versions of their own (emsdk: Hookshot
+# v2.1.0's, LLVM 23.1.5).
 
 def file_name(tool):
     return "%s-%s.zip" % (tool.sha256, tool.name)
 
 
-def package_url(tool, server=SERVER):
-    return "%s/api/packages/%s/generic/%s-%s/%s/%s" % (server, OWNER, tool.name, tool.system, tool.version, file_name(tool))
+def asset_url(tool):
+    """The tool's copy: an asset of this repository's `tools` release, named for its SHA-256"""
+    return "%s/%s/releases/download/%s/%s" % (DOWNLOADS, TOOLS_REPO, TAG, file_name(tool))
 
 
 def store_url(tool):
-    """The tool's copy in timeLink's store, as the package API names it (where it is uploaded and checked)"""
-    return package_url(tool)
+    """The tool's copy in timeLink's release, as the release API names it (where it is uploaded and checked)"""
+    return asset_url(tool)
 
 
 def store_urls(tool):
-    """tools.lock's first URLs for a tool in timeLink's store: the edge's copy, then the store's own address"""
-    return [package_url(tool, CDN), package_url(tool)]
+    """tools.lock's first URL for a tool: its asset in this repository's `tools` release"""
+    return [asset_url(tool)]
 
 
 def store_of(t):
-    """The store address among a line's URLs, or None (a tool only upstream has)"""
+    """The release address among a line's URLs, or None (a tool only upstream has)"""
     return next((u for u in t.urls if in_store(u)), None)
 
 
 def in_store(url):
-    return url.startswith("%s/api/packages/%s/generic/" % (SERVER, OWNER))
+    return url.startswith("%s/%s/releases/download/%s/" % (DOWNLOADS, TOOLS_REPO, TAG))
 
 
 def exists(url, timeout=60):
-    """(there, size, sha256) of a file in the store, from the package API's list of its version's files (anonymous: the
-    organization is public; a HEAD through Cloudflare gives no size). (False, None, None) when it is not there"""
-    head = "%s/api/packages/%s/generic/" % (SERVER, OWNER)
-    package, version, name = url[len(head):].split("/")
-    req = urllib.request.Request("%s/api/v1/packages/%s/generic/%s/%s/files" % (SERVER, OWNER, package, version),
-                                 headers={"User-Agent": "timeLink-tools", "Accept": "application/json"})
+    """(there, size, sha256) of a release asset, from the release API's list of its assets. (False, None, None) when the
+    release or the asset is not there. A private repository needs a token: GITHUB_TOKEN or RELEASE_TOKEN.
+    A refusal is not a "no": 401 or 403 raises, so a bad token is never read as "upload it again" """
+    name = url.rsplit("/", 1)[-1]
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("RELEASE_TOKEN")
+    headers = {"User-Agent": "timeLink-tools", "Accept": "application/vnd.github+json"}
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    req = urllib.request.Request("%s/repos/%s/releases/tags/%s" % (API, TOOLS_REPO, TAG), headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
-            files = json.load(r)
+            release = json.load(r)
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return False, None, None
+        if e.code in (401, 403):
+            fail("GET the %s release: HTTP %d. The token is missing, wrong, or has no access to %s's releases."
+                 % (TAG, e.code, TOOLS_REPO))
+        return False, None, None
     except (urllib.error.URLError, OSError, ValueError):
         return False, None, None
-    for f in files if isinstance(files, list) else ():
-        if isinstance(f, dict) and f.get("name") == name:
-            return True, f.get("Size", f.get("size")), f.get("sha256")
+    for a in release.get("assets") or ():
+        if isinstance(a, dict) and a.get("name") == name:
+            # (the API gives a size, not a digest: the SHA-256 is in the asset's name, and the download is checked against it)
+            return True, a.get("size"), None
     return False, None, None
 
 
 def store(path, tool):
-    """The archive at path, put in timeLink's store as the tool's copy (PUT; a copy there already, 409, is kept when it is the
-    same size: its bytes cannot change). FORGEJO_UPLOAD_API: the server without Cloudflare in front (its 100 MB limit), as
-    <address>/api/v1. Returns the copy's URL"""
-    url = store_url(tool)
-    base = (os.environ.get("FORGEJO_UPLOAD_API") or "").rstrip("/")
-    put = package_url(tool, base[:-len("/api/v1")] if base.endswith("/api/v1") else SERVER)
-    token = os.environ.get("RELEASE_TOKEN") or fail("RELEASE_TOKEN is needed (your token, with write access to %s's packages)" % OWNER)
+    """The archive at path, uploaded as the tool's asset in this repository's `tools` release. A release asset cannot be
+    replaced in place: one already there with the same name is kept when its size matches, and a different one is an error
+    (never reuse a version string). GITHUB_TOKEN or RELEASE_TOKEN: a token with write access to this repository's releases.
+    Returns the asset's URL"""
+    url = asset_url(tool)
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("RELEASE_TOKEN") or \
+        fail("GITHUB_TOKEN or RELEASE_TOKEN is needed (a token with write access to %s's releases)" % TOOLS_REPO)
     size = os.path.getsize(path)
+    there, got, _ = exists(url)
+    if there:
+        if got != size:
+            fail("%s is in the release already with %s bytes, not %d: a new version, then" % (url, got, size))
+        print("%s is in the release already" % url)
+        return url
+    release = release_id(token)
+    name = file_name(tool)
     with open(path, "rb") as f:
-        req = urllib.request.Request(put, data=f, method="PUT", headers={
-            "Authorization": "token " + token, "User-Agent": "timeLink-tools", "Content-Type": "application/zip",
-            "Content-Length": str(size)})
+        req = urllib.request.Request(
+            "https://uploads.github.com/repos/%s/releases/%d/assets?name=%s" % (TOOLS_REPO, release, urllib.parse.quote(name)),
+            data=f, method="POST", headers={
+                "Authorization": "Bearer " + token, "User-Agent": "timeLink-tools",
+                "Content-Type": "application/zip", "Content-Length": str(size)})
         try:
             with urllib.request.urlopen(req, timeout=1800):
                 pass
             print("uploaded %s" % url)
         except urllib.error.HTTPError as e:
-            if e.code != 409:
-                fail("PUT %s: HTTP %d %s" % (url, e.code, e.read().decode("utf-8", "replace")[:300]))
-            there, got, sha = exists(url)
-            if not there or got != size or sha != tool.sha256:
-                fail("%s is in the package registry already with other bytes (%s bytes, SHA-256 %s): a new version, then"
-                     % (url, got, sha))
-            print("%s is in the package registry already" % url)
+            fail("POST %s: HTTP %d %s" % (url, e.code, e.read().decode("utf-8", "replace")[:300]))
     return url
+
+
+def release_id(token):
+    """The `tools` release's id, made as a draft when it is not there yet. A draft's assets are not downloadable by
+    anyone else, so publish_tools() makes it public once the uploads are in"""
+    headers = {"Authorization": "Bearer " + token, "User-Agent": "timeLink-tools", "Accept": "application/vnd.github+json"}
+    req = urllib.request.Request("%s/repos/%s/releases/tags/%s" % (API, TOOLS_REPO, TAG), headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.load(r)["id"]
+    except urllib.error.HTTPError as e:
+        if e.code != 404:
+            fail("GET the %s release: HTTP %d" % (TAG, e.code))
+    body = json.dumps({"tag_name": TAG, "name": "Build tools", "draft": True,
+                       "body": "The build tools tools.lock names, one asset per tool and system, each named for its SHA-256. "
+                               "scripts/tools.py mirror uploads them; scripts/rehost_tools.py staged them."}).encode()
+    req = urllib.request.Request("%s/repos/%s/releases" % (API, TOOLS_REPO), data=body, method="POST",
+                                 headers=dict(headers, **{"Content-Type": "application/json"}))
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.load(r)["id"]
+    except urllib.error.HTTPError as e:
+        fail("POST the %s release: HTTP %d %s" % (TAG, e.code, e.read().decode("utf-8", "replace")[:300]))
+
+
+def publish_tools(token=None):
+    """Publish the `tools` release. Its assets are reachable at releases/download/tools/... only once it is published: a
+    draft answers 404 to everyone without a token, so a tools.lock that names those URLs is dead until this runs"""
+    token = token or os.environ.get("GITHUB_TOKEN") or os.environ.get("RELEASE_TOKEN") or \
+        fail("GITHUB_TOKEN or RELEASE_TOKEN is needed to publish the %s release" % TAG)
+    rid = release_id(token)
+    req = urllib.request.Request(
+        "%s/repos/%s/releases/%d" % (API, TOOLS_REPO, rid),
+        data=json.dumps({"draft": False, "prerelease": False}).encode(), method="PATCH",
+        headers={"Authorization": "Bearer " + token, "User-Agent": "timeLink-tools",
+                 "Accept": "application/vnd.github+json", "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            done = json.load(r)
+    except urllib.error.HTTPError as e:
+        fail("PATCH the %s release: HTTP %d %s" % (TAG, e.code, e.read().decode("utf-8", "replace")[:300]))
+    print("published %s: %s" % (TAG, BASE))
+    return done.get("id") or rid
 
 
 def tracked_files(*paths):
@@ -537,6 +600,7 @@ def main(argv=None):
     s.add_argument("--dest", required=True)
     s.add_argument("--prefix", default="-")
     s.add_argument("--system", choices=SYSTEMS, default="windows-x64")
+    sub.add_parser("publish")
     s = sub.add_parser("pack")
     s.add_argument("folder")
     s.add_argument("--out", required=True)
@@ -564,21 +628,21 @@ def main(argv=None):
                   file=sys.stderr)
             return 1
         if a.require is not None:
-            # (each copy in timeLink's store answers with its size: a line whose package was never uploaded fails here, not on
+            # (each copy in timeLink's release answers with its size: a line whose asset was never uploaded fails here, not on
             # every player's PC. Upstream fallbacks are not asked)
             gone = []
             for t in tools:
                 url = store_of(t)
                 if url:
-                    if t.urls[:2] != store_urls(t):
-                        gone.append("%s (%s): its first URLs are not %s" % (t.name, t.system, " ".join(store_urls(t))))
+                    if t.urls[:1] != store_urls(t):
+                        gone.append("%s (%s): its first URL is not %s" % (t.name, t.system, " ".join(store_urls(t))))
                         continue
-                    there, size, sha = exists(url)
-                    if not there or size != t.size or sha != t.sha256:
+                    there, size, _ = exists(url)
+                    if not there or size != t.size:
                         gone.append("%s (%s): %s" % (t.name, t.system, "not there" if not there else
-                                                     "%s bytes, SHA-256 %s" % (size, sha)))
+                                                     "%s bytes, tools.lock names %d" % (size, t.size)))
             if gone:
-                print("error: not in timeLink's store as tools.lock names them: %s; RELEASING.md, Bump a tool" % "; ".join(gone),
+                print("error: not in timeLink's release as tools.lock names them: %s; RELEASING.md, Bump a tool" % "; ".join(gone),
                       file=sys.stderr)
                 return 1
     elif a.cmd == "fetch":
@@ -602,6 +666,8 @@ def main(argv=None):
         t.urls = store_urls(t)
         write_line(t, a.lock)
         print("tools.lock: %s %s %s" % (a.name, a.version, sha))
+    elif a.cmd == "publish":
+        publish_tools()
     elif a.cmd == "assemble":
         if a.what == "python":
             t = named(tools, "python")
