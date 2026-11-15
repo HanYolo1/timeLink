@@ -389,7 +389,9 @@ class FakeForgejo(http.server.BaseHTTPRequestHandler):
         if "/assets" in self.path:
             rid = int(self.path.split("/releases/")[1].split("/")[0])
             name = self.path.split("name=")[1]
-            payload = data.split(b"\r\n\r\n", 1)[1].rsplit(b"\r\n--", 1)[0]
+            # (GitHub takes the asset's raw bytes with the name in the query string; a multipart envelope would be
+            # stored verbatim, which is what made a 683-byte SHA256SUMS arrive as 875. The body IS the payload.)
+            payload = data
             self.uploads.append((rid, name, payload))
             rel = next(r for r in self.releases if r["id"] == rid)
             rel["assets"].append({"id": len(self.uploads), "name": name, "size": len(payload)})
