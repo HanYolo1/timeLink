@@ -136,8 +136,8 @@ compiled Easter-egg script were checked separately; those are not browser checks
 
 ## Download links
 
-`worker/index.ts` answers `/download` on longshot.magicbean.dev (everything else is the built site): permanent links to
-the newest [timeLink Launcher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases), for READMEs, release
+`worker/index.ts` answers `/download` (everything else is the built site): permanent links to
+the newest [timeLink Launcher](https://github.com/HanYolo1/timeLink/releases), for READMEs, release
 notes and chat. Forgejo's `/releases/latest` covers stable only; these cover each channel.
 
 | Link | Goes to |
@@ -148,7 +148,7 @@ notes and chat. Forgejo's `/releases/latest` covers stable only; these cover eac
 | `/download/launcher/<channel>/<os>` | that file of the channel's newest release, such as `/download/launcher/stable/windows` |
 
 `<os>` is `windows` (`…-windows-x64-setup.exe`), `windows-portable` (`…-windows-x64-portable.zip`) or `linux`
-(`…-x86_64.AppImage`). A link is a `302` to the file on git.magicbean.dev; a channel or file that isn't there is a `404`
+(`…-x86_64.AppImage`). A link is a `302` to the file on GitHub; a channel or file that isn't there is a `404`
 page that says so and names the newest launcher there is. The channels follow the launcher's own rules
 (`Core/ReleaseManifest.cs`, `scripts/release.py newest`), and the release list is kept 60 seconds.
 `npx wrangler dev` (after `npm run build`) serves the site with the Worker; `tests/download.test.ts` checks the channel

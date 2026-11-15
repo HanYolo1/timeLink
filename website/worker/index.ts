@@ -1,4 +1,4 @@
-// longshot.magicbean.dev's Worker: the built site (dist/), and permanent download links for the timeLink Launcher.
+// The site's Worker: the built site (dist/), and permanent download links for the timeLink Launcher.
 //
 //   /download                                   a page: the launcher for this computer, from the best channel there is
 //   /download/launcher/<os>                     302 to that file of the best channel (stable, else rc, else nightly)
@@ -8,12 +8,14 @@
 // <channel> is stable, rc or nightly; <os> is windows (the setup), windows-portable (the zip) or linux (the AppImage).
 // The channels follow the launcher's rules (Core/ReleaseManifest.cs, Newest; scripts/release.py, newest): drafts never;
 // stable the newest vX.Y.Z that is not a pre-release; rc the newest vX.Y.Z-rc.N or vX.Y.Z; nightly the newest
-// nightly-<count>-<8 hex> by its count. The release list is read from git.magicbean.dev and kept 60 seconds.
+// nightly-<count>-<8 hex> by its count. The release list is read from GitHub and kept 60 seconds.
 
-const FORGE = "https://git.magicbean.dev";
-const REPO = "MagicBeanDev/timeLink Launcher";
-const FIRST_MAJOR = 1;
+const FORGE = "https://api.github.com";
+const REPO = "HanYolo1/timeLink";
+const FIRST_MAJOR = 0;
 const CACHE_SECONDS = 60;
+// (a private repository's releases need a token; set GITHUB_TOKEN as a Worker secret. Unset: the API answers 404)
+const TOKEN = typeof process !== "undefined" ? process.env.GITHUB_TOKEN || "" : "";
 const CHANNELS = ["stable", "rc", "nightly"];
 const FILES = {
   windows: { suffix: "-windows-x64-setup.exe", label: "Windows installer", note: "setup.exe" },
@@ -82,18 +84,19 @@ export function best(releases) {
 
 async function fetchReleases(ctx) {
   const cache = caches.default;
-  const key = new Request(`${FORGE}/api/v1/repos/${REPO}/releases?magicbean-site-cache=1`);
+  const key = new Request(`${FORGE}/repos/${REPO}/releases?timeLink-site-cache=1`);
   const hit = await cache.match(key);
   if (hit) return hit.json();
   const all = [];
   for (let page = 1; page <= 5; page++) {
-    const r = await fetch(`${FORGE}/api/v1/repos/${REPO}/releases?limit=50&page=${page}`, {
-      // (Cloudflare refuses requests with no browser or tool User-Agent)
-      headers: { "User-Agent": "timeLink-website (+https://longshot.magicbean.dev)", Accept: "application/json" },
+    const r = await fetch(`${FORGE}/repos/${REPO}/releases?per_page=50&page=${page}`, {
+      // (Cloudflare refuses requests with no browser or tool User-Agent; GitHub wants one too, and a token when the
+      // repository is private, which this one is until it is published)
+      headers: { "User-Agent": "timeLink-website", Accept: "application/vnd.github+json", ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}) },
     });
-    if (!r.ok) throw new Error(`git.magicbean.dev answered ${r.status}`);
+    if (!r.ok) throw new Error(`api.github.com answered ${r.status}`);
     const items = await r.json();
-    if (!Array.isArray(items)) throw new Error("git.magicbean.dev answered no release list");
+    if (!Array.isArray(items)) throw new Error("api.github.com answered no release list");
     all.push(...items);
     if (items.length < 50) break;
   }
@@ -208,7 +211,7 @@ function page(title, body, status = 200) {
 ${body}
   </main>
   <footer><p>Bring your own copy of the game: timeLink never includes the game, its keys or an executable.
-    All launcher releases: <a href="${FORGE}/${REPO}/releases">git.magicbean.dev</a>.</p></footer>
+    All releases: <a href="https://github.com/${REPO}/releases">github.com/${REPO}</a>.</p></footer>
 </body>
 </html>
 `, {
@@ -253,7 +256,7 @@ function downloadPage(request, releases) {
   const [channel, r] = best(releases);
   if (!r) {
     return page("Download the timeLink Launcher", `    <h1>Download the timeLink Launcher</h1>
-    <p>There is no release yet. Watch <a href="${FORGE}/${REPO}/releases">the release page</a>.</p>`, 404);
+    <p>There is no release yet. Watch <a href="https://github.com/${REPO}/releases">the release page</a>.</p>`, 404);
   }
   const os = osOf(request);
   const primary = os && assetOf(r, os) ? os : null;
@@ -289,9 +292,10 @@ function notFound(releases, what, kind) {
     <p><a class="pill" href="/download">Back to the download page</a></p>`, 404);
 }
 
-// Release files are served by git-cdn.magicbean.dev, from Cloudflare's edge: the same path on its own host.
+// Release files come from GitHub's own asset host, which needs no edge of ours in front of it: the URL is used as given.
+// (This used to rewrite git.magicbean.dev to git-cdn.magicbean.dev, MagicBeanDev's Cloudflare cache.)
 function viaCdn(url) {
-  return typeof url === "string" ? url.replace(/^https:\/\/git\.magicbean\.dev\//, "https://git-cdn.magicbean.dev/") : url;
+  return typeof url === "string" ? url : url;
 }
 
 function redirect(url) {
@@ -303,7 +307,7 @@ async function download(request, ctx, parts) {
   try {
     releases = await fetchReleases(ctx);
   } catch (e) {
-    return page("timeLink Launcher", `    <h1>Can't reach git.magicbean.dev</h1>
+    return page("timeLink Launcher", `    <h1>Can't reach GitHub</h1>
     <p>${esc(e.message)}. Try again in a minute, or download from <a href="${FORGE}/${REPO}/releases">the release page</a>.</p>`, 502);
   }
   // /download
