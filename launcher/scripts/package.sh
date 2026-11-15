@@ -82,7 +82,7 @@ PY
 publish linux-x64 "$WORK/linux-x64"
 app="$WORK/AppDir"
 mkdir -p "$app/usr/bin"
-cp "$WORK/linux-x64/TimeLinkLauncher" "$app/usr/bin/TimeLinkLauncher"
+cp "$WORK/linux-x64/timeLinkLauncher" "$app/usr/bin/TimeLinkLauncher"
 cp "$ROOT/App/Assets/timeLink.png" "$app/timeLink-launcher.png"
 cat > "$app/timeLink-launcher.desktop" <<'EOF'
 [Desktop Entry]
