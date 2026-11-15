@@ -1,3 +1,8 @@
 * text=auto eol=lf
 *.bat text eol=crlf
 *.xz binary
+# (a release fixture's signature covers bytes: the checkout must be the committed LF bytes on every OS,
+# or the signature verifies on Windows and fails on Linux. tests/test_signed_fixture_bytes.py holds this.)
+launcher/tests/fixtures/release/SHA256SUMS -text
+launcher/tests/fixtures/release/SHA256SUMS.sig -text
+launcher/tests/fixtures/release/*.pem -text
