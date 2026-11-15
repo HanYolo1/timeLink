@@ -254,35 +254,34 @@ anything.
 
 ## One-time setup
 
-None of this is done yet. In order (the org secret is shared by both repositories):
+Steps 3 to 5 are done; 1, 2 and 6 are what a maintainer still does. In order:
 
-1. **The key.** On a PC you trust: `python -I scripts/release.py keygen <safe folder>`. Put the printed line in the launcher's
-   `Core/ReleaseTrust.cs` and in timeLink's `scripts/release_keys.json` (a pull request to each). Keep `release.pem` backed
-   up offline. Losing it means a launcher with a new key that every player downloads by hand.
-2. **The secret** (MagicBeanDev > *Settings* > *Actions* > *Secrets*): `RELEASE_SIGNING_KEY`, the text of `release.pem`.
-   No token secret and no bot account: `release.yml` makes the release with the job's own token (`forgejo.token`, given
-   to `release.py` as `RELEASE_TOKEN`), which Forgejo gives write access to its own repository on a push or a tag (never
-   on a pull request from a fork). It needs no fallback. Don't protect `nightly-*` tags (*Settings* > *Tags*): that token
-   can't delete a protected tag, so the prune would fail. `tools.py` and `release.py` run by hand (`mirror`, `add`,
-   `prune`) take your own token as `RELEASE_TOKEN`.
-3. **The upload address.** Uploads through Cloudflare are cut at 100 MB, and the builders are larger. Set the variable
-   `RELEASE_UPLOAD_API` (organization *Actions* > *Variables*; Forgejo refuses variable names that start with `FORGEJO_`, so the workflow passes it to `release.py` as `FORGEJO_UPLOAD_API`) to the API without Cloudflare, e.g.
-   `http://forgejo:3000/api/v1` as the runners reach it on the server's network. Unset, uploads go to
-   `https://git.magicbean.dev/api/v1`.
-4. **The attachment limits** (Forgejo's `app.ini`): `[attachment] MAX_SIZE` in MB, at least the largest file (2048 now;
-   check the AppImage's size after the first build), and `[repository.release] ALLOWED_TYPES` empty, so `.AppImage`, `.exe`,
-   `.lock` and `SHA256SUMS` are accepted.
-5. **Actions and runners.** Enable Actions on both repositories (*Settings* > *Units*), and register the runners in
-   [docs/forgejo-runners.md](https://github.com/HanYolo1/timeLink/src/branch/main/docs/forgejo-runners.md)
-   (Linux only, for both: timeLink's Windows files are cross-built on Linux).
-6. **The tools' packages and `tools.lock`.** Done (2026-11-13): `cpm` with dav1d and `third-party` assembled and added,
-   llvm-mingw, python, emsdk and wgpu-native mirrored, the Linux tools added, each a generic package of the organization
-   (docs/releases.md, "tools.lock"). No play profile is a tool: play profiles are committed in `assets/profiles/`.
-   `python -I scripts/tools.py check --require` must pass: `release.yml` stops in its first job, before any build, until
-   it does.
-7. **Try it** on a fork, or with a throwaway key first: `TIMELINK_LAUNCHER_TRUST=<test .pub.pem>` makes a launcher accept a
-   release signed with it.
-8. **The first releases.** The launcher `v1.0.0-rc.1` and timeLink `v3.0.0-rc.1`, then their stables.
+1. **The key.** On a PC you trust: `python -I scripts/release.py keygen <safe folder>`. Keep the folder out of every git
+   repository and out of any cloud-synced one (OneDrive, Dropbox, Drive): `.gitignore` refuses `*.pem`, but a synced folder
+   copies it off the machine without asking. Put the printed line in the launcher's `Core/ReleaseTrust.cs` and in
+   timeLink's `scripts/release_keys.json` (a pull request to each).
+
+   **Back `release.pem` up, to two places, before anything else.** The Actions secret is not a backup: a secret is
+   write-only, so the file on that PC is the only copy anyone can read back. A USB stick kept offline and a password
+   manager's file attachment are enough; a printed base64 in a safe survives a dead drive and ransomware. Never email it,
+   never paste it into a chat or an issue, never commit it.
+
+   Losing it means a launcher with a new key that every player downloads by hand. Leaking it is worse: whoever holds it can
+   sign a release every launcher accepts as genuine. If it leaks, rotate at once (below) and say so to players.
+2. **The secret** (the repository's *Settings* > *Secrets and variables* > *Actions*): `RELEASE_SIGNING_KEY`, the text of
+   `release.pem`, including its `-----BEGIN`/`-----END` lines. Check it before trusting it: `python -I scripts/release.py
+   key-id <release.pem>` must print the same id as the public key in `Core/ReleaseTrust.cs`.
+3. **Nothing to configure for uploads.** GitHub takes a release asset up to 2 GB, and the largest builder is under 200 MB,
+   so the Cloudflare cut and the `RELEASE_UPLOAD_API` workaround the Forgejo setup needed are gone. `release.py` uploads
+   straight to `uploads.github.com`.
+4. **The tools' release.** Done: the 11 archives are assets of the `tools` release on **`HanYolo1/timeLink-tools`**, a
+   public repository that holds nothing but them (docs/releases.md, *Where the archives are*). They cannot live in
+   `HanYolo1/timeLink`: that repository is private, and GitHub does not serve `releases/download/` for a private repository
+   at all, not even with a token. `python -I scripts/tools.py check --require` must pass; `release.yml` stops in its first
+   job, before anything is built, when it does not.
+5. **Actions.** Enabled on the repository. Every job runs on Linux: timeLink's Windows files are cross-built there, and what
+   only Windows can check is a tester's.
+6. **The first release.** `v0.1.0-rc.1`, then `v0.1.0`: one tag, both products' files.
 
 ## Troubleshooting
 
