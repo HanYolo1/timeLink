@@ -53,16 +53,16 @@ const steps = [
     <div>
       <p class="eyebrow">DEVELOPMENT</p>
       <h2 id="development-title">Built in the open.</h2>
-      <p>timeLink is free software under the GPL, developed on Team MagicBean’s Forgejo. It continues Hookshot, the recompilation NotRexed made.</p>
+      <p>timeLink is free software under the GPL, developed in the open. It continues Hookshot, the recompilation NotRexed made.</p>
       <ol class="steps">{steps.map(([name, text]) => <li><strong>{name}</strong> {text}</li>)}</ol>
-      <p class="links"><a class="text-link" href={repository}>timeLink on Forgejo <span aria-hidden="true">↗</span></a><a class="text-link" href={sourceUrl('docs/development.md')}>Development guide <span aria-hidden="true">↗</span></a></p>
+      <p class="links"><a class="text-link" href={repository}>timeLink on GitHub <span aria-hidden="true">↗</span></a><a class="text-link" href={sourceUrl('docs/development.md')}>Development guide <span aria-hidden="true">↗</span></a></p>
     </div>
     <div class="feed">
       <h3>Recently merged</h3>
       <p class="feed-note">A merge is not a release: changes reach players in the next build.</p>
       {activity.length ? (
         <ol class="activity">{activity.map(item => <li><div><span class="merged">Merged</span><time datetime={item.mergedAt}>{date(item.mergedAt)}</time><span>#{item.number}</span></div><a href={item.url}>{item.title}</a></li>)}</ol>
-      ) : <p>Activity is unavailable right now. <a href={`${repository}/pulls`}>Browse the pull requests on Forgejo</a>.</p>}
+      ) : <p>Activity is unavailable right now. <a href={`${repository}/pulls`}>Browse the pull requests on GitHub</a>.</p>}
       {feed && <p class="snapshot">As of {new Date(feed.generatedAt).toISOString().replace('T', ' ').slice(0, 16)} UTC · <a href="/progress/">All progress</a></p>}
     </div>
   </section>
