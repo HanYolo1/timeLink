@@ -433,7 +433,8 @@ class FakeForgejo(http.server.BaseHTTPRequestHandler):
         if "/assets" in self.path:
             rid = int(self.path.split("/releases/")[1].split("/")[0])
             name = self.path.split("name=")[1]
-            payload = data.split(b"\r\n\r\n", 1)[1].rsplit(b"\r\n--", 1)[0]
+            # (GitHub takes the file's raw bytes as the body, with the name in the query: no multipart envelope to unwrap)
+            payload = data
             self.uploads.append((rid, name, payload))
             rel = next(r for r in self.releases if r["id"] == rid)
             rel["assets"].append({"id": len(self.uploads), "name": name, "size": len(payload)})
@@ -762,7 +763,9 @@ class TokenStaysHome(unittest.TestCase):
         with mock.patch.dict(os.environ, RELEASE_TOKEN="secret"):
             os.environ.pop("FORGEJO_UPLOAD_API", None)
             self.assertEqual(release.download(url), b"the sums")
-        # (Bearer: uploads.github.com answers 404 to `token` with a GitHub App installation token, which is what\n        # GITHUB_TOKEN is - see scripts/release.py api. The point of this test is that the store gets no header at all)\n        self.assertEqual(seen, {"forge": "Bearer secret", "store": None})
+        # (Bearer: uploads.github.com answers 404 to `token` with a GitHub App installation token, which is what
+        # GITHUB_TOKEN is - see scripts/release.py api. The point of this test is that the store gets no header at all)
+        self.assertEqual(seen, {"forge": "Bearer secret", "store": None})
 
 
 if __name__ == "__main__":
