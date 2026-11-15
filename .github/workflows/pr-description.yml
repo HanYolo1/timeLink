@@ -1,4 +1,4 @@
-# A pull request's description must follow the template (.forgejo/pull_request_template.md, CONTRIBUTING.md "Commits and
+# A pull request's description must follow the template (.github/pull_request_template.md, CONTRIBUTING.md "Commits and
 # pull requests"): the status line, every section filled in, the measurements named by commit, every "Everyone" box
 # ticked (the rules: the opening comment of scripts/check_pr_description.py).
 # A PR in work in progress (WIP: or [WIP] at the start of the title) passes with a notice: it is checked once it is
@@ -7,7 +7,7 @@
 # for pull requests from forks, is safe. No game data is involved.
 #
 # Forgejo 17 has no ready_for_review event: marking a PR ready takes WIP: off its title, which is an edit.
-# (Forgejo reads only the first of .forgejo/, .gitea/ and .github/workflows that exists: this file runs once every
+# (GitHub reads .github/workflows/ and nothing else, so this file runs once every
 # workflow has moved here, MagicBeanDev/timeLink#13, and a runner serves the repository.)
 name: PR description
 
@@ -29,7 +29,7 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             scripts/check_pr_description.py
-            .forgejo/pull_request_template.md
+            .github/pull_request_template.md
             tests
           sparse-checkout-cone-mode: false
       - name: Check the description
