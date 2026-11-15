@@ -530,7 +530,8 @@ def releases(repo, pages=1000):
     releases whose field equals the value (draft=true lists the drafts alone)"""
     out, seen = [], set()
     for page in range(1, pages + 1):
-        items = api("GET", "/repos/%s/releases?limit=50&page=%d" % (repo, page)) or []
+        # (GitHub pages with per_page; Forgejo used limit. GitHub caps per_page at 100 and ignores an unknown one)
+        items = api("GET", "/repos/%s/releases?per_page=50&page=%d" % (repo, page)) or []
         new = [r for r in items if r["id"] not in seen]
         if not new:
             return out
