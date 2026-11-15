@@ -14,8 +14,6 @@ const FORGE = "https://api.github.com";
 const REPO = "HanYolo1/timeLink";
 const FIRST_MAJOR = 0;
 const CACHE_SECONDS = 60;
-// (a private repository's releases need a token; set GITHUB_TOKEN as a Worker secret. Unset: the API answers 404)
-const TOKEN = typeof process !== "undefined" ? process.env.GITHUB_TOKEN || "" : "";
 const CHANNELS = ["stable", "rc", "nightly"];
 const FILES = {
   windows: { suffix: "-windows-x64-setup.exe", label: "Windows installer", note: "setup.exe" },
@@ -82,7 +80,7 @@ export function best(releases) {
 
 // ---- the release list, cached ----
 
-async function fetchReleases(ctx) {
+async function fetchReleases(ctx, token) {
   const cache = caches.default;
   const key = new Request(`${FORGE}/repos/${REPO}/releases?timeLink-site-cache=1`);
   const hit = await cache.match(key);
@@ -92,7 +90,7 @@ async function fetchReleases(ctx) {
     const r = await fetch(`${FORGE}/repos/${REPO}/releases?per_page=50&page=${page}`, {
       // (Cloudflare refuses requests with no browser or tool User-Agent; GitHub wants one too, and a token when the
       // repository is private, which this one is until it is published)
-      headers: { "User-Agent": "timeLink-website", Accept: "application/vnd.github+json", ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}) },
+      headers: { "User-Agent": "timeLink-website", Accept: "application/vnd.github+json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     });
     if (!r.ok) throw new Error(`api.github.com answered ${r.status}`);
     const items = await r.json();
@@ -102,7 +100,7 @@ async function fetchReleases(ctx) {
   }
   const slim = all.map((r) => ({
     tag_name: r.tag_name, draft: !!r.draft, prerelease: !!r.prerelease, html_url: r.html_url, published_at: r.published_at,
-    assets: (r.assets || []).map((a) => ({ name: a.name, size: a.size, browser_download_url: viaCdn(a.browser_download_url) })),
+    assets: (r.assets || []).map((a) => ({ name: a.name, size: a.size, browser_download_url: a.browser_download_url })),
   }));
   const stored = new Response(JSON.stringify(slim), {
     headers: { "Content-Type": "application/json", "Cache-Control": `public, max-age=${CACHE_SECONDS}` },
@@ -294,21 +292,18 @@ function notFound(releases, what, kind) {
 
 // Release files come from GitHub's own asset host, which needs no edge of ours in front of it: the URL is used as given.
 // (This used to rewrite git.magicbean.dev to git-cdn.magicbean.dev, MagicBeanDev's Cloudflare cache.)
-function viaCdn(url) {
-  return typeof url === "string" ? url : url;
-}
 
 function redirect(url) {
   return new Response(null, { status: 302, headers: { Location: url, "Cache-Control": `public, max-age=${CACHE_SECONDS}` } });
 }
 
-async function download(request, ctx, parts) {
+async function download(request, ctx, parts, token) {
   let releases;
   try {
-    releases = await fetchReleases(ctx);
+    releases = await fetchReleases(ctx, token);
   } catch (e) {
     return page("timeLink Launcher", `    <h1>Can't reach GitHub</h1>
-    <p>${esc(e.message)}. Try again in a minute, or download from <a href="${FORGE}/${REPO}/releases">the release page</a>.</p>`, 502);
+    <p>${esc(e.message)}. Try again in a minute, or download from <a href="https://github.com/${REPO}/releases">the release page</a>.</p>`, 502);
   }
   // /download
   if (parts.length === 0) return downloadPage(request, releases);
@@ -339,7 +334,7 @@ export default {
     if (path === "/download" || path.startsWith("/download/")) {
       if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405, headers: { Allow: "GET, HEAD" } });
       const parts = path.split("/").slice(2).filter(Boolean).map((p) => p.toLowerCase());
-      return download(request, ctx, parts);
+      return download(request, ctx, parts, env.GITHUB_TOKEN || "");
     }
     return env.ASSETS.fetch(request);
   },
