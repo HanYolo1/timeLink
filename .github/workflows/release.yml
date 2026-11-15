@@ -21,7 +21,7 @@
 #    nightlies past the newest 5. Nothing is committed back to the repository.
 #
 # Secret (RELEASING.md, One-time setup): RELEASE_SIGNING_KEY (the release key's private PEM). Releases are made with the job's
-# own token (secrets.GITHUB_TOKEN, passed to scripts/release.py as RELEASE_TOKEN; no secret to create, no bot account): the
+# own token (github.token, passed to scripts/release.py as RELEASE_TOKEN; no secret to create, no bot account): the
 # `permissions:` block below gives it `contents: write` on this repository and nothing else, so it may make, upload to,
 # publish and delete releases and delete tags here, and nowhere else. GitHub takes a release asset up to 2 GB directly, so
 # there is no separate upload address to configure (Forgejo needed one behind Cloudflare's 100 MB limit).
@@ -70,7 +70,7 @@ jobs:
           fi
       - id: name
         env:
-          RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TOKEN: ${{ github.token }}
         run: |
           git fetch -q --tags origin main
           ref=$(git rev-parse HEAD)
@@ -136,7 +136,7 @@ jobs:
     env:
       TAG: ${{ needs.version.outputs.tag }}
       REF: ${{ needs.version.outputs.ref }}
-      RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

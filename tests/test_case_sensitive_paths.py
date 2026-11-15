@@ -103,6 +103,15 @@ class CaseSensitivePaths(unittest.TestCase):
                                  ".github/workflows/%s greps for %r but the launcher prints %r: the release job fails "
                                  "with 'does not answer --self-check'" % (rel, grepped, printed))
 
+    def test_no_workflow_asks_for_a_token_that_does_not_exist(self):
+        """(secrets.GITHUB_TOKEN is not a secret GitHub defines: it resolves to empty, and a private repository then
+        answers 404 to an unauthenticated API call, which reads as "no releases" rather than "not allowed")"""
+        for path in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            text = path.read_text(encoding="utf-8", errors="replace")
+            self.assertFalse("secrets.GITHUB_TOKEN" in text,
+                             "%s uses secrets.GITHUB_TOKEN, which GitHub does not define: use github.token"
+                             % path.name)
+
     def test_no_tracked_path_differs_from_itself_only_by_case(self):
         """(two files whose names differ only by case cannot both exist on Windows, and confuse a Linux checkout)"""
         clashes = {k: v for k, v in self.by_lower.items() if len(v) > 1}
