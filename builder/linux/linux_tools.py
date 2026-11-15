@@ -47,17 +47,27 @@ def _tools_py():
 tools = _tools_py()
 
 
+def _named(base, *parts):
+    """<base>/timeLink/<parts>, reusing a home an earlier name left at <base>/longshot/<parts>."""
+    new = os.path.join(base, "timeLink", *parts)
+    if not os.path.isdir(new):
+        old = os.path.join(base, "longshot", *parts)
+        if os.path.isdir(old):
+            return old
+    return new
+
+
 def data_root(environ=os.environ):
-    """The builder's own data: $TIMELINK_BUILDER_HOME or $XDG_DATA_HOME/timeLink/builder"""
+    """The builder's own data: $TIMELINK_BUILDER_HOME or $XDG_DATA_HOME, then timeLink/builder"""
     base = environ.get("TIMELINK_BUILDER_HOME") or environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share")
-    return os.path.join(base, "longshot", "builder")
+    return _named(base, "builder")
 
 
 def launcher_toolchains(environ=os.environ):
     """The launcher's toolchains folder (its LauncherHome: $TIMELINK_LAUNCHER_HOME, else $XDG_DATA_HOME/timeLink/launcher)"""
     home = environ.get("TIMELINK_LAUNCHER_HOME")
     if not home:
-        home = os.path.join(environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "longshot", "launcher")
+        home = _named(environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "launcher")
     return os.path.join(home, "toolchains")
 
 

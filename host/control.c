@@ -2328,7 +2328,7 @@ int hos_control_serve(const char *path, const HosControlGame *game) {
         const char *name = !strncmp(path, "\\\\.\\pipe\\", 9) ? path + 9 : path;
         char tmp[MAX_PATH + 1];
         const DWORD n = GetTempPathA(sizeof tmp, tmp);
-        snprintf(G.base_dir, sizeof G.base_dir, "%.*slongshot-control-", (int)(n && n < sizeof tmp ? n : 0), tmp);
+        snprintf(G.base_dir, sizeof G.base_dir, "%.*stimeLink-control-", (int)(n && n < sizeof tmp ? n : 0), tmp);
         size_t k = strlen(G.base_dir);
         for (const char *q = name; *q && k + 2 < sizeof G.base_dir; q++)   /* (a pipe name may hold characters a folder cannot) */
             G.base_dir[k++] = isalnum((unsigned char)*q) || *q == '-' || *q == '_' || *q == '.' ? *q : '_';

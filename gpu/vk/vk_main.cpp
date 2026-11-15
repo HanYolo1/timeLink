@@ -1627,7 +1627,7 @@ const MkwVkRenderer* mkwvk_init(const MkwVkHost* h) {
 #ifdef _WIN32
         std::thread([name = std::string(dev.props.deviceName)] {
             const std::string text = "Your graphics card (" + name + ") or its driver has no mesh shader support, which Ocarina of Time "
-                "uses for foliage, grass and many effects, so parts of the picture will be missing or broken.\n\nLongshot needs a GPU "
+                "uses for foliage, grass and many effects, so parts of the picture will be missing or broken.\n\ntimeLink needs a GPU "
                 "with mesh shaders: NVIDIA GeForce RTX 20 series or newer, AMD Radeon RX 6000 series or newer, or Intel Arc. If your "
                 "card is one of those, update its driver.";
             MessageBoxA(nullptr, text.c_str(), "timeLink: graphics card", MB_OK | MB_ICONWARNING | MB_TOPMOST);
