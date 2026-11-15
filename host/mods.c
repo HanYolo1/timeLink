@@ -77,7 +77,7 @@ static void put(const char *key, const char *host, uint64_t size, int is_dir) {
 
 /* a mod's romfs folder, recursively: rel is the path inside the RomFS so far ("" at its root) */
 static int index_romfs(const char *host_dir, const char *rel, int depth) {
-    if (depth > 32) return 0;   /* (longshot: no RomFS is this deep) */
+    if (depth > 32) return 0;   /* (timeLink: no RomFS is this deep) */
     if (!depth) {   /* (longshot) the romfs folder itself a link (to / in a mod's archive): the walk covered the whole disk */
         const DWORD at = GetFileAttributesA(host_dir);
         if (at != INVALID_FILE_ATTRIBUTES && (at & FILE_ATTRIBUTE_REPARSE_POINT)) {

@@ -1,4 +1,4 @@
-// The Insert menu (vk_menu.cpp): options that apply while the game runs, kept in longshot_options.ini beside the executable.
+// The Insert menu (vk_menu.cpp): options that apply while the game runs, kept in timeLink_options.ini beside the executable.
 #pragma once
 #include "auto_settings.h"
 

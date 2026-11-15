@@ -323,7 +323,7 @@ int main(int argc, char **argv) {
         top = tmp / name
         game = top / "game"
         (game / "prompts/xbox").mkdir(parents=True)
-        (game / "longshot_options.ini").write_text("button_prompts=2\n")   # (Xbox: no controller asked for)
+        (game / "timeLink_options.ini").write_text("button_prompts=2\n")   # (Xbox: no controller asked for)
         (game / "romfs" / TABLE).parent.mkdir(parents=True)
         (game / "romfs" / TABLE).write_bytes(frame(restbl(*GAME)))
         (game / "prompts/External.bfotf").write_bytes(struct.pack("<I", 0x18029A7F) + bytes(28))   # (every face's: one font)

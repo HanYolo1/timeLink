@@ -64,14 +64,14 @@ int main(int argc, char **argv) {
     CHECK(h != INVALID_HANDLE_VALUE);
     if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
     CHECK(DeleteFileW(wlog));
-    /* (argv: the tester's folder "Longshot-DLSS ゼルダ" came in as "Longshot-DLSS ???", and the game printed its usage line) */
-    CHECK(argc > 2 && !strcmp(argv[2], "Longshot-DLSS \xe3\x82\xbc\xe3\x83\xab\xe3\x83\x80 Z\xc3\xa9lda"));
+    /* (argv: the tester's folder "timeLink-DLSS ゼルダ" came in as "timeLink-DLSS ???", and the game printed its usage line) */
+    CHECK(argc > 2 && !strcmp(argv[2], "timeLink-DLSS \xe3\x82\xbc\xe3\x83\xab\xe3\x83\x80 Z\xc3\xa9lda"));
     /* (the log: freopen'd stderr on the UTF-8 path, and the path printed into it as hos_log's "fs: mounted" lines do, in UTF-8) */
-    strcpy(slash + 1, "longshot_log.txt");
+    strcpy(slash + 1, "timeLink_log.txt");
     if (freopen(exe, "w", stderr)) {
         fprintf(stderr, "fs: mounted rom: -> %s\n", exe);
         fflush(stderr);
-        wcscpy(wcsrchr(wlog, L'\\') + 1, L"longshot_log.txt");
+        wcscpy(wcsrchr(wlog, L'\\') + 1, L"timeLink_log.txt");
         FILE *in = _wfopen(wlog, L"rb");
         char got[MAX_PATH * 3 + 64] = "", want[MAX_PATH * 3 + 64];
         CHECK(in != NULL);
@@ -86,9 +86,9 @@ int main(int argc, char **argv) {
         snprintf(want, sizeof want, "fs: mounted rom: -> %s\n", exe8);
         CHECK(!strcmp(got, want));
     } else CHECK(!"freopen of the log");
-    /* (the environment through getenv, as longshot_env.txt's switches and LOCALAPPDATA-style paths come in) */
-    _wputenv(L"LONGSHOT_UTF8_PROBE=\x30B2\x30FC\x30E0 \xD83C\xDFAE");
-    const char *e = getenv("LONGSHOT_UTF8_PROBE");
+    /* (the environment through getenv, as timeLink_env.txt's switches and LOCALAPPDATA-style paths come in) */
+    _wputenv(L"TIMELINK_UTF8_PROBE=\x30B2\x30FC\x30E0 \xD83C\xDFAE");
+    const char *e = getenv("TIMELINK_UTF8_PROBE");
     CHECK(e && !strcmp(e, "\xe3\x82\xb2\xe3\x83\xbc\xe3\x83\xa0 \xf0\x9f\x8e\xae"));
     if (!failures) printf("utf8 paths: ok (code page %u)\n", GetACP());
     return failures ? 1 : 0;

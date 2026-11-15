@@ -20,8 +20,8 @@
 #include "shader_recompiler/backend/spirv/emit_spirv.h"
 #include "shader_recompiler/backend/spirv/mma_layout.h"
 #include "shader_recompiler/backend/spirv/spirv_emit_context.h"
-#ifndef LONGSHOT_ENV_H   // (env_on: the switches' one rule)
-#include "longshot_env.h"
+#ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
+#include "timeLink_env.h"
 #endif
 
 namespace Shader::Backend::SPIRV {
@@ -325,7 +325,7 @@ void DefineSsbos(EmitContext& ctx, StorageTypeDefinition& type_def,
     u32 index{};
     size_t table{};
     for (const StorageBufferDescriptor& desc : info.storage_buffers_descriptors) {
-        if (desc.count > 1) {   // (longshot: a storage buffer table, Info::global_tables)
+        if (desc.count > 1) {   // (timeLink: a storage buffer table, Info::global_tables)
             const Id array{ctx.TypeArray(struct_type, ctx.Const(desc.count))};
             const Id id{ctx.AddGlobalVariable(ctx.TypePointer(spv::StorageClass::StorageBuffer, array),
                                               spv::StorageClass::StorageBuffer)};
@@ -396,7 +396,7 @@ Id CasFunction(EmitContext& ctx, Operation operation, Id value_type) {
     return func;
 }
 
-// (longshot, issue 17) A ceiling on a compare-exchange loop's attempts. Every attempt that fails does so because
+// (timeLink, issue 17) A ceiling on a compare-exchange loop's attempts. Every attempt that fails does so because
 // another invocation's succeeded, so a contended word is always written in far fewer tries than this; the ceiling
 // only matters when the exchange never returns what it was given, as for a word out of bounds under robust buffer
 // access (seen on Intel Arc B390: no device loss, the frame never came back). One attempt counts: the condition to
@@ -1167,7 +1167,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
     // (EvilOOT) the structure pointer type of a storage buffer of that member's elements, for OpArrayLength
     const auto struct_pointer_of{[&](DefPtr m) -> Id {
         if (m == &StorageDefinitions::U32) return storage_types.U32.array;
-        if (m == &StorageDefinitions::F32) return storage_types.F32.array;   // (longshot: the native float add's, as U32's)
+        if (m == &StorageDefinitions::F32) return storage_types.F32.array;   // (timeLink: the native float add's, as U32's)
         if (m == &StorageDefinitions::U32x2) return storage_types.U32x2.array;
         if (m == &StorageDefinitions::U32x4) return storage_types.U32x4.array;
         return Id{};
@@ -1210,7 +1210,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
     const auto define_body{[&](DefPtr ssbo_member, Id addr, Id element_pointer, u32 shift,
                                auto&& callback, bool add_label = true) {
         if (add_label) AddLabel();
-        // (longshot, global_table_loop: the tables' entries in a loop, its counter here, where the function's variables must be.
+        // (timeLink, global_table_loop: the tables' entries in a loop, its counter here, where the function's variables must be.
         // The CAS loops' callers open the block themselves: theirs stay written out)
         const Id table_counter{global_table_loop && add_label && !ssbo_tables.empty()
                                    ? AddLocalVariable(TypePointer(spv::StorageClass::Function, U32[1]), spv::StorageClass::Function)
@@ -1308,7 +1308,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
             callback(ssbo_pointer);
             AddLabel(else_label);
         }
-        for (const GlobalTableVars& table : ssbo_tables) {   // (longshot: Info::global_tables)
+        for (const GlobalTableVars& table : ssbo_tables) {   // (timeLink: Info::global_tables)
             const Id table_id{table.vars.*ssbo_member};
             if (!Sirit::ValidId(table_id) || !Sirit::ValidId(cbufs[table.cbuf_index].U32x2)) {
                 continue;
@@ -1438,7 +1438,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
             OpStore(ssbo_pointer, data);
             OpReturn();
         });
-        if (follow_stores) guest_lookup(addr, 1U << shift, [&](Id target) {   // (longshot: through the page table, as the loads: the culling's outputs)
+        if (follow_stores) guest_lookup(addr, 1U << shift, [&](Id target) {   // (timeLink: through the page table, as the loads: the culling's outputs)
             if (gp_level >= 3) OpStore(psb_member(type, target), data, spv::MemoryAccessMask::Aligned, 4U);
             OpReturn();
         });
@@ -1476,7 +1476,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
                 const Id scope{Const(static_cast<u32>(spv::Scope::Device))};
                 OpReturnValue((this->*atomics[i])(U32[1], ssbo_pointer, scope, u32_zero_value, value));
             });
-            if (follow_stores) guest_lookup(addr, 4U, [&](Id target) {   // (longshot: the culling's counters, through the page table)
+            if (follow_stores) guest_lookup(addr, 4U, [&](Id target) {   // (timeLink: the culling's counters, through the page table)
                 const Id scope{Const(static_cast<u32>(spv::Scope::Device))};
                 if (gp_level >= 3) OpReturnValue((this->*atomics[i])(U32[1], psb_member(U32[1], target), scope, u32_zero_value, value));
                 else OpReturnValue(u32_zero_value);
@@ -1620,7 +1620,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
 }
 
 void EmitContext::DefineRescalingInput(const Info& info) {
-    if (!info.uses_rescaling_uniform || rescaling_push_constants.value != 0) {   // (longshot: or made already, for the page table)
+    if (!info.uses_rescaling_uniform || rescaling_push_constants.value != 0) {   // (timeLink: or made already, for the page table)
         return;
     }
     if (profile.unified_descriptor_binding) {

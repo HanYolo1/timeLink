@@ -59,7 +59,7 @@ struct Program {
     // (longshot) compute_pipeline was made without the optimizer before play (precompile_run, precompile_compute_quick): its first
     // dispatch queues compute_optimize. Not before: a first start makes every kept compute program's, most never dispatched
     std::atomic<bool> optimize_owed{false};
-    mutable std::atomic<bool> dispatched{false};   // (longshot) noted in longshot_computes.bin (vk_draw.cpp compute_note)
+    mutable std::atomic<bool> dispatched{false};   // (longshot) noted in timeLink_computes.bin (vk_draw.cpp compute_note)
     bool push = false;             // its set is pushed (VK_KHR_push_descriptor)
     VkShaderStageFlags push_stages = 0;
     bool uses_render_area = false;
@@ -85,7 +85,7 @@ struct Program {
     };
     std::vector<Answer> answers;
     uint64_t variant = 0;   // (a hash of the answers: key alone names all the variants of these stages)
-    mutable std::atomic<int64_t> wm_sig{-1};   // (longshot: what its write masks are made from, vk_draw.cpp program_wm_sig; -1: not asked yet)
+    mutable std::atomic<int64_t> wm_sig{-1};   // (timeLink: what its write masks are made from, vk_draw.cpp program_wm_sig; -1: not asked yet)
     // (longshot) how many buffer, image and texel view descriptors its stages have, packed (vk_draw.cpp desc_counts_pack); ~0: not counted yet
     mutable std::atomic<uint64_t> desc_counts{~0ull};
     // (longshot) the translation's texture questions as answered, in the order asked: what makes this variant again with nothing
@@ -93,7 +93,7 @@ struct Program {
     std::vector<uint8_t> questions;
     uint64_t codes[4]{};   // (longshot) its stages' code keys: vertex (mesh), fragment, task, the header-only stage (the state list)
     // (longshot) a compute program read from the cache without its code (vk_progcache.cpp program_cache_read_light): where its
-    // SPIR-V is in longshot_programs.bin, and how many words; 0 words: it has its module (program_cache_complete makes it)
+    // SPIR-V is in timeLink_programs.bin, and how many words; 0 words: it has its module (program_cache_complete makes it)
     int64_t code_at = 0;
     uint64_t code_words = 0;
 };
@@ -105,28 +105,28 @@ enum class ProgramKind { Graphics, Compute, Mesh };
 /// Graphics programs may come back not ready yet (translation queued): the draw leaves itself out or program_wait()s.
 const Program* program_for(const NvnState& s, ProgramKind kind, const uint8_t color_types[8]);
 uint64_t compute_code_key(const NvnState& s);   // (longshot) the bound compute program's code key, 0: none
-std::string program_textures(const NvnState& s, const Program& p);   // (longshot, for logs)
+std::string program_textures(const NvnState& s, const Program& p);   // (timeLink, for logs)
 std::string program_code_keys(const NvnState& s);   // (longshot) " stage:key" for each of the bound program's codes
 const Program* program_pick(const NvnState& s, ProgramKind kind, const uint8_t color_types[8]);   // (program_for without its cache)
 void program_wait(const Program* p);
 uint64_t program_cache_stamp();   // (what the kept programs and pipelines are good for)
 size_t program_cache_load_some(const std::unordered_set<uint64_t>& wanted, const std::function<void(Program&)>& fn,
                                bool computes = true, bool fallbacks = false);   // (computes: and every kept compute program)
-/// The precompile of every shader of the game (longshot_shaders.bin, from nx2/shader_census.py): how many programs it names, 0: none
+/// The precompile of every shader of the game (timeLink_shaders.bin, from nx2/shader_census.py): how many programs it names, 0: none
 size_t seed_open();
-std::string seed_path();   // (longshot_shaders.bin, beside the game)
+std::string seed_path();   // (timeLink_shaders.bin, beside the game)
 void seed_close();
 /// Program i of the seed, translated and kept for the default state (null: kept already, or it does not translate); its modules are yours
 std::unique_ptr<Program> seed_program(size_t i, int inputs = 0);
 bool seed_is_compute(size_t i);
-/// (longshot) Seed program i, a compute program, kept in longshot_programs.bin with every texture variant its questions can make (up
+/// (longshot) Seed program i, a compute program, kept in timeLink_programs.bin with every texture variant its questions can make (up
 /// to cap variants); made is given each variant not kept before
 struct SeedVariants {
     size_t variants = 0, questions = 0;
     bool kept = false, failed = false, capped = false;
 };
 SeedVariants seed_compute(size_t i, size_t cap, const std::function<void(Program&)>& made);
-/// (longshot, the prediction: vk_predict.cpp) a kept graphics program variant as longshot_programs.bin has it: each stage's SPIR-V
+/// (timeLink, the prediction: vk_predict.cpp) a kept graphics program variant as timeLink_programs.bin has it: each stage's SPIR-V
 struct KeptProgram {
     uint64_t key = 0, variant = 0;
     int64_t at = 0;   // (where its record is in the file: of two records of one variant, the later is the one kept)

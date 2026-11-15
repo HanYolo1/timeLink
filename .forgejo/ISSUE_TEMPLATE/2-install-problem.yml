@@ -12,8 +12,8 @@ body:
     attributes:
       label: What you used
       options:
-        - Longshot Launcher
-        - Longshot Builder (Windows)
+        - timeLink Launcher
+        - timeLink Builder (Windows)
         - Linux AppImage
         - Command line (nx2/make_game.py)
     validations:
@@ -22,8 +22,8 @@ body:
     id: version
     attributes:
       label: Version
-      description: The launcher's or the builder's version, and the Longshot version it was installing.
-      placeholder: Launcher v1.0.0, Longshot v3.0.0
+      description: The launcher's or the builder's version, and the timeLink version it was installing.
+      placeholder: Launcher v1.0.0, timeLink v3.0.0
     validations:
       required: true
   - type: dropdown

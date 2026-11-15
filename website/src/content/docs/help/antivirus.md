@@ -1,21 +1,21 @@
 ---
 title: Antivirus warnings
-description: Why Windows Defender and browsers flag Longshot, how to check your download is genuine, and how to fix it on Windows.
+description: Why Windows Defender and browsers flag timeLink, how to check your download is genuine, and how to fix it on Windows.
 ---
 
-Longshot's Windows programs (the launcher, the builder, and the game it builds) are new and **not code-signed yet**:
+timeLink's Windows programs (the launcher, the builder, and the game it builds) are new and **not code-signed yet**:
 the signing certificate is still being applied for. Windows Defender and browsers judge unsigned programs nobody has
-seen before by guesswork, so they often flag Longshot, most often as **`Trojan:Win32/Wacatac.H!ml`** or
+seen before by guesswork, so they often flag timeLink, most often as **`Trojan:Win32/Wacatac.H!ml`** or
 **`Wacatac.B!ml`**. The `!ml` at the end means Defender's machine learning guessed: it is not a known virus.
 
-That doesn't mean you should trust any file with Longshot's name. First check that yours is genuine, then let it through.
+That doesn't mean you should trust any file with timeLink's name. First check that yours is genuine, then let it through.
 
 ## 1. Check that your download is genuine
 
-Only download Longshot from its two release pages on git.magicbean.dev:
+Only download timeLink from its two release pages on git.magicbean.dev:
 
-- [The Longshot Launcher's releases](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases)
-- [Longshot's releases](https://git.magicbean.dev/MagicBeanDev/Longshot/releases)
+- [The timeLink Launcher's releases](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases)
+- [timeLink's releases](https://git.magicbean.dev/MagicBeanDev/Longshot/releases)
 
 The [download page](/download) and its links send you to the first of these.
 
@@ -49,11 +49,11 @@ This is SmartScreen. Choose **More info**, then **Run anyway**.
 ### Defender removed a file
 
 This shows as a Defender notification, as the launcher saying **"Your antivirus removed part of the build tools"**, or
-as a file that is suddenly missing (`longshot.exe`, or the launcher itself). Put it back, then stop it happening again:
+as a file that is suddenly missing (`timeLink.exe`, or the launcher itself). Put it back, then stop it happening again:
 
 1. Open **Windows Security** (search for it in the Start menu), then **Virus & threat protection**.
-2. Choose **Protection history**. Open the most recent entry that names Longshot or one of its folders (usually a
-   `Wacatac` detection), choose **Actions**, then **Restore**. Do this for each Longshot entry.
+2. Choose **Protection history**. Open the most recent entry that names timeLink or one of its folders (usually a
+   `Wacatac` detection), choose **Actions**, then **Restore**. Do this for each timeLink entry.
 3. Back on **Virus & threat protection**, under **Virus & threat protection settings**, choose **Manage settings**.
 4. Scroll to **Exclusions**, choose **Add or remove exclusions**, then **Add an exclusion** → **Folder**, and add these
    folders, one at a time:
@@ -61,7 +61,7 @@ as a file that is suddenly missing (`longshot.exe`, or the launcher itself). Put
      `toolchains`) and the build files. The portable launcher keeps it in `LongshotLauncher-data` beside
      `LongshotLauncher.exe` instead: add that folder.
    - `%LOCALAPPDATA%\Programs\LongshotLauncher`: the installed launcher itself.
-   - Your game folder: `%USERPROFILE%\Games\Longshot` unless you chose another.
+   - Your game folder: `%USERPROFILE%\Games\timeLink` unless you chose another.
 
    You can type the `%...%` paths straight into the folder picker's address bar.
 5. In the launcher, build again. If a file is still missing, delete that version's folder in
@@ -73,7 +73,7 @@ Or do steps 3 and 4 in one go, in PowerShell started with **Run as administrator
 ```powershell
 Add-MpPreference -ExclusionPath "$env:LOCALAPPDATA\LongshotLauncher"
 Add-MpPreference -ExclusionPath "$env:LOCALAPPDATA\Programs\LongshotLauncher"
-Add-MpPreference -ExclusionPath "$env:USERPROFILE\Games\Longshot"
+Add-MpPreference -ExclusionPath "$env:USERPROFILE\Games\timeLink"
 ```
 
 :::caution
@@ -89,7 +89,7 @@ game folder as **exceptions** (or "exclusions"). Then build again in the launche
 
 ## 3. Help get it fixed
 
-Every report of a false positive teaches Microsoft that Longshot is safe, for everyone. Send the flagged file to
+Every report of a false positive teaches Microsoft that timeLink is safe, for everyone. Send the flagged file to
 [Microsoft's file submission](https://www.microsoft.com/wdsi/filesubmission): choose **Home customer**, then
 **Incorrectly detected as malware/malicious**, and give the detection name (such as `Wacatac.H!ml`).
 

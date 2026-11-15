@@ -37,8 +37,8 @@
 #include "shaders/fg_scale_pq_comp_spv.h"   // (fg_scale.comp with FG_SCALE_PQ: an RGB10A2 destination)
 #include "shaders/fg_synth_comp_spv.h"
 #include "shaders/hdr_encode_comp_spv.h"
-#ifndef LONGSHOT_ENV_H   // (env_on: the switches' one rule)
-#include "longshot_env.h"
+#ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
+#include "timeLink_env.h"
 #endif
 #include "vk_draw.h"   // (extern_guarded_shader_module, extern_guarded_compute)
 #include "vk_work.h"   // (after the others: counts the commands that do GPU work, for full_barrier)

@@ -11,8 +11,8 @@
 #include <cstdlib>
 #include <vector>
 
-#ifndef LONGSHOT_ENV_H   // (env_on: the switches' one rule)
-#include "longshot_env.h"
+#ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
+#include "timeLink_env.h"
 #endif
 #include "vram_compact.h"
 #include "vk_work.h"   // (last: RX_VK_RECORDER=defer drains before the destructions and the invalidate below)
@@ -80,7 +80,7 @@ VmaPool target_images_pool() {
     return target_image_pool;
 }
 
-// (longshot, RX 7800 XT: part of a pool's blocks made at the start, not when the game first needs them. Each is a vkAllocateMemory of
+// (timeLink, RX 7800 XT: part of a pool's blocks made at the start, not when the game first needs them. Each is a vkAllocateMemory of
 // 128 MB, ~170 ms on AMD's driver, on the replay thread: ~70 of them in a walk across Hyrule Field, the frame rate dropping to the low
 // 40s whenever new ground came in. In the pool the sampled textures are made in and no other, 15% of the card's memory, 2 to 24 blocks,
 // none on an integrated GPU: vram_compact::blocks_at_start. RX_VK_IMAGE_PREALLOC=<blocks>: that many, 0: none)
@@ -326,7 +326,7 @@ bool create_device_buffer(uint64_t size, VkBufferUsageFlags usage, VkBuffer& buf
     if (dedicated) ai.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
     return vmaCreateBuffer(vma, &bi, &ai, &buffer, &allocation, nullptr) == VK_SUCCESS;
 }
-/// (longshot, RX_VK_MIRROR_SPARSE) A buffer with sparse residency and no memory: its blocks are bound one by one
+/// (timeLink, RX_VK_MIRROR_SPARSE) A buffer with sparse residency and no memory: its blocks are bound one by one
 /// (vk_memory.cpp, sparse_mirror.h). req: its size, block (alignment) and memory types
 bool create_sparse_buffer(uint64_t size, VkBufferUsageFlags usage, VkBuffer& buffer, VkMemoryRequirements& req) {
     VkBufferCreateInfo bi{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};

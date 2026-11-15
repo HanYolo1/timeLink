@@ -84,7 +84,7 @@ class Forgejo:
         base = "/repos/MagicBeanDev/Longshot"
         if method == "GET" and path == "/user":
             return {"login": "alice"}
-        if method == "GET" and path.startswith("/repos/alice/Longshot/branches/"):
+        if method == "GET" and path.startswith("/repos/alice/timeLink/branches/"):
             return {"name": path.rsplit("/", 1)[1]}
         assert path.startswith(base), path
         path = path[len(base):]
@@ -170,7 +170,7 @@ class PR(unittest.TestCase):
                         mock.patch.object(forge, "api_upload", self.forgejo.upload),
                         # (the login saved at sign-in, from before the account was renamed: the server's is the one used)
                         mock.patch.object(forge, "token", lambda: {"login": "alice-before", "access_token": "t"}),
-                        mock.patch.object(forge, "ensure_fork", lambda login: ("%s/Longshot" % login, False)),
+                        mock.patch.object(forge, "ensure_fork", lambda login: ("%s/timeLink" % login, False)),
                         mock.patch.object(forge.auth, "forge_request", no_network),
                         mock.patch.object(forge.auth, "forge_session", no_network),
                         mock.patch.object(forge.urllib.request, "urlopen", no_network)]
@@ -456,8 +456,8 @@ class PR(unittest.TestCase):
         for paths, want in (([missing], "missing.png: no such file"),
                             ([os.path.join(self.tmp, "folder.png")], "folder.png: not a file"),
                             ([nso], "main.nso: not a picture by its name"),
-                            ([self.picture("longshot_programs.bin", PNG)],
-                             "longshot_programs.bin: not a picture by its name"),
+                            ([self.picture("timeLink_programs.bin", PNG)],
+                             "timeLink_programs.bin: not a picture by its name"),
                             ([self.picture("dump.png", b"\x7fELF" + bytes(60))],
                              "dump.png: named as a PNG, but its bytes are no picture's"),
                             ([self.picture("photo.png", JPEG)],
@@ -532,7 +532,7 @@ class PR(unittest.TestCase):
             self.assertEqual((req.get_method(), req.get_header("User-agent"), req.get_header("Authorization")),
                              ("POST", forge.auth.USER_AGENT, "Bearer t"))
             ctype = req.get_header("Content-type")
-            self.assertTrue(ctype.startswith("multipart/form-data; boundary=longshot-"), ctype)
+            self.assertTrue(ctype.startswith("multipart/form-data; boundary=timeLink-"), ctype)
             form = email.parser.BytesParser(policy=email.policy.HTTP).parsebytes(
                 b"Content-Type: " + ctype.encode() + b"\r\n\r\n" + req.data)
             part, = form.iter_parts()

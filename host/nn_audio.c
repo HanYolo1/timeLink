@@ -34,9 +34,9 @@
 #else
 #include "hos_sdl.h"
 #endif
-#include "hos_paths.h"   /* (the game folder: longshot_options.ini, au_menu_output) */
-#ifndef LONGSHOT_ENV_H   /* (env_on: the switches' one rule) */
-#include "../gpu/vk/compat/longshot_env.h"
+#include "hos_paths.h"   /* (the game folder: timeLink_options.ini, au_menu_output) */
+#ifndef TIMELINK_ENV_H   /* (env_on: the switches' one rule) */
+#include "../gpu/vk/compat/timeLink_env.h"
 #endif
 
 void hos_system_event_init(uint64_t key, int autoclear);
@@ -791,7 +791,7 @@ static int au_device_channels(void) {
 #else
 static int au_device_channels(void) { return hos_sdl_audio_channels(); }
 #endif
-/* (longshot) The Insert menu's Audio output (gpu/vk/vk_menu.cpp): audio_output= in longshot_options.ini beside the game,
+/* (longshot) The Insert menu's Audio output (gpu/vk/vk_menu.cpp): audio_output= in timeLink_options.ini beside the game,
    0 Auto, 1 Stereo, 2 5.1, 3 Mono (stereo with a live final average). A number past them is the nearest, as the menu reads
    it. Read from the file, as host/nn_applet.c reads the Handheld profile: the game asks for its speakers only once,
    at its start */
@@ -800,7 +800,7 @@ static int au_menu_output(void) {
     const DWORD len = hos_game_path_a(path, MAX_PATH);
     char *slash = len ? (strrchr(path, 92) ? strrchr(path, 92) : strrchr(path, 47)) : NULL;   /* (linux: '/') */
     if (!slash) return 0;
-    snprintf(slash + 1, (size_t)(path + MAX_PATH - slash - 1), "longshot_options.ini");
+    snprintf(slash + 1, (size_t)(path + MAX_PATH - slash - 1), "timeLink_options.ini");
     FILE *f = fopen(path, "r");
     if (!f) return 0;
     char line[80];

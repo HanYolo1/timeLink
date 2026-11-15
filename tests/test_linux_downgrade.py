@@ -1,4 +1,4 @@
-"""Game-free: a game folder's longshot starts the program that made the game (its builder= line: the launcher, or a 2.x
+"""Game-free: a game folder's timeLink starts the program that made the game (its builder= line: the launcher, or a 2.x
 builder AppImage, which plays it), and the game itself when that program is gone."""
 from pathlib import Path
 import shutil
@@ -18,14 +18,14 @@ class FolderDispatch(unittest.TestCase):
             game = root / "Authored 'game % folder"
             (game / "bin").mkdir(parents=True)
             script = game / "longshot"
-            shutil.copyfile(ROOT / "builder/linux/longshot-folder", script)
+            shutil.copyfile(ROOT / "builder/linux/timeLink-folder", script)
             script.chmod(0o700)
             recorded = root / "Recorded 'Builder.AppImage"
-            direct = game / "bin/longshot"
+            direct = game / "bin/timeLink"
             for path, label in [(recorded, "recorded"), (direct, "game")]:
                 path.write_text("#!/bin/sh\nprintf '%s\\n' " + label + " \"$@\"\n")
                 path.chmod(0o700)
-            stamp = game / "longshot_version.txt"
+            stamp = game / "timeLink_version.txt"
             stamp.write_text("version=v2.1.0-rc.3\nbuilder=" + str(recorded) + "\n")
             def run(expected):
                 ran = subprocess.run([str(script)], capture_output=True, text=True, timeout=10)

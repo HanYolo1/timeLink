@@ -50,7 +50,7 @@ struct Ctx {
     float safe;   // (the margin kept clear at each edge, pixels)
     bool pad;     // (a controller was the last input: its buttons in the prompts)
     int confirm_dot = 3, back_dot = 1;   // (the face buttons that confirm and go back: vk_menu_keys.h dot, 3 the bottom, 1 the right)
-    int paste_dot = 0;   // (longshot: the one that pastes into a text field, vk_menu_keys.h paste)
+    int paste_dot = 0;   // (timeLink: the one that pastes into a text field, vk_menu_keys.h paste)
 };
 
 inline ImVec2 size_of(ImFont* font, float px, const char* t, float wrap = 0) {

@@ -16,7 +16,7 @@ says where the log is and how to ask.
 
 ### The launcher says "This version isn't supported"
 
-Or: "Longshot supports build e0f3ccfa". Longshot builds from one version of the game only.
+Or: "timeLink supports build e0f3ccfa". timeLink builds from one version of the game only.
 
 1. **Check the version.** You need program `0400486024DEC000` with update **v131072** (build `e0f3ccfa`); see
    [what you need](../README.md#what-you-need). The game without its update, or with another one, won't build.
@@ -27,7 +27,7 @@ Or: "Longshot supports build e0f3ccfa". Longshot builds from one version of the 
 
 ### "Your antivirus removed part of the build tools"
 
-A false alarm on unsigned programs: Longshot isn't code-signed yet.
+A false alarm on unsigned programs: timeLink isn't code-signed yet.
 
 1. **Get the files back.** Restore them from Windows Security's **Protection history**, and add the launcher's folders
    to its exclusions: `%LOCALAPPDATA%\LongshotLauncher` (its data: each version's builder and build tools, in
@@ -65,13 +65,13 @@ download is genuine.
 ### The game opens and closes, shows a black screen, or the log says "device lost"
 
 1. **Update your graphics driver.** On Linux, update Mesa or the NVIDIA driver.
-2. **Check your graphics card.** Longshot needs **Vulkan 1.3**; see [what you need](../README.md#what-you-need). A
+2. **Check your graphics card.** timeLink needs **Vulkan 1.3**; see [what you need](../README.md#what-you-need). A
    driver update can't add it to an older card that doesn't have it.
 3. **AMD cards** have known crashes ([#708](https://github.com/NotRexed/Hookshot/issues/708),
    [#614](https://github.com/NotRexed/Hookshot/issues/614)). To try the other drawing path, add the line
-   `RX_VK_MESH_SHADERS=compute` to `longshot_env.txt` in the game folder (usually a little slower; delete the line to
+   `RX_VK_MESH_SHADERS=compute` to `timeLink_env.txt` in the game folder (usually a little slower; delete the line to
    undo it).
-4. **Read the end of the log.** `longshot_log.txt` in the game folder's `logs` folder has the last run; its last lines usually say what
+4. **Read the end of the log.** `timeLink_log.txt` in the game folder's `logs` folder has the last run; its last lines usually say what
    failed.
 
 [Search crash reports](https://longshot.magicbean.dev/progress/#problem-search?q=crash) · [Search black-screen reports](https://longshot.magicbean.dev/progress/#problem-search?q=black+screen)
@@ -86,7 +86,7 @@ download is genuine.
 
 ### Linux: Play closed before the game's log appeared
 
-Wait for the game to exit, then open `longshot_startup.log` in the game folder's `logs` folder: it has up to 64 KiB of the game's
+Wait for the game to exit, then open `timeLink_startup.log` in the game folder's `logs` folder: it has up to 64 KiB of the game's
 startup errors and its exit status. Started from a terminal, the game prints there instead.
 
 [Search startup reports](https://longshot.magicbean.dev/progress/#problem-search?q=startup)
@@ -95,7 +95,7 @@ startup errors and its exit status. Started from a terminal, the game prints the
 
 ### Parts of the picture are missing, or a message says your card has no mesh shader support
 
-Without mesh shaders, Longshot draws through its compute fallback, which leaves some draws out
+Without mesh shaders, timeLink draws through its compute fallback, which leaves some draws out
 ([#640](https://github.com/NotRexed/Hookshot/issues/640)).
 
 1. **Update your graphics driver:** a card and driver with mesh shaders draw everything. NVIDIA RTX 20 series and
@@ -106,7 +106,7 @@ Without mesh shaders, Longshot draws through its compute fallback, which leaves 
 
 ### One place has a wrong texture, or a floor or wall is missing
 
-1. **Look for `longshot_damaged_files.txt`** in the game folder. The build writes it when your dump of the game is
+1. **Look for `timeLink_damaged_files.txt`** in the game folder. The build writes it when your dump of the game is
    incomplete (about 23.3 GB instead of 23.8 GB), listing each damaged file and what was put in its place.
 2. **Dump the game again** and build from the new dump. The file is removed once the dump is whole.
 
@@ -119,7 +119,7 @@ Without mesh shaders, Longshot draws through its compute fallback, which leaves 
 2. **Watch the memory.** It can use much more graphics memory, and stalls when the card runs out. To undo it, turn the
    row off and restart.
 
-If the row can't be changed, `longshot_env.txt` sets it: remove its `RX_VK_ASTC_RGBA8=1` line. The
+If the row can't be changed, `timeLink_env.txt` sets it: remove its `RX_VK_ASTC_RGBA8=1` line. The
 [AMD texture workaround](../README.md#amd-texture-workaround) has the details.
 
 [Search AMD reports](https://longshot.magicbean.dev/progress/#problem-search?q=amd)
@@ -159,7 +159,7 @@ the driver's limit itself.
 
 ### Steam Deck: the game freezes and closes in the starting area or first dungeon
 
-`journalctl -k` shows `gfx_0.0.0 timeout`. Add the line `RX_VK_MESH_NOCULL=2c56dc1006942f74` to `longshot_env.txt` in
+`journalctl -k` shows `gfx_0.0.0 timeout`. Add the line `RX_VK_MESH_NOCULL=2c56dc1006942f74` to `timeLink_env.txt` in
 the game folder: it turns off the culling pass that runs for seconds there, and every model is still drawn
 ([#817](https://github.com/NotRexed/Hookshot/issues/817)).
 
@@ -191,7 +191,7 @@ The [controls reference](../README.md#controls) covers the keyboard, the mouse a
 ### A save is missing, or a save transfer or update went wrong
 
 1. **Close the game** and stop copying, so nothing else is overwritten.
-2. **Copy the save folder somewhere safe:** `user` in the game folder on Windows, `~/.local/share/longshot` on Linux.
+2. **Copy the save folder somewhere safe:** `user` in the game folder on Windows, `~/.local/share/timeLink` on Linux.
 3. **Put the backup back.** Every copy the launcher makes backs up the save it replaces first:
    [undo a copy](saves.md#undo-a-copy) shows where. An update keeps your saves; the
    [updates guide](updates-and-saves.md) says what else it keeps.
@@ -210,14 +210,14 @@ Change the code in `language.txt` in the game folder: the file lists them all, a
 
 ### Windows Defender or the browser flags the download
 
-Longshot isn't code-signed yet, so Defender often guesses `Trojan:Win32/Wacatac.H!ml` or `Wacatac.B!ml`: the `!ml`
+timeLink isn't code-signed yet, so Defender often guesses `Trojan:Win32/Wacatac.H!ml` or `Wacatac.B!ml`: the `!ml`
 means a guess, not a known virus.
 
 1. **Check where it came from.** Only the [launcher's releases](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases)
-   and [Longshot's](https://git.magicbean.dev/MagicBeanDev/Longshot/releases) are official;
+   and [timeLink's](https://git.magicbean.dev/MagicBeanDev/Longshot/releases) are official;
    [the download page](https://longshot.magicbean.dev/download) sends you there.
 2. **Let it through safely.** The [antivirus guide](https://longshot.magicbean.dev/help/antivirus/) shows how to check
-   the file, restore it, and exclude only Longshot's folders.
+   the file, restore it, and exclude only timeLink's folders.
 
 [Search antivirus reports](https://longshot.magicbean.dev/progress/#problem-search?q=antivirus)
 
@@ -226,8 +226,8 @@ means a guess, not a known virus.
 1. **Make a bug report.** Open the menu (<kbd>F1</kbd>), go to **Gameplay** and choose **Bug report**. It saves a folder
    in `bug-reports` in the game folder with the log, a picture and `report.txt`, which ends with a link that opens the
    report form already filled in. Your home folder and user name are taken out.
-2. **Or find the log yourself,** if the game doesn't get that far: `longshot_log.txt` in the game folder's `logs` folder is the last
-   run, and `longshot_log.1.txt` to `.4.txt` the four before it. On Linux, `longshot_startup.log` has the startup
+2. **Or find the log yourself,** if the game doesn't get that far: `timeLink_log.txt` in the game folder's `logs` folder is the last
+   run, and `timeLink_log.1.txt` to `.4.txt` the four before it. On Linux, `timeLink_startup.log` has the startup
    errors.
 3. **Search the reports.** [Someone may have had it already](https://longshot.magicbean.dev/progress/#problem-search),
    with a workaround.

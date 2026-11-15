@@ -4,8 +4,8 @@
 #include "hos.h"
 #include "hos_crash_record.h"
 #include "hos_paths.h"
-#ifndef LONGSHOT_ENV_H   /* (env_on: the switches' one rule) */
-#include "../gpu/vk/compat/longshot_env.h"
+#ifndef TIMELINK_ENV_H   /* (env_on: the switches' one rule) */
+#include "../gpu/vk/compat/timeLink_env.h"
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,7 +56,7 @@ static void commit_refused(uint64_t lo, uint64_t size, DWORD err) {
 /* 1: the range is committed; 0: it is not (outside the guest window, or refused: logged) */
 int hos_commit(uint64_t addr, uint64_t size) {
     if (!size) return 1;
-    if (!hos_guest_range(addr, size)) {   /* (longshot: guest pages only; the posix layer's commit changes any page's protection) */
+    if (!hos_guest_range(addr, size)) {   /* (timeLink: guest pages only; the posix layer's commit changes any page's protection) */
         hos_log("mem: commit of %#llx bytes at %#llx: outside the guest window", (unsigned long long)size, (unsigned long long)addr);
         return 0;
     }
@@ -73,11 +73,11 @@ int hos_commit(uint64_t addr, uint64_t size) {
 DWORD WINAPI hos_out_of_memory_box(LPVOID unused) {
     (void)unused;
     MessageBoxA(NULL,
-                "Windows has run out of memory (RAM plus the page file), so Longshot may close.\n\n"
+                "Windows has run out of memory (RAM plus the page file), so timeLink may close.\n\n"
                 "Close other programs, and in Windows' System > About > Advanced system settings > Performance > Advanced > Virtual "
                 "memory, choose \"Automatically manage paging file size\" (or give it at least 16 GB). A lower Quality preset in the "
                 "Insert menu also uses less memory.",
-                "Longshot: out of memory", MB_OK | MB_ICONWARNING | MB_TOPMOST);
+                "timeLink: out of memory", MB_OK | MB_ICONWARNING | MB_TOPMOST);
     return 0;
 }
 
@@ -105,7 +105,7 @@ static LONG CALLBACK commit_on_touch(EXCEPTION_POINTERS *info) {
     if (InterlockedIncrement(&touched) <= 16)
         hos_log("mem: %#llx committed on first touch (nothing handed it out)", (unsigned long long)guest);
     if (VirtualAlloc(GP(guest & ~0xFFFFULL), 0x10000, MEM_COMMIT, PAGE_READWRITE)) return EXCEPTION_CONTINUE_EXECUTION;
-    /* (longshot: at the commit limit the touch waits for the renderer to give commit back, as hos_commit does) */
+    /* (timeLink: at the commit limit the touch waits for the renderer to give commit back, as hos_commit does) */
     const DWORD err = GetLastError();
     if (err == ERROR_COMMITMENT_LIMIT && commit_wait(GP(guest & ~0xFFFFULL), 0x10000)) return EXCEPTION_CONTINUE_EXECUTION;
     commit_refused(guest & ~0xFFFFULL, 0x10000, err);

@@ -4,7 +4,7 @@
 # made nx2/build.py write the menu's fonts from third_party/fonts at every build start, the AppImage does not carry that
 # folder, and every Linux build stopped at LibertinusSans-Regular.ttf while CI stayed green (2026-11-10, #1567).
 #
-#   scripts/linux/check_player_build.sh [<Longshot-...-x86_64.AppImage>]   (default: the newest in build-linux/)
+#   scripts/linux/check_player_build.sh [<timeLink-...-x86_64.AppImage>]   (default: the newest in build-linux/)
 #
 # The image is extracted, as its runtime does, and run with AppRun's own environment (the AppImage's Python; the build tools
 # as builder/linux/linux_tools.py finds them, here tools.lock's in
@@ -14,31 +14,31 @@
 #   - nx2/build.py --standalone --dry-run, as make_game.py runs it: its whole start-up up to the compile, which is where
 #     the game's lifted code is first needed. Every other file the compile would read must be in the image, the Vulkan back
 #     end's sources among them (every player's build compiles it: the AppImage carries no built one). Once more with
-#     AMD FSR 4 (LONGSHOT_FSR=1), which compiles it with AMD's FSR API headers too.
+#     AMD FSR 4 (TIMELINK_FSR=1), which compiles it with AMD's FSR API headers too.
 # Neither may write into the image's tree: on a player's PC it is read-only.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-IMAGE=${1:-$(ls -t build-linux/Longshot-*-x86_64.AppImage 2>/dev/null | head -1 || true)}
+IMAGE=${1:-$(ls -t build-linux/timeLink-*-x86_64.AppImage 2>/dev/null | head -1 || true)}
 [ -n "$IMAGE" ] && [ -f "$IMAGE" ] || { echo "no AppImage to check (scripts/linux/appimage.sh makes one)"; exit 1; }
 IMAGE=$(readlink -f "$IMAGE")
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 (cd "$TMP" && "$IMAGE" --appimage-extract >/dev/null)
 R=$TMP/squashfs-root
-T=$R/usr/share/longshot
+T=$R/usr/share/timeLink
 # (the image is the builder alone: its build tools are tools.lock's, never inside it)
-for d in usr/lib/longshot/emsdk usr/lib/longshot/sysroot usr/lib/longshot/ffmpeg usr/lib/longshot/sdl2 usr/share/longshot/cpm; do
+for d in usr/lib/timeLink/emsdk usr/lib/timeLink/sysroot usr/lib/timeLink/ffmpeg usr/lib/timeLink/sdl2 usr/share/timeLink/cpm; do
     [ ! -e "$R/$d" ] || { echo "the AppImage carries $d: the build tools are tools.lock's (builder/linux/linux_tools.py)"; exit 1; }
 done
 TOOLS=$(readlink -f "${TOOLS:-build-linux/tools}")
 [ -d "$TOOLS/.tools" ] || { echo "no build tools in $TOOLS (scripts/tools.py install $TOOLS --system linux-x64)"; exit 1; }
-mkdir -p "$TMP/home" "$TMP/work" "$TMP/builder-home/longshot/builder/toolchains"
-ln -s "$TOOLS" "$TMP/builder-home/longshot/builder/toolchains/$(cat "$T/VERSION")"
+mkdir -p "$TMP/home" "$TMP/work" "$TMP/builder-home/timeLink/builder/toolchains"
+ln -s "$TOOLS" "$TMP/builder-home/timeLink/builder/toolchains/$(cat "$T/VERSION")"
 # (AppRun's environment, from AppRun itself: its lines before it chooses what to start, sourced with $0 naming it, so HERE is
 # the image, then its build_tools: the tools found where the builder looks, with nothing to download)
 sed '/^if \[ "\${1:-}" = "--cli" \]/,$d' "$R/AppRun" > "$TMP/apprun-env.sh"
 in_image() {
-    env -i PATH=/usr/bin:/bin HOME="$TMP/home" LANG=C.UTF-8 LONGSHOT_BUILDER_HOME="$TMP/builder-home" \
+    env -i PATH=/usr/bin:/bin HOME="$TMP/home" LANG=C.UTF-8 TIMELINK_BUILDER_HOME="$TMP/builder-home" \
         bash -c '. "$1"; build_tools || exit 1; shift; exec "$@"' "$R/AppRun" "$TMP/apprun-env.sh" "$@"
 }
 touch "$TMP/before"
@@ -58,10 +58,10 @@ echo "== nx2/build.py --standalone --dry-run (as nx2/make_game.py runs it, with 
     "$R/usr/python/bin/python3" -I -B -u -X utf8 nx2/build.py --standalone --jobs 1 --dry-run) | tee "$TMP/plain.txt"
 grep -q "the Vulkan back end: Vulkan " "$TMP/plain.txt" || { echo "a player's build did not compile the Vulkan back end"; exit 1; }
 ! grep -q "with AMD FSR 4" "$TMP/plain.txt" || { echo "a build without --fsr compiled AMD FSR 4 in"; exit 1; }
-[ ! -e "$R/usr/lib/longshot/longshot_vk.so" ] || { echo "the AppImage carries a built Vulkan back end: every player's build compiles its own"; exit 1; }
+[ ! -e "$R/usr/lib/timeLink/timeLink_vk.so" ] || { echo "the AppImage carries a built Vulkan back end: every player's build compiles its own"; exit 1; }
 
 echo "== the same with AMD FSR 4 (make_game.py --fsr): the Vulkan back end compiled from the image's sources and AMD's headers"
-(cd "$T" && in_image env OOT_WORK="$TMP/work-fsr" RX_RELEASE=1 A64_HOT_CHUNK=1 PYTHONIOENCODING=utf-8 LONGSHOT_FSR=1 \
+(cd "$T" && in_image env OOT_WORK="$TMP/work-fsr" RX_RELEASE=1 A64_HOT_CHUNK=1 PYTHONIOENCODING=utf-8 TIMELINK_FSR=1 \
     "$R/usr/python/bin/python3" -I -B -u -X utf8 nx2/build.py --standalone --jobs 1 --dry-run) | tee "$TMP/fsr.txt"
 grep -q "with AMD FSR 4" "$TMP/fsr.txt" || { echo "a build with AMD FSR 4 did not compile it into the Vulkan back end"; exit 1; }
 

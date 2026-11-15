@@ -654,7 +654,7 @@
   "source": "read"
  },
  "mkwvk::dlss_trace_draw": {
-  "does": "(longshot, a diagnostic for the temporal upscaler's motion: vk_temporal.cpp) RX_VK_DLSS_TRACE=<frames>: every that many frames, one frame's draws into targets of a size the upscaler can take as the scene (temporal_scene_size), logged: the program, its targets' formats, the geometry and the uniform buffers.",
+  "does": "(timeLink, a diagnostic for the temporal upscaler's motion: vk_temporal.cpp) RX_VK_DLSS_TRACE=<frames>: every that many frames, one frame's draws into targets of a size the upscaler can take as the scene (temporal_scene_size), logged: the program, its targets' formats, the geometry and the uniform buffers.",
   "source": "read"
  },
  "mkwvk::drain": {
@@ -1018,7 +1018,7 @@
   "source": "read"
  },
  "mkwvk::taau_key": {
-  "does": "Whether a shader program is the one Longshot replaces with its own upscale (shaders/taau_upscale.comp).",
+  "does": "Whether a shader program is the one timeLink replaces with its own upscale (shaders/taau_upscale.comp).",
   "source": "read"
  },
  "mkwvk::taau_stand_in": {

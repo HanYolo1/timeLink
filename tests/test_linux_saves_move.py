@@ -1,4 +1,4 @@
-"""The Linux game's move of its saves to $XDG_DATA_HOME/longshot leaves a linked folder alone (host/hos_main.c, saves_dir).
+"""The Linux game's move of its saves to $XDG_DATA_HOME/timeLink leaves a linked folder alone (host/hos_main.c, saves_dir).
 
 A user/ folder beside the game is moved to the new place at the first start. A symbolic link in it, to saves the player
 keeps elsewhere (a synced folder, another drive), was moved as a file: by rename, and one written from where it stood

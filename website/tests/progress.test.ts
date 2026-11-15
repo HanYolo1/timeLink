@@ -8,7 +8,7 @@ import { collectFeed } from '../src/lib/progress-feed.ts';
 const time = '2026-11-11T12:00:00Z';
 const raw = (n = 1, extra = {}) => ({ number: n, title: 'Controller stops responding', state: 'open', updated_at: time, labels: [], ...extra });
 const release = { id: 100, name: 'Version 2.1.0', tag_name: 'v2.1.0', updated_at: time, published_at: time, draft: false, prerelease: false };
-const body = (version, area = 'Low fps or stutter') => `### Longshot version\n\n${version}\n\n### What kind of problem\n\n${area}\n\n### Description\n\nprivate log excerpts are not published`;
+const body = (version, area = 'Low fps or stutter') => `### timeLink version\n\n${version}\n\n### What kind of problem\n\n${area}\n\n### Description\n\nprivate log excerpts are not published`;
 function feed(items = [normalizeItem(raw(), 'issue')]) {
   return { version: 1, repository: REPOSITORY, generatedAt: time, collectionStartedAt: time, closedSince: '2026-08-13T12:00:00Z', warning: '',
     stableRelease: { tag: 'v2.1.0', url: `${ROOT}/releases/tag/v2.1.0`, publishedAt: time }, items };
@@ -51,14 +51,14 @@ test('curation expires when source changes and rejects unsafe evidence', () => {
 
 test('version matching uses only exact report fields, not text guesses', () => {
   assert.equal(exactVersion('`v2.1.0`'), '2.1.0');
-  for (const text of ['latest', '2.1.0 or 2.0.9', 'longshot abc123', '02.1.0', 'v2.1.0 Windows', '']) assert.equal(exactVersion(text), null);
+  for (const text of ['latest', '2.1.0 or 2.0.9', 'timeLink abc123', '02.1.0', 'v2.1.0 Windows', '']) assert.equal(exactVersion(text), null);
   assert.equal(reportEvidence(body('v2.1.0')).version, '2.1.0');
   assert.equal(reportEvidence(body('v2.1.0', 'Sound')).reportedArea, 'Audio');
   assert.equal(reportEvidence(body('v2.1.0', 'Controls')).reportedArea, 'Controls');
   assert.equal(reportEvidence(body('v2.1.0-rc.1')).version, '2.1.0-rc.1');
   assert.equal(reportEvidence('Mentioned v2.1.0 in a comment').version, null);
   assert.equal(reportEvidence(body('latest')).version, null);
-  assert.equal(reportEvidence(body('v2.1.0') + '\n### Longshot version\n\nv2.0.9').version, null);
+  assert.equal(reportEvidence(body('v2.1.0') + '\n### timeLink version\n\nv2.0.9').version, null);
   assert.equal(reportEvidence(body('v2.1.0') + '\n### Builder version\n\nv2.0.9').version, null);
   assert.equal(reportEvidence('### Builder version\n\nv2.1.0').reportedArea, 'Setup');
   assert.equal(reportEvidence('### Version\n\nv2.1.0').versionSource, 'Installation version field');

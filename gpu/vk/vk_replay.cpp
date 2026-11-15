@@ -39,7 +39,7 @@
 #include "vk_paths.h"   // (log_path: the frame trace in the game folder's logs/)
 #include "vk_gprof.h"
 #include "vk_framegen.h"
-#include "vk_dlss.h"   // (longshot: dlss_fg_idle)
+#include "vk_dlss.h"   // (timeLink: dlss_fg_idle)
 #include "vk_fps.h"
 #include "vk_menu.h"
 #include "vk_jobs.h"
@@ -51,8 +51,8 @@
 #include "vk_present_trace.h"
 
 #include "vk_internal.h"
-#ifndef LONGSHOT_ENV_H   // (env_on: the switches' one rule)
-#include "longshot_env.h"
+#ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
+#include "timeLink_env.h"
 #endif
 #include "vk_programs.h"
 #include "readback_late.h"
@@ -211,7 +211,7 @@ uint64_t completed() {
 // present, a sparse bind, another submit (queue_flush_locked under dev.present_mu).
 // (longshot) on by default with Mesa's RADV, where it was measured (issue 413: a Radeon 8060S on Bazzite, ~10 -> 30-50 fps, the
 // replay's queue submit ~70 -> ~6 ms a frame); elsewhere as before. RX_VK_BATCH=0 / 1: off / on on any driver
-/// (longshot, #1993 by mrdev023) The GPU has done every batch sent so far: the batch being held goes out at once. A held
+/// (timeLink, #1993 by mrdev023) The GPU has done every batch sent so far: the batch being held goes out at once. A held
 /// batch waited for the next wait or present while the GPU sat idle, and with serial replay the game waits for it mid-frame
 /// (take_capture's late pages), so the GPU started cold just as it was waited for. RX 9070 XT, RADV, Kokiri Forest: 33-41
 /// fps -> 46-61, no flashes in 5230 frames; ~10 flushes a frame of ~3.7 command buffers each, so batching still groups the
@@ -260,7 +260,7 @@ void queue_flush_locked() {   // (dev.present_mu held)
     si.pSignalSemaphoreInfos = sig;
     PROF(PROF_QSUBMIT);
     si.pNext = reflex_submit_id(nullptr, pend.reflex);   // (NVIDIA Reflex: the game frame of the batch's first command buffer)
-    VkSemaphoreSubmitInfo sparse_wait;   // (longshot: after the sparse mirrors' binds, RX_VK_MIRROR_SPARSE)
+    VkSemaphoreSubmitInfo sparse_wait;   // (timeLink: after the sparse mirrors' binds, RX_VK_MIRROR_SPARSE)
     if (memory_sparse_wait(&sparse_wait)) si.waitSemaphoreInfoCount = 1, si.pWaitSemaphoreInfos = &sparse_wait;
     const VkResult res = vkQueueSubmit2(dev.queue, 1, &si, VK_NULL_HANDLE);
     static int failures;
@@ -803,7 +803,7 @@ void submit_recording(Recording& r, bool signal_value = true, uint64_t signal_at
     }
     PROF(PROF_QSUBMIT);
     si.pNext = reflex_submit_id(nullptr);   // (NVIDIA Reflex: the frame being made)
-    VkSemaphoreSubmitInfo sparse_wait;   // (longshot: after the sparse mirrors' binds, RX_VK_MIRROR_SPARSE)
+    VkSemaphoreSubmitInfo sparse_wait;   // (timeLink: after the sparse mirrors' binds, RX_VK_MIRROR_SPARSE)
     if (memory_sparse_wait(&sparse_wait)) si.waitSemaphoreInfoCount = 1, si.pWaitSemaphoreInfos = &sparse_wait;
     const VkResult res = vkQueueSubmit2(dev.queue, 1, &si, r.fence);
     r.submitted = res == VK_SUCCESS;
@@ -841,7 +841,7 @@ void use_queue_state(uint64_t queue) {
         auto it = qstates.find(queue);
         if (it == qstates.end()) {
             it = qstates.emplace(queue, *cur_state).first;
-            occ_state_copied(it->second);   // (longshot: the other queue's open occlusion run is not this one's)
+            occ_state_copied(it->second);   // (timeLink: the other queue's open occlusion run is not this one's)
         }
         s = &it->second;
     }
@@ -1355,7 +1355,7 @@ void replay(VkCommandBuffer& cmd, NvnState& s, const uint8_t* p, const uint8_t* 
             if (in_stream && !worker) {
                 uint32_t words[64];
                 for (auto& w : words) w = c0.value;
-                guest_cpu_write(c0.dst, words, std::min<uint64_t>(c0.size, sizeof words));   // (longshot: not past words)
+                guest_cpu_write(c0.dst, words, std::min<uint64_t>(c0.size, sizeof words));   // (timeLink: not past words)
             }
             if (dry) break;
             ParLock lk;
@@ -1671,7 +1671,7 @@ void replay(VkCommandBuffer& cmd, NvnState& s, const uint8_t* p, const uint8_t* 
         case NOP_DRAW: {
             const auto d = payload<nvn_p_draw>(a, avail);
             DrawArgs da;
-            occ_take(s, da, dry);   // (longshot: RX_VK_OCC_QUERIES, numbered in the dry pass too)
+            occ_take(s, da, dry);   // (timeLink: RX_VK_OCC_QUERIES, numbered in the dry pass too)
             if (s.render_enabled && !s.raster_discard && !dry) {
                 da.prim = d.prim, da.first = d.first, da.count = d.count;
                 da.base_instance = d.base_instance, da.instances = d.instances;
@@ -1683,7 +1683,7 @@ void replay(VkCommandBuffer& cmd, NvnState& s, const uint8_t* p, const uint8_t* 
         case NOP_DRAW_IDX: {
             const auto d = payload<nvn_p_draw_idx>(a, avail);
             DrawArgs da;
-            occ_take(s, da, dry);   // (longshot: RX_VK_OCC_QUERIES, numbered in the dry pass too)
+            occ_take(s, da, dry);   // (timeLink: RX_VK_OCC_QUERIES, numbered in the dry pass too)
             if (s.render_enabled && !s.raster_discard && !dry) {
                 da.prim = d.prim, da.indexed = true, da.itype = d.itype, da.count = d.count;
                 da.base_vertex = d.base_vertex, da.base_instance = d.base_instance, da.instances = d.instances;
@@ -1696,7 +1696,7 @@ void replay(VkCommandBuffer& cmd, NvnState& s, const uint8_t* p, const uint8_t* 
         case NOP_DRAW_INDIRECT: {
             const auto d = payload<nvn_p_draw_indirect>(a, avail);
             DrawArgs da;
-            occ_take(s, da, dry);   // (longshot: RX_VK_OCC_QUERIES, numbered in the dry pass too)
+            occ_take(s, da, dry);   // (timeLink: RX_VK_OCC_QUERIES, numbered in the dry pass too)
             if (s.render_enabled && !s.raster_discard && !dry) {
                 da.prim = d.prim, da.indexed = d.indexed != 0, da.itype = d.itype;
                 da.indirect = d.indirect, da.count_addr = d.count_addr, da.max = d.max, da.stride = d.stride;
@@ -1713,13 +1713,13 @@ void replay(VkCommandBuffer& cmd, NvnState& s, const uint8_t* p, const uint8_t* 
                 logf("vk: mesh draw kind %d: %d %d %d, indirect %#llx count %#llx max %d stride %d", d.kind, d.x, d.y,
                      d.z, (unsigned long long)d.indirect, (unsigned long long)d.count_addr, d.max, d.stride);
             DrawArgs da;
-            occ_take(s, da, dry);   // (longshot: RX_VK_OCC_QUERIES, numbered in the dry pass too)
+            occ_take(s, da, dry);   // (timeLink: RX_VK_OCC_QUERIES, numbered in the dry pass too)
             if (s.render_enabled && !s.raster_discard && !dry) {
                 da.mesh = true;
                 // (DrawMeshTasks(first, count): the count of task workgroups, as Eden draws NVN2's mesh draws; a
                 // first task other than 0 has no Vulkan counterpart)
                 da.groups[0] = d.y, da.groups[1] = 1, da.groups[2] = 1;
-                if (d.kind == 0) da.first_task = d.x;   // (longshot: the task programs add it, vk_draw.cpp's mesh_args)
+                if (d.kind == 0) da.first_task = d.x;   // (timeLink: the task programs add it, vk_draw.cpp's mesh_args)
                 da.indirect = d.indirect, da.count_addr = d.count_addr, da.max = d.max, da.stride = d.stride;
                 draw(cmd, s, da);
             }
@@ -2096,7 +2096,7 @@ const uint8_t* replay_handle(VkCommandBuffer& cmd, const uint8_t* h, bool may_st
         std::lock_guard lk(dev.present_mu);
         queue_flush_locked();
         si.pNext = reflex_submit_id(nullptr);   // (NVIDIA Reflex: the frame being made; after the flush, which tags its own)
-        VkSemaphoreSubmitInfo sparse_wait;   // (longshot: after the sparse mirrors' binds, RX_VK_MIRROR_SPARSE)
+        VkSemaphoreSubmitInfo sparse_wait;   // (timeLink: after the sparse mirrors' binds, RX_VK_MIRROR_SPARSE)
         if (memory_sparse_wait(&sparse_wait)) si.waitSemaphoreInfoCount = 1, si.pWaitSemaphoreInfos = &sparse_wait;
         const VkResult res = vkQueueSubmit2(dev.queue, 1, &si, j->r->fence);
         j->r->submitted = res == VK_SUCCESS;
@@ -2154,7 +2154,7 @@ void bench_replay(const std::vector<uint64_t>& handles) {
     VkCommandBuffer cmd = first.cmd;
     for (uint64_t h : handles)
         if (h) {
-            occ_begin_buffer(*cur_state, value, occ_open_oldest(cur_state));   // (longshot: as replay_handle)
+            occ_begin_buffer(*cur_state, value, occ_open_oldest(cur_state));   // (timeLink: as replay_handle)
             replay(cmd, *cur_state, reinterpret_cast<const uint8_t*>(h));
             occ_end_buffer(*cur_state);
         }
@@ -2222,7 +2222,7 @@ void bench_frame(int64_t presents) {
 struct SlowWatch {
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     int64_t prof0[PROF_COUNT];
-    int64_t ms0[4];   // (longshot: memory sync's parts and the lock wait, at the start)
+    int64_t ms0[4];   // (timeLink: memory sync's parts and the lock wait, at the start)
     const char* what;
     explicit SlowWatch(const char* w) : what(w) {
         std::memcpy(prof0, prof_ns, sizeof prof0);
@@ -2243,7 +2243,7 @@ struct SlowWatch {
             const double d = (prof_ns[i] - prof0[i]) / 1e6;
             if (d >= 1.0) k += snprintf(line + k, sizeof line - k, " %s %.1f", names[i], d);
         }
-        {   // (longshot: which part of "memory sync" it was: the pools' refresh [and its lock waits], the capture, the written pages collected.
+        {   // (timeLink: which part of "memory sync" it was: the pools' refresh [and its lock waits], the capture, the written pages collected.
             // Counted across threads, so a part another thread spent meanwhile shows too)
             const double a = (memsync_part_ns[0].load(std::memory_order_relaxed) - ms0[0]) / 1e6,
                          b = (memsync_part_ns[1].load(std::memory_order_relaxed) - ms0[1]) / 1e6,
@@ -2310,7 +2310,7 @@ struct QueueRun {   // (a queue stopped at a wait)
     const uint8_t* p = nullptr;
     uint64_t value = 0;
     std::deque<LaterSubmit> later;   // (its queue's submits since)
-    uint64_t ahead_upto = 0;         // (longshot: its submissions up to this value walked by occ_visible_ahead already)
+    uint64_t ahead_upto = 0;         // (timeLink: its submissions up to this value walked by occ_visible_ahead already)
     bool blocked() const { return waiting || !later.empty(); }
     uint64_t oldest() const { return waiting ? value : later.front().value; }
 };
@@ -2543,7 +2543,7 @@ bool run_submit(const uint64_t* handles, int n, uint64_t value, uint64_t queue, 
         q.waiting = true;
         q.handles.assign(handles, handles + n);
         q.cb = cb, q.p = stop, q.value = value;
-        if (value > q.ahead_upto) {   // (longshot: its reports "visible" until they are replayed; once a submission: a later
+        if (value > q.ahead_upto) {   // (timeLink: its reports "visible" until they are replayed; once a submission: a later
             occ_visible_ahead(handles, n, cb, stop);   // stop in it holds back less of it)
             q.ahead_upto = value;
         }
@@ -2604,7 +2604,7 @@ void resume_queue(uint64_t queue, bool forced) {
         if (!run_submit(s.handles.data(), (int)s.handles.size(), s.value, queue, false, 0, nullptr, true)) return;
     }
 }
-/// (longshot, the render thread) Whether a queue is stopped at a wait for an event the CPU signals (nvnEventSignal has set
+/// (timeLink, the render thread) Whether a queue is stopped at a wait for an event the CPU signals (nvnEventSignal has set
 /// it before) that is not met: its frame's data is not all written yet (present held, replay_thread_main)
 bool cpu_wait_unmet() {
     for (const auto& [queue, q] : qruns) {
@@ -2734,7 +2734,7 @@ void submit_job(std::vector<uint64_t>& handles, uint64_t value, uint64_t queue) 
         if (frame_submits.empty()) frame_first_value = value;
         frame_submits.emplace_back(handles);
         submit_memory_work(value);
-        occ_visible_ahead(handles.data(), (int)handles.size(), 0, nullptr);   // (longshot: as run_submit's stop)
+        occ_visible_ahead(handles.data(), (int)handles.size(), 0, nullptr);   // (timeLink: as run_submit's stop)
         it->second.ahead_upto = std::max(it->second.ahead_upto, value);
         it->second.later.push_back({std::move(handles), value});
         return;
@@ -2818,7 +2818,7 @@ uint64_t fence_q(uint64_t queue) {
     auto it = q_last.find(queue);
     return it != q_last.end() ? it->second : fence();
 }
-// (longshot, RX_VK_LOG_READBACK_RANGES: gf_note_value) this thread's last wait for the GPU
+// (timeLink, RX_VK_LOG_READBACK_RANGES: gf_note_value) this thread's last wait for the GPU
 thread_local int64_t gf_waited_ns = 0;
 int64_t gf_now() { return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 void gate_need_value(uint64_t f);   // (below, with the render thread)
@@ -2903,7 +2903,7 @@ void wait_writebacks_reading(const void*, uint64_t) {}   // (nothing to write ba
 constexpr uint64_t kTexPageChunk = 1u << 20;
 std::unique_ptr<std::atomic<uint16_t>[]> tex_pages[(1ull << 39 >> 12) / kTexPageChunk];
 std::mutex tex_pages_mu;
-// (longshot, the render thread) and by byte: a readback next to a texture's storage in its page, not in it, needs no catch-up
+// (timeLink, the render thread) and by byte: a readback next to a texture's storage in its page, not in it, needs no catch-up
 // (the Market: 2.4 such readbacks a frame, each held 3.3-11 ms for the jobs handed over). tex_live_mu
 std::mutex tex_live_mu;
 std::map<uint64_t, std::pair<uint64_t, int>> tex_live;   // (storage start -> its largest size, how many live textures start there)
@@ -2998,11 +2998,11 @@ bool readback_late_wanted(uint64_t size, bool newest) {
 struct RbRange {
     uint64_t gpu, size;
     int64_t calls, waits, ns, newest, late;
-    int64_t age = 0, aged = 0, at_ns = 0, sub = 0, after_wait = 0;   // (longshot: see gf_note_value)
+    int64_t age = 0, aged = 0, at_ns = 0, sub = 0, after_wait = 0;   // (timeLink: see gf_note_value)
 };
 std::mutex rb_ranges_mu;
 std::vector<RbRange> rb_ranges;
-// (longshot, RX_VK_LOG_READBACK_RANGES) How old what a readback gets is, in the game's frames: each submission's value with
+// (timeLink, RX_VK_LOG_READBACK_RANGES) How old what a readback gets is, in the game's frames: each submission's value with
 // the game's frame (its presents handed over so far) and its place among that frame's submissions, kept for the last 4096
 // values; a read's age is the frames handed over since the newest write-back of its range (0: written by work submitted
 // since the last present). And when in the game's frame the read comes (ms after its last present's hand-over), and whether
@@ -3309,7 +3309,7 @@ uint32_t shot_dimension(const char* text, uint32_t fallback) {
 const uint32_t kShotW = shot_dimension(getenv("RX_VK_SHOT_W"), 1280),
                kShotH = shot_dimension(getenv("RX_VK_SHOT_H"), 720);
 VkImage shot_image = VK_NULL_HANDLE;
-VkImageView shot_view = VK_NULL_HANDLE;   // (longshot: RX_VK_SHOT_MENU's menu draws through it)
+VkImageView shot_view = VK_NULL_HANDLE;   // (timeLink: RX_VK_SHOT_MENU's menu draws through it)
 VkBuffer made_buf = VK_NULL_HANDLE;   // (RX_VK_SHOT_MADE: a made frame's readback)
 VmaAllocation made_buf_alloc = nullptr;
 void* made_map = nullptr;
@@ -3384,7 +3384,7 @@ bool offscreen_init() {
     ci.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     bool ok = create_image(ci, next_off, next_off_alloc);
     ci.extent = {kShotW, kShotH, 1};
-    ci.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;   // (longshot: RX_VK_SHOT_MENU draws the menu over it, vk_menu.cpp)
+    ci.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;   // (timeLink: RX_VK_SHOT_MENU draws the menu over it, vk_menu.cpp)
     ok = ok && create_image(ci, next_shot, next_shot_alloc);
     VkImageViewCreateInfo vi{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
     vi.image = next_shot;
@@ -3773,7 +3773,7 @@ void log_frame_stats() {
                  waits[gpu_wait_stats::kIdle] * scale, waits[gpu_wait_stats::kQuery] * scale);
         }
         draw_skip_report(120.0);
-        {   // (longshot: the full barriers recorded and the ones left out as the second of two in a row, RX_VK_BARRIER_DEDUPE_OFF=1)
+        {   // (timeLink: the full barriers recorded and the ones left out as the second of two in a row, RX_VK_BARRIER_DEDUPE_OFF=1)
             static int64_t l_made, l_left;
             int64_t made = 0, left = 0;
             barrier_stats(&made, &left);
@@ -3832,12 +3832,12 @@ void status_tick() {
     static int64_t last_ns = 0, slowest_ns = 0;
     const int64_t now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     if (last_ns) slowest_ns = std::max(slowest_ns, now_ns - last_ns);
-    // (RX_VK_FRAME_TRACE=1: every frame a line of longshot_frames.csv beside the game, present to present and what the frame did,
+    // (RX_VK_FRAME_TRACE=1: every frame a line of timeLink_frames.csv beside the game, present to present and what the frame did,
     // so that each stutter can be matched to its cause: waits for shaders or pipelines, translation, uploads, the memory sync,
     // pipeline compiles, the GPU behind. RX_VK_FRAME_LOG has the frame times alone)
     static FILE* trace = [] {
         if (!getenv("RX_VK_FRAME_TRACE") || !atoi(getenv("RX_VK_FRAME_TRACE"))) return (FILE*)nullptr;
-        FILE* f = fopen(log_path("longshot_frames.csv").c_str(), "w");   // (the game folder's logs/: vk_paths.h)
+        FILE* f = fopen(log_path("timeLink_frames.csv").c_str(), "w");   // (the game folder's logs/: vk_paths.h)
         if (f) fprintf(f, "frame,ms,pipe_waits,pipe_wait_ms,left_out,translate_ms,uploads,upload_mb,textures,memsync_ms,pipelines_ms,"
                           "uploads_ms,programs_ms,slot_wait_ms,gpu_behind_ms,draw_ms,desc_ms,cmds_ms,tex_lookup_ms,textures_gone,"
                           "late_wait_ms,readback_wait_ms,tex_frame_ms\n");
@@ -3854,7 +3854,7 @@ void status_tick() {
         const auto dp = [](int i) { return (prof_ns[i] - l_prof[i]) / 1e6; };
         static uint64_t l_gone;
         const uint64_t gone = texture_destroy_generation();
-        // (longshot: the waits no other column has: the capture's for the GPU (inside memsync_ms), a read-back's for the GPU, and
+        // (timeLink: the waits no other column has: the capture's for the GPU (inside memsync_ms), a read-back's for the GPU, and
         // texture_frame as a whole (the present's eviction and sweeps; the read-back's wait is inside it when an eviction asked))
         static int64_t l_late, l_rb, l_tf;
         const int64_t late = memory_late_wait_ns(), rb = texture_readback_wait_ns(), tf = texture_frame_ns();
@@ -4033,7 +4033,7 @@ void do_present(const nvn_tex* t, const int crop[4]) {
     status_tick();   // (the status line, and the video-memory warning)
     reflex_present_begins();
     struct ReflexSleep { ~ReflexSleep() { FpsWait fw(fps_stats::kPace); reflex_sleep(); antilag_input(); } } reflex_sleep_after;
-    {   // (longshot, RX_VK_PASS_TRACE_AT=<frames>: the passes of the frames around these frame numbers, for finding what a frame is made of)
+    {   // (timeLink, RX_VK_PASS_TRACE_AT=<frames>: the passes of the frames around these frame numbers, for finding what a frame is made of)
         static std::atomic<int64_t> seen{0};
         static const int64_t at = getenv("RX_VK_PASS_TRACE_AT") ? atoll(getenv("RX_VK_PASS_TRACE_AT")) : 0;
         if (at && ++seen % at == 0) pass_traces_log(texture_frame_no() - 1, texture_frame_no());
@@ -4277,7 +4277,7 @@ void do_present(const nvn_tex* t, const int crop[4]) {
                     sum += q[0] + q[1] + q[2];
                     ch[0] += q[0], ch[1] += q[1], ch[2] += q[2];
                 }
-                // (longshot: a picture blown out to white, the HUD on it: written as white_<present>.png, 40 of them)
+                // (timeLink: a picture blown out to white, the HUD on it: written as white_<present>.png, 40 of them)
                 static int white_left = 40;
                 if (at_present > 600 && white * 100 > n * 40 && white_left > 0) {
                     white_left--;
@@ -5219,7 +5219,7 @@ std::deque<Job> q_jobs;
 int q_presents = 0;
 bool q_busy = false;
 uint64_t q_handed = 0, q_done = 0;   // (jobs handed over and done: q_mu)
-// (longshot, the render thread) Whole frames. The render thread starts a frame's jobs when the frame's present has been
+// (timeLink, the render thread) Whole frames. The render thread starts a frame's jobs when the frame's present has been
 // handed over, not before, and the present is handed over after the main thread's signal for the frame (present(): the
 // signal the frame's work waits for): the game has then written the whole frame. Replaying a frame's first submits while
 // the game was still writing the rest of that frame (the render thread caught up with the game: 0.3-2 % of the presents
@@ -5359,7 +5359,7 @@ void replay_thread_main() {
             logf("vk: the replay thread runs on logical processors %#llx, kept from the game's threads", (unsigned long long)m);
         }
     }
-    // (longshot, the render thread) A present that comes while a queue is stopped at a wait for an event the CPU signals is
+    // (timeLink, the render thread) A present that comes while a queue is stopped at a wait for an event the CPU signals is
     // held until that signal's job, RX_VK_HOLD_MS at most. OoT submits its presentation queue's work before the frame's data
     // is all written, behind such a wait, and signals when it is; its presenting thread then polls the frame's event, which
     // the GPU signals at that work's end, and presents. With the poll answered at once (host/nvn_native.c) the present is
@@ -5585,7 +5585,7 @@ bool replay_behind() {
 }
 
 std::mutex submit_order_mu;   // (captures and submits queued in the same order)
-// ---- (longshot, the render thread) the capture at a CPU signal ----
+// ---- (timeLink, the render thread) the capture at a CPU signal ----
 // A queue stopped at a wait for an event the CPU signals reads what the game wrote between its submit and the signal
 // (resume_queue: the fog and exposure of the frame before otherwise). On the submitting thread that capture is taken when the
 // queue goes on; behind the game that is too late, the game has gone on writing. Here it is taken on the game's thread,
@@ -5623,7 +5623,7 @@ bool bh_signal_meets(uint64_t gpu, uint32_t value) {
         if (w.open && w.gpu == gpu && event_wait_met(value, w.mode, w.value)) w.open = false, any = true;
     return any;
 }
-/// (longshot, the render thread) Whether a submission handed over waits for an event the CPU signals that it has not
+/// (timeLink, the render thread) Whether a submission handed over waits for an event the CPU signals that it has not
 /// signalled yet: the frame's data is not all written. submit_order_mu
 std::condition_variable bh_signal_cv;
 bool bh_cpu_wait_open() {

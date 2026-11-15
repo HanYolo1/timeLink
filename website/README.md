@@ -1,6 +1,6 @@
-# Longshot website preview
+# timeLink website preview
 
-Astro/Starlight front page and player documentation for Longshot by Team MagicBean.
+Astro/Starlight front page and player documentation for timeLink by Team MagicBean.
 The game build is independent of this directory. This branch adds source only: there
 is no automatic deployment or publishing workflow.
 
@@ -20,7 +20,7 @@ The project base is `/`, for its own domain (longshot.magicbean.dev).
 which is metadata, not an enabled deployment or a claim that this site is hosted there.
 
 `npm run build:preview` builds and checks with edit links to this fork's
-`docs/longshot-website` branch. Normal `npm run build` and `npm run check` also accept
+`docs/timeLink-website` branch. Normal `npm run build` and `npm run check` also accept
 `DOCS_SOURCE_REPOSITORY` and `DOCS_SOURCE_BRANCH` for another Forgejo fork/branch.
 Project and issue links use https://git.magicbean.dev/MagicBeanDev/Longshot.
 
@@ -39,15 +39,15 @@ Session storage prevents an immediate repeat across reloads in the same tab when
 available. Blocked storage still allows a random line; no JavaScript keeps the
 original “Slightly emotional beans.” There is no timed rotation or animation.
 
-At narrower widths the main links use an Explore Longshot disclosure, including a
+At narrower widths the main links use an Explore timeLink disclosure, including a
 no-JavaScript fallback. With JavaScript, Escape, an outside click or choosing a link
 closes it. Shared-memory GPUs have a separate checker choice; their memory remains
 a caution rather than being compared to dedicated VRAM. GPU changes update the
 automatic choice until the user chooses a memory type themselves; Reset restores it.
 
-The team logo, Longshot icon and supplied bean illustrations are copied unchanged
+The team logo, timeLink icon and supplied bean illustrations are copied unchanged
 from `../assets/branding/`; their provenance is recorded there. The upstream README's
-own `../assets/longshot.png` is preserved separately.
+own `../assets/timeLink.png` is preserved separately.
 
 Body text and controls use self-hosted Atkinson Hyperlegible Next, weights 200–800,
 upright and italic. Libertinus Serif Semibold remains for large headings; code stays
@@ -60,7 +60,7 @@ fonts are used.
 
 ## Team page
 
-The team page (`/about/team/`) lists the people with the most commits in Longshot (Hookshot's history included),
+The team page (`/about/team/`) lists the people with the most commits in timeLink (Hookshot's history included),
 collected from Forgejo when the site is built (`src/lib/contributors.ts`). There is nothing to add by hand: a merged
 change puts you there at the next build.
 
@@ -137,7 +137,7 @@ compiled Easter-egg script were checked separately; those are not browser checks
 ## Download links
 
 `worker/index.ts` answers `/download` on longshot.magicbean.dev (everything else is the built site): permanent links to
-the newest [Longshot Launcher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases), for READMEs, release
+the newest [timeLink Launcher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases), for READMEs, release
 notes and chat. Forgejo's `/releases/latest` covers stable only; these cover each channel.
 
 | Link | Goes to |

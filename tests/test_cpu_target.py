@@ -144,7 +144,7 @@ class NativeCpu(unittest.TestCase):
         block = build[start:build.index("OPT = ", start)]
         # (native only where the CPU chose v3, never over an RX_MARCH; its name is in the flags, so in every object key)
         self.assertIn('if not os.environ.get("RX_MARCH") and MARCH == "x86-64-v3"', block)
-        self.assertIn('CPU += ["-DLONGSHOT_NATIVE_CPU=" + _native]', block)
+        self.assertIn('CPU += ["-DTIMELINK_NATIVE_CPU=" + _native]', block)
         self.assertIn("sys.exit(", block)   # (an RX_MARCH=native that clang can't resolve stops the build)
         # (native tunes for the CPU as well: no -mtune of our own, which would override it)
         self.assertNotIn("-mtune", build)
@@ -160,7 +160,7 @@ class NoCpuRefusal(unittest.TestCase):
         self.assertNotIn("def check_cpu(", src)
         self.assertNotIn("check_cpu(", src)
         self.assertNotIn("no AVX2", src)
-        self.assertNotIn("LONGSHOT_VK_PREBUILT", src)
+        self.assertNotIn("TIMELINK_VK_PREBUILT", src)
 
 
 if __name__ == "__main__":

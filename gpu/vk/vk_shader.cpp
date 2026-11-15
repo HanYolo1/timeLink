@@ -98,8 +98,8 @@ void ptr_diag_log(uint64_t key, const char* kind) {
 }
 } // namespace
 #include "vk_shader.h"
-#ifndef LONGSHOT_ENV_H   // (env_on: the switches' one rule)
-#include "longshot_env.h"
+#ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
+#include "timeLink_env.h"
 #endif
 
 namespace mkwvk {
@@ -164,7 +164,7 @@ Code read_code(const nvn_stage_data& sd) {
     if (!sd.control || !sd.data || !host->gpu_read(sd.control, ctl, sizeof ctl) || !control_end(ctl, &end)) return Code{};
     std::vector<uint8_t> area(end);
     if (!host->gpu_read(sd.data, area.data(), end)) return Code{};
-    if (const char* dir = getenv("RX_VK_DUMP_STAGES")) {   // (longshot, RX_VK_DUMP_STAGES=<folder>: control and code as the game has them)
+    if (const char* dir = getenv("RX_VK_DUMP_STAGES")) {   // (timeLink, RX_VK_DUMP_STAGES=<folder>: control and code as the game has them)
         char path[512];
         snprintf(path, sizeof path, "%s/%016llx.bin", dir, (unsigned long long)code_key(ctl, area.data(), end));
         if (FILE* f = fopen(path, "wb")) fwrite(ctl, 1, sizeof ctl, f), fwrite(area.data(), 1, end, f), fclose(f);
@@ -224,7 +224,7 @@ Code parse_code(const uint8_t* ctl, const std::vector<uint8_t>& area) {
         }
         if (r == Shader::Ampere::ProgramCaptureState::Result::Complete) break;
     }
-    {   // (longshot, for bisecting a bad translation) RX_VK_REJECT_STAGES=<n,...> (NVN stages) and RX_VK_REJECT_KEYS=
+    {   // (timeLink, for bisecting a bad translation) RX_VK_REJECT_STAGES=<n,...> (NVN stages) and RX_VK_REJECT_KEYS=
         // <hex prefix,...>: those programs are taken as untranslatable, as a lowering failure leaves them
         static const std::string stages = getenv("RX_VK_REJECT_STAGES") ? getenv("RX_VK_REJECT_STAGES") : "";
         // (none by default: OoT's mesh program 32423793502c71e7 stayed out while it lost the device; it no longer does)
@@ -303,7 +303,7 @@ Code parse_code(const uint8_t* ctl, const std::vector<uint8_t>& area) {
             q = *e ? e + 1 : e;
         }
     }
-    if (!lowered) {   // (longshot: each program once, up to 400, with the native opcode it stopped at)
+    if (!lowered) {   // (timeLink: each program once, up to 400, with the native opcode it stopped at)
         static std::mutex mu;
         static std::unordered_set<uint64_t> seen;
         std::lock_guard lk(mu);
@@ -499,7 +499,7 @@ public:
     }
     u32 SharedMemorySize() const override {
         // (what the program declares, from the control section: 48 KB for every one was past an RX 9070 XT's 32 KB, and its
-        // pipelines were invalid. klimovich008, Longshot PR 91. RX_VK_SHARED_48K=1: as before)
+        // pipelines were invalid. klimovich008, timeLink PR 91. RX_VK_SHARED_48K=1: as before)
         static const bool old = env_on("RX_VK_SHARED_48K");
         return old ? 48u << 10 : nvn.shared_memory;
     }
@@ -840,7 +840,7 @@ uint32_t descriptor_handle(const NvnState& s, const Stage& st, const Shader::Ima
 uint8_t texture_answer(uint32_t handle) {
     if (!handle) return 0xFF;
     // (by the texture slot, until a slot is registered anew: variant checks ask on every draw)
-    // (longshot, fps: a flat table by slot, not a hash map: every draw's variant check asks this for each texture it samples,
+    // (timeLink, fps: a flat table by slot, not a hash map: every draw's variant check asks this for each texture it samples,
     // and the map's lookups were ~16% of the back end's time on the replay thread. Slots are the texture pool's indices, ~33k in OoT)
     struct Known { uint32_t version; uint8_t answer, set; };
     static thread_local std::vector<Known> known;
@@ -922,7 +922,7 @@ uint64_t answers_hash(const Program& p) {
         h = (h ^ ((uint64_t)a.stage << 32 | (uint64_t)a.desc << 16 | (uint64_t)a.type << 1 | (uint64_t)a.image)) * 1099511628211ull;
     return h;
 }
-uint64_t answers_hash_of(const std::vector<Program::Answer>& answers) {   // (longshot: answers no program holds)
+uint64_t answers_hash_of(const std::vector<Program::Answer>& answers) {   // (timeLink: answers no program holds)
     Program q;
     q.answers = answers;
     return answers_hash(q);
@@ -1141,7 +1141,7 @@ void dump_ir(const Program& p, const char* stage, const Shader::IR::Program& pro
     if (!want) return;
     char key[24], alt[24];
     snprintf(key, sizeof key, "%016llx", (unsigned long long)p.key);
-    snprintf(alt, sizeof alt, "%016llx", (unsigned long long)code_key);   // (longshot: or the stage code's own key)
+    snprintf(alt, sizeof alt, "%016llx", (unsigned long long)code_key);   // (timeLink: or the stage code's own key)
     bool match = false;
     for (const char* q = want; *q;) {
         const char* e = q;
@@ -1164,7 +1164,7 @@ void dump_ir(const Program& p, const char* stage, const Shader::IR::Program& pro
 
 // (longshot) RX_VK_MESH_NOCULL=<task shader code key prefixes,...>, off unless set. OoT's meshlet
 // culling task shader walks every cell of a coarse depth grid its meshlet covers, reading four words a cell from c3 by a
-// dynamic index: on RDNA 2 one draw runs past the kernel's 10 s and the GPU is reset (Longshot issue 817). Its answer is
+// dynamic index: on RDNA 2 one draw runs past the kernel's 10 s and the GPU is reset (timeLink issue 817). Its answer is
 // visible = (result & 1) | (c3[2320] & 4), bit 4 being the game's own "draw everything". That comparison becomes true,
 // and dead code elimination takes the grid walk with it: every meshlet is drawn (the rasterizer clips what is off
 // screen), none is left out; RX_VK_SKIP_CODE left these programs out instead, and their models with them. The Steam
@@ -1229,7 +1229,7 @@ void mesh_nocull(Shader::IR::Program& program, uint64_t code_key) {
              made ? "off, every meshlet drawn" : "pattern not found, left as it is");
 }
 
-// (longshot) What the program cache's records are good for, as far as the translation goes: this translator (LONGSHOT_SHADER_STAMP,
+// (longshot) What the program cache's records are good for, as far as the translation goes: this translator (TIMELINK_SHADER_STAMP,
 // nx2/build.py) and what it is told of the GPU and the environment. The cache's own format and I/O are vk_progcache.cpp's, outside
 // the stamp, with a version of their own (kProgramCacheFormat): a change to how the cache is read or scheduled no longer throws
 // every player's translated programs away
@@ -1241,7 +1241,7 @@ uint64_t translator_stamp() {
     };
     // (what translates shaders, nx2/build.py: a rebuild of anything else keeps the cache. It was the DLL's bytes, and every build
     // lost it)
-    const uint64_t translator = LONGSHOT_SHADER_STAMP;
+    const uint64_t translator = TIMELINK_SHADER_STAMP;
     add(&translator, sizeof translator);
     const uint32_t depth = host->depth_minus_w() != 0;   // (d3zessete's PR 54: programs made in either depth mode are kept apart)
     add(&depth, sizeof depth);
@@ -1369,7 +1369,7 @@ void translate_into(Program& p, const NvnState& s, const Code* vsc, const Code* 
                      t->program.workgroup_size[0], t->program.workgroup_size[1], t->program.workgroup_size[2],
                      t->program.shared_memory_size, t->program.local_memory_size);
             // (longshot) The movie upscaler's dozen networks, on a card that cannot run them as the console does: their software matrix multiplies
-            // took minutes each for AMD's compiler (the black screen with sound, Longshot issue 26: JaredEzz's analysis) and the movies ran at 10 fps
+            // took minutes each for AMD's compiler (the black screen with sound, timeLink issue 26: JaredEzz's analysis) and the movies ran at 10 fps
             // (issues 38, 43). Left out, the last pass becomes a linear upscale of the movie (upscale_stub in vk_draw.cpp): the same picture at 60
             // fps, a little softer. The gameplay TAAU network stays. RX_VK_NETWORK_KEEP=<key prefixes>, "all": every one runs
             if (t->program.info.uses_cooperative_matrix) {
@@ -1537,7 +1537,7 @@ std::array<u32, 3> mesh_registers_of(const Code* task, const Code& mesh) {
     // (the control section's topology in GL's numbers: 3 triangles; 1 points, not lines. OoT's four mesh programs with a 1 (the grass
     // drawn into the 2400 x 2400 shadow map around Link) write one index byte per primitive, the primitive count = their vertex
     // count, and a point size. Read as lines, each joined vertex 2i to 2i + 1 of its meshlet: a mesh of long thin dark stripes on
-    // the ground, the water and Link around him, on AMD; Longshot issue 302)
+    // the ground, the water and Link around him, on AMD; timeLink issue 302)
     const uint32_t topology = mesh.topology == 3 ? 4 : mesh.topology == 1 ? 0 : mesh.topology;
     const uint32_t lines = task ? (task->payload_bytes + 127) / 128 : 0;
     // (the larger of the two for both: the control section's pair is not always vertices and primitives in that order. The door's
@@ -2087,8 +2087,8 @@ bool key_listed(const char* hex, const char* var) {
     return false;
 }
 // ---- (longshot) Every shader of the game before it starts, as TotK Recomp's tools/prepare_shaders.py and totk.exe --prepare-shaders: the
-// builder writes longshot_shaders.bin (nx2/shader_census.py) from the archives, each program's stages, and here each is translated
-// for the default state (nothing bound, float inputs and outputs) and kept in longshot_programs.bin. What a draw then asks for is on
+// builder writes timeLink_shaders.bin (nx2/shader_census.py) from the archives, each program's stages, and here each is translated
+// for the default state (nothing bound, float inputs and outputs) and kept in timeLink_programs.bin. What a draw then asks for is on
 // disk, whatever part of the game it is first met in ----
 namespace {
 struct SeedStage {
@@ -2122,7 +2122,7 @@ void seed_stage_failed(const Code& c, uint64_t program) {
 }
 } // namespace
 
-std::string seed_path() { return beside_exe("longshot_shaders.bin"); }
+std::string seed_path() { return beside_exe("timeLink_shaders.bin"); }
 
 size_t seed_open() {
     if (FILE* f = fopen(seed_path().c_str(), "rb")) {
@@ -2291,7 +2291,7 @@ bool seed_is_compute(size_t i) {
 // (longshot) The seed's compute programs, each with its texture variants. A program's texture questions are answered in play by the
 // textures bound (Program::answers), which nothing before the game knows; the questions themselves are few, so each is tried with every
 // answer it can get, and an answer that changes the SPIR-V makes a variant. Variants of two answers and more are taken fewest first, up
-// to cap: one of them is the variant play makes, which still_valid then finds kept. All go to longshot_programs.bin, as play keeps them,
+// to cap: one of them is the variant play makes, which still_valid then finds kept. All go to timeLink_programs.bin, as play keeps them,
 // and each new one is given to made (its modules live until it returns)
 SeedVariants seed_compute(size_t i, size_t cap, const std::function<void(Program&)>& made) {
     static const uint8_t no_types[8]{};

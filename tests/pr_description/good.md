@@ -76,7 +76,7 @@ the same PC: the text fits.
 
 **Turning it off:** `RX_VK_MENU_FONT_SCALE=1` brings back the old size; reverting the commit is enough.
 
-**Compatibility:** nothing changes for players after updating: saves, `longshot_options.ini` and the caches are
+**Compatibility:** nothing changes for players after updating: saves, `timeLink_options.ini` and the caches are
 untouched.
 
 ## Issues

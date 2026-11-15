@@ -20,7 +20,7 @@
 #include <windows.h>
 #include <dbghelp.h>
 #include <io.h>
-#include "../gpu/vk/compat/longshot_env.h"
+#include "../gpu/vk/compat/timeLink_env.h"
 typedef HANDLE File;
 #define NO_FILE INVALID_HANDLE_VALUE
 #else
@@ -294,7 +294,7 @@ static int module_at(uintptr_t pc, char *name, size_t cap, uint64_t *offset) {
     if (!VirtualQuery((const void *)pc, &mbi, sizeof mbi) || mbi.Type != MEM_IMAGE) return 0;
     const uintptr_t base = (uintptr_t)mbi.AllocationBase;
     *offset = pc - base;
-    if (base == executable_base) { hos_crash_redact(name, cap, "longshot.exe", 12); return 1; }
+    if (base == executable_base) { hos_crash_redact(name, cap, "timeLink.exe", 12); return 1; }
     /* Read the image's export name, not its loader entry/full path. */
     IMAGE_DOS_HEADER dos; IMAGE_NT_HEADERS64 nt;
     if (!safe_read(base, &dos, sizeof dos) || dos.e_magic != IMAGE_DOS_SIGNATURE || dos.e_lfanew < 0 ||

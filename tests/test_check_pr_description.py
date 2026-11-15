@@ -243,7 +243,7 @@ class Sections(unittest.TestCase):
 
     def test_risks(self):
         self.assertEqual(check.problems(GOOD.replace("**Compatibility:**", "**Players:**"), title=FIX), [
-            "## Risks has no 'Compatibility:': what a player notices after updating (saves, longshot_options.ini, the "
+            "## Risks has no 'Compatibility:': what a player notices after updating (saves, timeLink_options.ini, the "
             "shader and pipeline caches, the vk ABI, the builder's tools), or 'Nothing changes'"])
         self.assertEqual(check.problems(section(GOOD, "Risks", "**Compatibility:**"), title=FIX), [
             "## Risks' 'Compatibility:' is empty: write what changes for a player after updating, or 'Nothing changes'"])

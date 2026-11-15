@@ -1,0 +1,31 @@
+#!/bin/sh
+# The game folder's launcher, what timeLink.exe is on Windows. The game itself is bin/timeLink. This file is copied to
+# timeLink in the folder (nx2/make_game.py).
+#
+# It starts the builder= line in timeLink_version.txt (what made this game: the timeLink Launcher, or the builder AppImage
+# for a build with --cli, which plays it) with --launch <this folder>. When that one is gone, it starts the game.
+set -eu
+HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+builder_line() {
+    [ -f "$HERE/timeLink_version.txt" ] || return 1
+    path=
+    while IFS= read -r line || [ -n "$line" ]; do
+        case $line in
+            builder=*) path=${line#builder=} ;;
+        esac
+    done < "$HERE/timeLink_version.txt"
+    [ -n "$path" ] && [ -x "$path" ] || return 1
+    printf '%s\n' "$path"
+}
+
+run=$(builder_line || true)
+if [ -n "$run" ]; then
+    exec "$run" --launch "$HERE"
+fi
+if [ -x "$HERE/bin/timeLink" ]; then
+    cd "$HERE"
+    exec ./bin/timeLink
+fi
+echo "timeLink: the game (bin/timeLink) is missing from this folder. Build it again with the timeLink Launcher." >&2
+exit 1

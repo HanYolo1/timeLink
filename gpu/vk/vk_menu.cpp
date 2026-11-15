@@ -54,8 +54,8 @@
 #include "threaded_rendering.h"   // (the Threaded rendering row's rule, and the one gate over its Auto)
 #include "vk_menu_i18n.h"
 #include "display_modes.h"   // (the Aspect ratio and Output resolution rows: the screen's sizes and their shapes)
-#ifndef LONGSHOT_ENV_H   // (env_on: the switches' one rule)
-#include "longshot_env.h"
+#ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
+#include "timeLink_env.h"
 #endif
 #include "pipeline_share.h"   // (Save my pipeline list: the zip for issue 14)
 #ifndef _WIN32   // (Save my pipeline list: the desktop's programs. On Windows, shell32 and ole32 are loaded when it is used)
@@ -70,8 +70,8 @@
 extern char** environ;
 #endif
 #include "vk_work.h"   // (after the others: counts the commands that do GPU work, for full_barrier)
-#ifndef LONGSHOT_VERSION   // (nx2/build.py gives it to this file: nx2/version.py)
-#define LONGSHOT_VERSION "unknown"
+#ifndef TIMELINK_VERSION   // (nx2/build.py gives it to this file: nx2/version.py)
+#define TIMELINK_VERSION "unknown"
 #endif
 
 namespace mkwvk {
@@ -88,9 +88,9 @@ enum MenuTab {
     TAB_CONTROLS = 3,
     TAB_DEBUG = 4,   // (the OoT debug tools of #785, a tab of their own)
     TAB_COUNT = 5,
-    TAB_MOTION = TAB_COUNT,   // (longshot: not a tab of the strip, the Motion page that the Controls tab's Motion row
+    TAB_MOTION = TAB_COUNT,   // (timeLink: not a tab of the strip, the Motion page that the Controls tab's Motion row
                               // opens: one past the strip's tabs, so a tab added before TAB_COUNT moves it along)
-    TAB_PAGE = TAB_MOTION + 1   // (longshot: the Controls page's rows, above its grid; no tab shows them)
+    TAB_PAGE = TAB_MOTION + 1   // (timeLink: the Controls page's rows, above its grid; no tab shows them)
 };
 
 struct Row {
@@ -367,7 +367,7 @@ namespace dm = display_modes;
 // display modes and its own size, each side rounded down to 8, those the game accepts, with the common sizes of the shapes
 // they have, 1440p, 4K and 5K at 16:9 on a 1080p screen too, by width then height; HOS_DISPLAY_MODES=<w>x<h>,... for a run;
 // where they are not known, the sizes offered before: 1920x1080, 2560x1440, 3840x2160, 5120x1440, 5120x2880), then, last,
-// a size of the player's own from longshot_options.ini (output_res=<width>x<height>, host/nn_applet.c hos_output_parse: the
+// a size of the player's own from timeLink_options.ini (output_res=<width>x<height>, host/nn_applet.c hos_output_parse: the
 // same rules) when it is none of them. The ini keeps the size, not the choice's number: output_res=3840x2160
 constexpr Out kGameOutput{2048, 1152};
 // (the sizes offered before the screen's: output_res=0 to 5 as saved then, and where the screen's are not known, by width then
@@ -776,7 +776,7 @@ size_t text_char_start(const std::string& text, size_t at) {
 }
 std::string mic_key(const char* name) {
     std::string k(name ? name : "");
-    for (char& c : k)   // (a device's name goes into longshot_options.ini: a line break in it would add lines there)
+    for (char& c : k)   // (a device's name goes into timeLink_options.ini: a line break in it would add lines there)
         if ((unsigned char)c < 0x20 || c == 0x7f) c = ' ';
     if (k.size() > kMicNameKept) k = k.substr(0, text_char_start(k, kMicNameKept));
     // (and no spaces at the end: a saved line's end, made one above, and those an older build saved with the name)
@@ -826,7 +826,7 @@ const char* tx_rumble(int v) { return v ? tx_percent(v) : "Off"; }
 constexpr float kVersionMinPt = 10;   // (the banner's version at Small and Medium: shrunk to fit, no smaller than this, in points)
 bool pad_last = false;   // (a controller was the menu's last input: its buttons in the prompts)
 int pad_confirm = 0, pad_back = 1;   // (the face buttons that confirm and go back, HOS_PAD_*: menu_keys::confirm_back, each tick)
-int pad_paste = 3;   // (longshot: the one that pastes into a text field while it has the keyboard: menu_keys::paste)
+int pad_paste = 3;   // (timeLink: the one that pastes into a text field while it has the keyboard: menu_keys::paste)
 const char* tx_menu_size(int v) {
     static const char* t[] = {"Small", "Medium", "Large"};
     return v >= 1 && v <= 3 ? t[v - 1] : t[1];
@@ -1144,16 +1144,16 @@ const char* tx_wide_menus(int v) {
 MENU_HINTS(hn_wide_menus, 0, "The menus stretched over the whole screen, as before.",
            "The menus in the middle 16:9; beside them, what the game draws there, out of focus.",
            "The menus in the middle 16:9; black beside them.")
-/// (the ASTC as RGBA8 row's line while RX_VK_ASTC_RGBA8 holds it: the old readme's way, still in some longshot_env.txt files)
+/// (the ASTC as RGBA8 row's line while RX_VK_ASTC_RGBA8 holds it: the old readme's way, still in some timeLink_env.txt files)
 const char* hn_astc_rgba8(int, int variant) {
-    return variant <= 0 && getenv("RX_VK_ASTC_RGBA8") ? "Set by RX_VK_ASTC_RGBA8 (longshot_env.txt or the environment): remove that line to choose here."
+    return variant <= 0 && getenv("RX_VK_ASTC_RGBA8") ? "Set by RX_VK_ASTC_RGBA8 (timeLink_env.txt or the environment): remove that line to choose here."
                                        : nullptr;
 }
 const char* tx_intel_compiles(int v) { return v ? "Side by side" : "One at a time"; }
 /// (the Intel shader compiles row's line: RX_VK_NO_INTEL_SERIAL holds it, as RX_VK_ASTC_RGBA8 the ASTC row)
 const char* hn_intel_compiles(int v, int variant) {
     if (variant <= 0 && getenv("RX_VK_NO_INTEL_SERIAL"))
-        return "Set by RX_VK_NO_INTEL_SERIAL (longshot_env.txt or the environment): remove that line to choose here.";
+        return "Set by RX_VK_NO_INTEL_SERIAL (timeLink_env.txt or the environment): remove that line to choose here.";
     static const char* const t[] = {"The safe choice, and the best on a CPU with 4 cores or fewer: a shader Intel's compiler "
                                     "faults on is left out instead of closing the game.",
                                     "Shaders are built faster on a CPU with many cores, but Intel's driver can crash the game "
@@ -1284,7 +1284,7 @@ Row rows[] = {
     {TAB_GRAPHICS, "Output resolution", &opts.output_res, 0, 0, 1, tx_output_res,
      "The game's whole frame, HUD included, before it is scaled to the window. Docked only. Applies after a restart.",
      hn_output_res, true, true},
-    {TAB_GRAPHICS, "Custom output size", nullptr, 0, 0, 0, nullptr,   // (longshot: a text field, field_rows)
+    {TAB_GRAPHICS, "Custom output size", nullptr, 0, 0, 0, nullptr,   // (timeLink: a text field, field_rows)
      "An Output resolution of your own, typed as width x height: your monitor's size, such as 3440x1440, 2560x1080 or "
      "2560x1600. Each side is rounded down to a multiple of 8; a size the Output resolution offers is chosen there. Empty: "
      "none. Docked only. Applies after a restart."},
@@ -1354,7 +1354,7 @@ Row rows[] = {
     {TAB_GRAPHICS, "GPU and memory", nullptr, 0, 0, 0, nullptr, nullptr, nullptr, false, true, -1, true},
     {TAB_GRAPHICS, "GPU device", &opts.gpu_device, 0, 8, 1, tx_gpu,
      "Which graphics card the game runs on. Applies after a restart.", hn_gpu, true, true},
-    // (longshot, threaded_rendering.h: the render thread and the recorder thread together, one row. Auto, On, Off as V-Sync's,
+    // (timeLink, threaded_rendering.h: the render thread and the recorder thread together, one row. Auto, On, Off as V-Sync's,
     // so its text is tx_vsync's. Read once, at the start: menu_threaded_rendering)
     {TAB_GRAPHICS, "Threaded rendering", &opts.threaded_rendering, 0, 2, 1, tx_vsync,
      "Draws the picture on threads of its own, beside the game's, on a processor with threads to spare. Applies after a "
@@ -1401,7 +1401,7 @@ Row rows[] = {
     {TAB_GAMEPLAY, "Menu language", &opts.menu_lang, 0, i18n::lang_count(), 1, tx_menu_lang, "The language of this menu.",
      hn_menu_lang, false, true},
     {TAB_GAMEPLAY, "Discord status", &opts.discord, 0, 1, 1, tx_onoff,
-     "Shows \"Playing Longshot\" and the time played in your Discord status, while Discord runs on this PC.", nullptr, false,
+     "Shows \"Playing timeLink\" and the time played in your Discord status, while Discord runs on this PC.", nullptr, false,
      true},
     {TAB_GAMEPLAY, "Skip opening", &opts.skip_opening, 0, 1, 1, tx_onoff,
      "Skips the new-game opening (the story movie and Navi waking Link) and leaves later cutscenes, the Deku Tree "
@@ -1450,7 +1450,7 @@ Row rows[] = {
     {TAB_MOTION, "Motion deadzone", &opts.gyro_deadzone, 0, 2, 1, tx_deadzone,
      "How slow a turn counts as none, the console's three settings: Standard is its own. High steadies a pad that jitters "
      "when held still; Low keeps the smallest movements.", nullptr, false, true},
-    {TAB_CONTROLS, "Motion", nullptr, 0, 0, 0, nullptr,   // (longshot: opens the Motion page, the TAB_MOTION rows)
+    {TAB_CONTROLS, "Motion", nullptr, 0, 0, 0, nullptr,   // (timeLink: opens the Motion page, the TAB_MOTION rows)
      "Motion controls: aiming with the controller's gyroscope, its sensitivity and its inverts."},
     // (longshot) the Controls page's own rows, above its grid (TAB_PAGE: no tab shows them)
     {TAB_PAGE, "Layout preset", &opts.pad_layout, 0, 3, 1, tx_pad_layout,
@@ -1464,7 +1464,7 @@ Row rows[] = {
     {TAB_CONTROLS, "Walk speed", &opts.walk_speed, 15, 90, 5, tx_percent,
      "How far the movement keys tilt the stick while Link walks, in percent of the whole way. Controllers, the mouse and "
      "the camera keys are not changed.", nullptr, false, true},
-    {TAB_CONTROLS, "Controls", nullptr, 0, 0, 0, nullptr,   // (longshot: opens its page)
+    {TAB_CONTROLS, "Controls", nullptr, 0, 0, 0, nullptr,   // (timeLink: opens its page)
      "The layout preset, the button prompts, and which gamepad button and which keys press each of the Switch's "
      "buttons."},
     {TAB_CONTROLS, "Menu shortcut", &opts.menu_shortcut, 0, 2, 1, tx_menu_shortcut,
@@ -1509,7 +1509,7 @@ Row rows[] = {
     {TAB_DEBUG, "Movement speed", nullptr, 0, 0, 0, nullptr,
      "How fast Link walks, runs and swims, as a multiple of his own speed. Choose with Left or Right.", nullptr, false, true, 11},
     {TAB_DEBUG, "Developer", nullptr, 0, 0, 0, nullptr, nullptr, nullptr, false, true, -1, true},
-    // (longshot, first under the heading: debug_rows lists only those) the zip for the "Submit your pipelines" issue: share_pipeline_list, pipeline_share.h
+    // (timeLink, first under the heading: debug_rows lists only those) the zip for the "Submit your pipelines" issue: share_pipeline_list, pipeline_share.h
     {TAB_DEBUG, "Save my pipeline list", nullptr, 0, 0, 0, nullptr,
      "Helps remove first-load stutter for everyone: saves the pipelines your play built (shader hashes and draw state, no game "
      "data) with a filled-in report as a zip in Downloads, copies the report and opens the \"Submit your pipelines\" issue. "
@@ -1526,15 +1526,15 @@ Row rows[] = {
     {TAB_DEBUG, "ASTC as RGBA8", &opts.astc_rgba8, 0, 1, 1, tx_onoff,
      "Big ASTC textures kept as decoded RGBA8 instead of re-encoded to BC3: a workaround for texture artifacts seen on some AMD "
      "cards (issues 57 and 1006). Takes far more video memory. Applies after restart.", hn_astc_rgba8, true, true},
-    // (longshot, Intel graphics on Windows only: row_shown) IntelDriverGate, vk_internal.h
+    // (timeLink, Intel graphics on Windows only: row_shown) IntelDriverGate, vk_internal.h
     {TAB_DEBUG, "Intel shader compiles", &opts.intel_compiles, 0, 1, 1, tx_intel_compiles,
      "Intel graphics: how many shaders Intel's compiler is given at once. Applies after a restart.", hn_intel_compiles, true, true},
-    // (longshot, Intel graphics on Windows only: row_shown) vk_draw.cpp compute_optimize
+    // (timeLink, Intel graphics on Windows only: row_shown) vk_draw.cpp compute_optimize
     {TAB_DEBUG, "Intel quick compute builds", &opts.intel_quick, 0, 1, 1, tx_onoff,
      "Intel graphics, shaders one at a time: a pass over the scene (its light, its exposure) is built first without the "
      "compiler's optimizer, in seconds instead of minutes, and drawn with until the optimized one is ready. Changes at once.",
      nullptr, false, true},
-    // (longshot, integrated graphics only: row_shown) weak_laptop_apply
+    // (timeLink, integrated graphics only: row_shown) weak_laptop_apply
     {TAB_DEBUG, "Set up for a weak laptop", nullptr, 0, 0, 0, nullptr,
      "For integrated graphics with 4 CPU threads or fewer (an i3 laptop's UHD Graphics): Render resolution 33% with the game's own "
      "upscaler, the plain window scale without sharpening, the handheld profile, the smallest memory budgets, Intel's shaders "
@@ -1867,7 +1867,7 @@ bool stops_at_ends(const Row& r) { return r.value == &opts.ultrawide || r.value 
 int rumble_step(int v) { return (std::min(std::max(v, 0), 150) + 12) / 25 * 25; }
 // (longshot) A run's environment over a saved row (RX_VK_PACE=1, HOS_OUTPUT_RES=...): for that run only. save() writes the
 // player's own value while the row still holds the environment's; once the player changes the row, theirs is kept. (These
-// were copied into the row and the next save wrote them into longshot_options.ini, so a test run's switch stayed for good)
+// were copied into the row and the next save wrote them into timeLink_options.ini, so a test run's switch stayed for good)
 struct EnvOverride {
     int* value;
     int saved, forced;
@@ -1911,7 +1911,7 @@ std::string ini_path() {
     char exe[MAX_PATH];
     const DWORD n = game_module_path(exe, MAX_PATH);
     std::string dir(exe, n);
-    return dir.substr(0, dir.find_last_of("\\/") + 1) + "longshot_options.ini";
+    return dir.substr(0, dir.find_last_of("\\/") + 1) + "timeLink_options.ini";
 }
 const char* ini_key(const Row& r) {
     if (r.value == &opts.output_res) return "output_res";   // (host/nn_applet.c reads it at the start)
@@ -2060,7 +2060,7 @@ void save() {
                 fprintf(f, "%s=%d\n", ini_key(r), saved_value(r.value));
             }
         }
-        if (!mic_want.empty()) fprintf(f, "microphone_device=%s\n", mic_want.c_str());   // (longshot: also while it is unplugged)
+        if (!mic_want.empty()) fprintf(f, "microphone_device=%s\n", mic_want.c_str());   // (timeLink: also while it is unplugged)
         // (not a row: the budgets Custom keeps. 0 too: with a preset on, the VRAM budget row chosen by the player, which the next
         // start must not take back to the preset's)
         fprintf(f, "memory_budget=%d\n", opts.budget);
@@ -2098,14 +2098,14 @@ void prompts_at_once(const Row& r) {
 }
 
 
-// ---- (longshot) Save my pipeline list (the Debug tab, under Developer): longshot_pipeline_states.bin and the "Submit your pipelines" issue's
+// ---- (longshot) Save my pipeline list (the Debug tab, under Developer): timeLink_pipeline_states.bin and the "Submit your pipelines" issue's
 // template, filled in from this run, zipped into the Downloads folder (pipeline_share.h; the builders do the same with
 // nx2/pipeline_share.py). Then the report on the clipboard, the folder shown and the issue opened in the browser, where the platform
 // has them; never with HOS_HEADLESS (no screen to show them on). Nothing is uploaded: the player attaches the zip ----
 namespace ps = pipeline_share;
 std::string share_said;    // (the help box's line after a save: where the zip went and what to do, or why there is none)
 std::string share_value;   // (the row's value after a save: Saved, or Not saved)
-constexpr const char* kShareSaidLongest = "Saved longshot-pipelines-2026-12-31.zip (123456 pipelines) in Downloads. The report "
+constexpr const char* kShareSaidLongest = "Saved timeLink-pipelines-2026-12-31.zip (123456 pipelines) in Downloads. The report "
     "is in the zip. Open git.magicbean.dev/MagicBeanDev/Longshot/issues/14 and attach the zip to a comment, then paste the report and say "
     "where you played.";   // (measure_help: the help box's room)
 std::string share_saved;   // (the first sentence: the zip's name, its pipelines and its folder)
@@ -2211,7 +2211,7 @@ std::string share_os() {
 #endif
 }
 #ifdef _WIN32
-/// A function of shell32 or ole32, loaded at its first use: longshot_vk.dll imports only kernel32, user32, gdi32, advapi32 and the
+/// A function of shell32 or ole32, loaded at its first use: timeLink_vk.dll imports only kernel32, user32, gdi32, advapi32 and the
 /// UCRT (the DLSS workflow's import check), and these two are needed only here
 FARPROC share_proc(const wchar_t* dll, const char* name) {
     HMODULE m = LoadLibraryExW(dll, nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -2407,7 +2407,7 @@ bool share_write(const std::string& path, const std::string& data) {
 /// frame generation and HDR as the menu has them now, and the mods
 std::vector<std::string> share_values(long long pipelines, bool v2, long long computes) {
     std::vector<std::string> v(ps::kFieldCount);
-    v[0] = LONGSHOT_VERSION;
+    v[0] = TIMELINK_VERSION;
     v[1] = share_os() + "; " + dev.props.deviceName + ", driver " + driver_text();
     const Out o = shown_output();
     v[2] = ps::output_text(o.w, o.h, opts.handheld != 0, output_choice(opts.output_res) == 0, aspect_follows_host(opts.ultrawide));
@@ -2544,7 +2544,7 @@ void set_row(Row& r, int v, int dir, bool keep = true) {
             const int out = output_for_aspect(*r.value);
             if (out != opts.output_res) opts.output_res = out, env_release(&opts.output_res);
         }
-        if (r.value == &opts.vram_budget) {   // (longshot: set on the row, the budget is the player's, on any card)
+        if (r.value == &opts.vram_budget) {   // (timeLink: set on the row, the budget is the player's, on any card)
             opts.budget = 0;
             vram_budget_sync();
         }
@@ -2555,12 +2555,12 @@ void set_row(Row& r, int v, int dir, bool keep = true) {
         }
     }
     if (r.value == &opts.mic && can_mic()) mic_chosen();   // (longshot)
-    // (longshot: the samplers made again, at once: their anisotropy, and the upscalers' LOD bias, vk_draw.cpp upscale_lod_bias)
+    // (timeLink: the samplers made again, at once: their anisotropy, and the upscalers' LOD bias, vk_draw.cpp upscale_lod_bias)
     if (r.value == &opts.anisotropy || r.value == &opts.dlss || r.value == &opts.resolution || r.value == &opts.preset)
         samplers_changed();
     if (r.value == &opts.dlss || r.value == &opts.resolution || r.value == &opts.dlss_model)
         temporal_reset_failure();
-    if (r.value == &opts.descriptor_reuse || r.value == &opts.sampler_cache)   // (longshot: in play, vk_draw.cpp)
+    if (r.value == &opts.descriptor_reuse || r.value == &opts.sampler_cache)   // (timeLink: in play, vk_draw.cpp)
         menu_debug_rows(opts.descriptor_reuse, opts.sampler_cache);
     prompts_at_once(r);   // (longshot)
     {   // (a row that takes a restart, or a preset that sets one: asked again at the next close)
@@ -2573,7 +2573,7 @@ void set_row(Row& r, int v, int dir, bool keep = true) {
 
 // ---- (longshot) the rows that are text fields (text_edit): their fields, what Enter on each sets, the one being edited ----
 /// Custom output size: the Output resolution's size of the player's own (custom_output), typed, as output_res= in
-/// longshot_options.ini sets it (parse_output: the same rules)
+/// timeLink_options.ini sets it (parse_output: the same rules)
 bool output_size_char(char c) { return (c >= '0' && c <= '9') || c == 'x' || c == 'X'; }
 const char* output_pad_chars(const TextField& f) {
     // (one separator, after 1 to 5 width digits; partial text is fine until Done)
@@ -2842,7 +2842,7 @@ float ease_step = 0;     // (this drawing's share of the way: the time since the
 ui::Ctx ui_ctx(uint32_t w, uint32_t h) {
     ui::Ctx c{ImGui::GetForegroundDrawList(), ui::fonts(), 1, (float)w, (float)h, 0, pad_last};
     c.confirm_dot = menu_keys::dot(pad_confirm), c.back_dot = menu_keys::dot(pad_back);
-    c.paste_dot = menu_keys::dot(pad_paste);   // (longshot: a text field's Paste)
+    c.paste_dot = menu_keys::dot(pad_paste);   // (timeLink: a text field's Paste)
     c.s = ui::unit((float)h, opts.menu_size, &c.safe);
     return c;
 }
@@ -3320,7 +3320,7 @@ void bug_report_save() {
     if (host && host->log_flush) host->log_flush();   // (the log's queued lines into the file first)
     bug_report::Inputs in;
     bug_report::fill_here(in);
-    in.version = LONGSHOT_VERSION;
+    in.version = TIMELINK_VERSION;
     in.gpu = device_report_text();
     in.options = changed_rows_text(in.pc_options);
     const std::string ini = ini_path();
@@ -3433,8 +3433,8 @@ void draw_options(ui::Ctx& c) {
         x += tw[i];
     }
     {   // (which build, at the banner's left, so a report can say it without opening the log: as players see it, version_text,
-        // "Longshot v3.0.0-rc.1" or "Longshot Nightly 46 · 434712bb"; the log and the bug report keep the whole name)
-        std::string ver = std::string("Longshot ") + version_text(LONGSHOT_VERSION);
+        // "timeLink v3.0.0-rc.1" or "timeLink Nightly 46 · 434712bb"; the log and the bug report keep the whole name)
+        std::string ver = std::string("timeLink ") + version_text(TIMELINK_VERSION);
         const float room = (c.w - total) * 0.5f - 60 * s - c.safe, px = 15 * s;
         const auto width = [&](float p) { return ui::size_of(c.f.body, p, ver.c_str()).x; };
         // (still too long, as a source build's "v2.0.11-821-g7b81752-dirty" since the Audio tab: at Small and Medium smaller
@@ -3450,7 +3450,7 @@ void draw_options(ui::Ctx& c) {
     column(c, cx0, cx1, hh);
     const int count = tab_row_count(cur_tab), sel = tab_selected[cur_tab];
     const Row& selr = rows[tab_row_to_global(cur_tab, sel)];
-    const FieldRow* field = field_row(selr);   // (longshot: a text field: why Enter did not take it, while it is edited)
+    const FieldRow* field = field_row(selr);   // (timeLink: a text field: why Enter did not take it, while it is edited)
     const char* hint = selr.value && selr.hint ? selr.hint(*selr.value, -1) : field && editing == field->field ? edit_why : nullptr;
     if (is_share_row(selr) && !share_said.empty()) hint = share_said.c_str();   // (what the last save did)
     if (&selr == &rows[kBugReportRow]) hint = bug_report_hint();   // (the Bug report: where it was saved, or why not)
@@ -4398,7 +4398,7 @@ void draw_startup(ui::Ctx& c) {
 
 void startup_fade_to(float f) { startup_fade.store(f, std::memory_order_relaxed); }
 
-// (longshot, #1886) The Upscaler row's one-time questions: NVIDIA's NGX started (dlss_probe), AMD's FSR 4 loaded
+// (timeLink, #1886) The Upscaler row's one-time questions: NVIDIA's NGX started (dlss_probe), AMD's FSR 4 loaded
 // (fsr4_probe), FSR 3.1's GPU check. They were asked at the menu's first open, on the frame's thread, and NGX's start
 // alone held that frame about 3 s (an RTX 5080 at 4K; 2.9 s here): the game stood still and its sound ran on, out of
 // step with a cutscene. Now asked once on a thread of their own while the start-up screen shows, where nobody waits on
@@ -4426,7 +4426,7 @@ void startup_screen(const StartupView* view) {
         return;
     }
     StartupView v = *view;
-    if (v.version.empty()) v.version = version_text(LONGSHOT_VERSION);   // ("v2.0.5"; "v2.0.5 dev" between releases)
+    if (v.version.empty()) v.version = version_text(TIMELINK_VERSION);   // ("v2.0.5"; "v2.0.5 dev" between releases)
     {
         std::lock_guard lk(startup_mu);
         startup = v;
@@ -4443,7 +4443,7 @@ void menu_init() {
     for (auto& count : item_counts) count.store(-1, std::memory_order_relaxed);
     bool has_options = false;
     bool has_output = false;   // (an output_res= line: the Output resolution chosen; none: hos_output_default, as the host)
-    bool has_vram_budget = false;   // (longshot: a file from before the VRAM budget row: its preset's, memory_budget's)
+    bool has_vram_budget = false;   // (timeLink: a file from before the VRAM budget row: its preset's, memory_budget's)
     bool has_memory_budget = false;   // (a file from before memory_budget: its preset's)
     const char* cheats = getenv("HOS_OOT_CHEATS");
     cheats_env = cheats && !strcmp(cheats, "1");
@@ -4491,7 +4491,7 @@ void menu_init() {
             }
             if (!strcmp(line, "memory_budget")) opts.budget = std::min(std::max(atoi(eq + 1), 0), 5), has_memory_budget = true;
             has_vram_budget |= !strcmp(line, "vram_budget");
-            if (!strcmp(line, "microphone_device")) {   // (longshot: the microphone, by its name)
+            if (!strcmp(line, "microphone_device")) {   // (timeLink: the microphone, by its name)
                 mic_want = mic_key(eq + 1);
             }
         }
@@ -4552,7 +4552,7 @@ void menu_init() {
     vram_budget_sync();
     menu_debug_rows(opts.descriptor_reuse, opts.sampler_cache);   // (the Debug rows that apply in play: what was loaded)
     fps_level_now.store(fps_stats::level_of(opts.show_fps), std::memory_order_relaxed);
-    output_field_show();   // (longshot: Custom output size, the size of the player's own, as the file has it)
+    output_field_show();   // (timeLink: Custom output size, the size of the player's own, as the file has it)
     // (the environment over the saved rows, for this run only: env_override, save)
     if (const char* e = getenv("RX_VK_FRAMEGEN_MULT")) env_override(&opts.framegen, std::min(std::max(atoi(e), 2), 8));
     if (const char* e = getenv("RX_VK_PACE")) env_override(&opts.pace, !env_value_off(e));
@@ -4821,7 +4821,7 @@ void menu_option_set(int id, int value) {
 
 // ---- (longshot) the control bridge's option_get and option_set (host/control.c, docs/control.md) ----
 // The settings rows (a value, not a heading or a debug tool, shown on this PC: row_shown), found by their key in
-// longshot_options.ini (ini_key), which stays the same while rows come and go or are renamed. The bridge calls these from
+// timeLink_options.ini (ini_key), which stays the same while rows come and go or are renamed. The bridge calls these from
 // its own thread: menu_mu keeps them apart from menu_tick (the present's thread) and from menu_option_set (the game's)
 bool bridge_row(int i) { return rows[i].value && !rows[i].heading && rows[i].cheat < 0 && row_shown(i); }
 void bridge_fill(int i, MkwVkSetting* out) {
@@ -5205,7 +5205,7 @@ void menu_tick() {
     if (host && host->binding)   // (A and B as bound now: the Controls page or the Layout preset can change them)
         menu_keys::confirm_back(host->binding(HOS_BIND_PAD, HOS_SW_A, 0), host->binding(HOS_BIND_PAD, HOS_SW_B, 0), &pad_confirm,
                                 &pad_back);
-    pad_paste = menu_keys::paste(pad_confirm, pad_back);   // (longshot: a text field's paste, on a button neither is on)
+    pad_paste = menu_keys::paste(pad_confirm, pad_back);   // (timeLink: a text field's paste, on a button neither is on)
     if (pad(HOS_PAD_GUIDE) || chord_now) press[0] = true;
     {   // holding an arrow or the D-pad repeats it: after 0.35 s, 12 a second, then 30 a second after 1.5 s held
         static int64_t held_since[5], next_repeat[5];
@@ -5225,7 +5225,7 @@ void menu_tick() {
         press[1] |= pad(HOS_PAD_UP), press[2] |= pad(HOS_PAD_DOWN), press[3] |= pad(HOS_PAD_LEFT);
         press[4] |= pad(HOS_PAD_RIGHT), press[5] |= pad(pad_back), press[7] |= pad(pad_confirm);
     }
-    std::vector<uint32_t> scripted;   // (longshot: RX_VK_MENU_SCRIPT's typing, for the text field that has the keyboard)
+    std::vector<uint32_t> scripted;   // (timeLink: RX_VK_MENU_SCRIPT's typing, for the text field that has the keyboard)
     {   // RX_VK_MENU_SCRIPT (test runs, which never have the focus): timed menu keys, "<seconds>:<INS|UP|DOWN|LEFT|RIGHT|ESC|ENTER|TABL|TABR>,...";
         // and the gamepad's face buttons by position, PADS PADE PADW PADN (bottom, right, left, top), as a controller's press.
         // (longshot) TYPE:<text> types the text up to the next comma, as the keyboard would; while a text field has the
@@ -5646,7 +5646,7 @@ void menu_tick() {
             if (drag_row >= 0) save();   // (a slider let go off the window: kept now)
             hover_tab = -1, drag_row = -1, mouse_read = false;
             pending = nullptr;
-            edit_end(false);   // (longshot: a text field being edited, its text as it was)
+            edit_end(false);   // (timeLink: a text field being edited, its text as it was)
         }
         if (now_open != told && app_window()) {
             told = now_open;

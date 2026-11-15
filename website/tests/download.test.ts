@@ -45,6 +45,6 @@ test("each file by its kind", () => {
   assert.equal(assetOf(r, "windows").name, "LongshotLauncher-v1.0.0-windows-x64-setup.exe");
   assert.equal(assetOf(r, "linux").name, "LongshotLauncher-v1.0.0-x86_64.AppImage");
   assert.equal(assetOf(r, "windows-portable"), null);
-  // (Longshot's builder is never a launcher file)
-  assert.equal(assetOf({ assets: [{ name: "Longshot-v3.0.0-x86_64.AppImage" }] }, "linux"), null);
+  // (timeLink's builder is never a launcher file)
+  assert.equal(assetOf({ assets: [{ name: "timeLink-v3.0.0-x86_64.AppImage" }] }, "linux"), null);
 });

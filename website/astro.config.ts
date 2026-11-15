@@ -10,9 +10,9 @@ export default defineConfig({
   trailingSlash: 'always',
   markdown: { processor: unified({ remarkPlugins: [remarkTestedConfigurations] }) },
   integrations: [repoAssets(), starlight({
-    title: 'Longshot',
-    description: 'Longshot by Team MagicBean. Guides, project updates, and practical help for your PC adventure.',
-    favicon: '/branding/longshot.png',
+    title: 'timeLink',
+    description: 'timeLink by Team MagicBean. Guides, project updates, and practical help for your PC adventure.',
+    favicon: '/branding/timeLink.png',
     customCss: ['./src/styles/theme.css', './src/styles/content.css'],
     components: {
       Header: './src/components/Header.astro',
@@ -40,7 +40,7 @@ export default defineConfig({
         { label: 'Source code ↗', link: repository },
       ] },
       { label: 'About', items: [
-        { label: 'About Longshot', slug: 'about' },
+        { label: 'About timeLink', slug: 'about' },
         { label: 'Team MagicBean', slug: 'about/team' },
       ] },
     ],

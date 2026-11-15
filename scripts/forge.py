@@ -1,4 +1,4 @@
-"""Work with Longshot on the team's Forgejo (git.magicbean.dev): sign in, push to your fork, pull requests, issues.
+"""Work with timeLink on the team's Forgejo (git.magicbean.dev): sign in, push to your fork, pull requests, issues.
 Standard library only (Windows and Linux), so any agent can use it; people may prefer fj, the Forgejo CLI
 (docs/forge.md has both).
 
@@ -32,8 +32,8 @@ it is skipped when a git sign-in is saved already (--again redoes it). Then it:
   - adds the remote "forge" for MagicBeanDev/Longshot to the repository you run it in, unless one already points there
     (fetch from it; its main takes reviewed pull requests only, nobody pushes to it).
 That is all reading, testing and test requests need. To send changes, fork sets up pushing: it makes your fork,
-<you>/Longshot, if you have none, and adds the remote "forge-fork" for it (push your branches there). pr create does
-the same when it hasn't been done. pr create opens a pull request from BRANCH on your fork into Longshot's main (push
+<you>/timeLink, if you have none, and adds the remote "forge-fork" for it (push your branches there). pr create does
+the same when it hasn't been done. pr create opens a pull request from BRANCH on your fork into timeLink's main (push
 the branch to your fork first: jj git push --remote forge-fork -b BRANCH, or git push forge-fork BRANCH). git calls
 this script as "forge.py credential get|store|erase".
 
@@ -129,7 +129,7 @@ def api_upload(path, name, data, content_type):
     """The JSON answer to a file POSTed as the form Forgejo's attachment calls take (one field, "attachment"), with the
     same sign-in as api(). The form's file name is kept to plain ASCII: the real one goes in the path's ?name=, which
     Forgejo takes first."""
-    boundary = "longshot-" + os.urandom(16).hex()
+    boundary = "timeLink-" + os.urandom(16).hex()
     plain = re.sub(r"[^A-Za-z0-9._-]", "_", name)
     form = (('--%s\r\nContent-Disposition: form-data; name="attachment"; filename="%s"\r\nContent-Type: %s\r\n\r\n'
              % (boundary, plain, content_type)).encode("ascii") + data + ("\r\n--%s--\r\n" % boundary).encode("ascii"))
@@ -205,7 +205,7 @@ def add_remote(name, repo):
 
 
 def ensure_fork(login):
-    """<login>/Longshot, made from MagicBeanDev/Longshot if missing; (its full name, whether it was made now)."""
+    """<login>/timeLink, made from MagicBeanDev/Longshot if missing; (its full name, whether it was made now)."""
     name = REPO.split("/")[1]
     try:
         mine = api("GET", "/repos/%s/%s" % (login, name))
@@ -921,7 +921,7 @@ def main(argv=None):
     s.add_argument("--upstream", default="forge", help="remote name for MagicBeanDev/Longshot (default forge)")
     s.add_argument("--no-browser", action="store_true", help="print the link only")
     s.add_argument("--again", action="store_true", help="sign in anew even when signed in")
-    s = sub.add_parser("fork", help="set up pushing: your fork of Longshot and its remote")
+    s = sub.add_parser("fork", help="set up pushing: your fork of timeLink and its remote")
     s.add_argument("--remote", default="forge-fork", help="remote name for your fork (default forge-fork)")
     sub.add_parser("whoami")
     sub.add_parser("logout")
@@ -935,9 +935,9 @@ def main(argv=None):
         g.add_argument("--body", metavar="TEXT", help=what)
         g.add_argument("--body-file", metavar="F", help=what + ", from a file (UTF-8)")
 
-    pr = sub.add_parser("pr", help="pull requests into Longshot's main").add_subparsers(dest="action", required=True)
+    pr = sub.add_parser("pr", help="pull requests into timeLink's main").add_subparsers(dest="action", required=True)
     s = pr.add_parser("create", help="open a pull request from a branch of your fork, as work in progress (WIP: title)",
-                      description="Opens a pull request from BRANCH on your fork into Longshot's main. It opens as work "
+                      description="Opens a pull request from BRANCH on your fork into timeLink's main. It opens as work "
                       "in progress (a 'WIP: ' title) unless --ready; without --body or --body-file, the description "
                       "starts from .forgejo/pull_request_template.md.")
     s.add_argument("branch")

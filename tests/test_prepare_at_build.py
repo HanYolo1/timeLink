@@ -1,4 +1,4 @@
-"""make_game.py's last step, longshot --prepare-shaders, run against stub games: its stage and progress lines go on to the builder,
+"""make_game.py's last step, timeLink --prepare-shaders, run against stub games: its stage and progress lines go on to the builder,
 its own @@done and @@error don't (a launcher reads those as the build's end or failure), a failure or a silent hang leaves the work
 to the first start (never a failed build), and the game runs in its own environment, as Play starts it.
 
@@ -26,7 +26,7 @@ spec.loader.exec_module(make_game)
 
 
 def stub(code):
-    """A stand-in for longshot --prepare-shaders: authored Python, no game, no GPU"""
+    """A stand-in for timeLink --prepare-shaders: authored Python, no game, no GPU"""
     return [sys.executable, "-I", "-c", code]
 
 
@@ -43,10 +43,10 @@ def not_prepared(lines):
 
 class PrepareShadersTests(unittest.TestCase):
     def test_progress_goes_on_and_the_games_done_does_not(self):
-        code, lines = prepared(stub("print('longshot v'); print('@@stage shaders Preparing shaders'); print('@@progress 0.500');"
+        code, lines = prepared(stub("print('timeLink v'); print('@@stage shaders Preparing shaders'); print('@@progress 0.500');"
                                     "print('@@done shaders')"))
         self.assertEqual(code, 0)
-        self.assertEqual(lines, ["longshot v", "@@stage shaders Preparing shaders", "@@progress 0.500", "done shaders"])
+        self.assertEqual(lines, ["timeLink v", "@@stage shaders Preparing shaders", "@@progress 0.500", "done shaders"])
 
     def test_no_vulkan_leaves_them_to_the_first_start(self):
         code, lines = prepared(stub("import sys; print('@@error no usable Vulkan here'); sys.exit(3)"))
@@ -78,32 +78,32 @@ class PrepareShadersTests(unittest.TestCase):
         self.assertEqual(not_prepared(lines), [])
 
     def test_missing_game_is_not_a_failed_build(self):
-        code, lines = prepared([str(ROOT / "no-such-folder" / "longshot.exe"), "--prepare-shaders"])
+        code, lines = prepared([str(ROOT / "no-such-folder" / "timeLink.exe"), "--prepare-shaders"])
         self.assertEqual(code, 1)
         self.assertEqual(len(not_prepared(lines)), 1)
         self.assertFalse(any(l.startswith("@@") for l in lines))
 
     def test_the_game_runs_in_its_folder_without_the_tools_environment(self):
-        dropped = dict(LONGSHOT_TOOLS="/builder/tools", LONGSHOT_NO_PREPARE="0", PYTHONPATH="/builder/python",
-                       PYTHONHOME="/builder", APPDIR="/appdir", APPIMAGE="/tmp/Longshot.AppImage", ARGV0="Longshot", OWD="/old",
+        dropped = dict(TIMELINK_TOOLS="/builder/tools", TIMELINK_NO_PREPARE="0", PYTHONPATH="/builder/python",
+                       PYTHONHOME="/builder", APPDIR="/appdir", APPIMAGE="/tmp/timeLink.AppImage", ARGV0="timeLink", OWD="/old",
                        LD_LIBRARY_PATH="/builder/lib")
-        with tempfile.TemporaryDirectory(prefix="longshot-prepare-") as folder, \
-                mock.patch.dict(os.environ, dict(dropped, LONGSHOT_TEST_KEPT_NOT="x", KEPT_FOR_THE_GAME="yes")):
+        with tempfile.TemporaryDirectory(prefix="timeLink-prepare-") as folder, \
+                mock.patch.dict(os.environ, dict(dropped, TIMELINK_TEST_KEPT_NOT="x", KEPT_FOR_THE_GAME="yes")):
             code, lines = prepared(stub("import json, os; print(json.dumps({'cwd': os.getcwd(), 'env': dict(os.environ)}))"),
                                    folder=folder)
             seen = json.loads(lines[0])
             self.assertEqual(code, 0)
             self.assertEqual(os.path.normcase(os.path.realpath(seen["cwd"])), os.path.normcase(os.path.realpath(folder)))
-        for name in list(dropped) + ["LONGSHOT_TEST_KEPT_NOT"]:
+        for name in list(dropped) + ["TIMELINK_TEST_KEPT_NOT"]:
             self.assertNotIn(name, seen["env"], name)
         self.assertEqual(seen["env"]["KEPT_FOR_THE_GAME"], "yes")
 
     def test_game_env_is_the_play_buttons(self):
-        env = make_game.game_env({"LONGSHOT_X": "1", "PYTHONPATH": "p", "APPIMAGE": "a", "APPDIR": "d", "ARGV0": "0", "OWD": "o",
+        env = make_game.game_env({"TIMELINK_X": "1", "PYTHONPATH": "p", "APPIMAGE": "a", "APPDIR": "d", "ARGV0": "0", "OWD": "o",
                                   "LD_LIBRARY_PATH": "l", "PATH": "/usr/bin", "HOME": "/home/p"})
         self.assertEqual(env, {"PATH": "/usr/bin", "HOME": "/home/p"})
         # (the shell launcher can't import it: the same names there)
-        launch = (ROOT / "builder" / "linux" / "longshot-launch").read_text(encoding="utf-8")
+        launch = (ROOT / "builder" / "linux" / "timeLink-launch").read_text(encoding="utf-8")
         names = re.search(r"\$1 ~ /\^\(([A-Z_|0-9]+)\)/ \|\| \$1 == \"LD_LIBRARY_PATH\"", launch).group(1).split("|")
         self.assertEqual(tuple(names), make_game.GAME_ENV_DROP)
 
@@ -138,9 +138,9 @@ class SkipTests(unittest.TestCase):
         self.assertIn("unticked", self.skipped({}, flag=True))
 
     def test_longshot_no_prepare_as_the_game_reads_its_switches(self):
-        self.assertIsNone(self.skipped({"LONGSHOT_NO_PREPARE": "0"}))
-        self.assertIsNotNone(self.skipped({"LONGSHOT_NO_PREPARE": "1"}))
-        self.assertIsNotNone(self.skipped({"LONGSHOT_NO_PREPARE": ""}))   # (set, as the game's getenv && strcmp(.., "0"))
+        self.assertIsNone(self.skipped({"TIMELINK_NO_PREPARE": "0"}))
+        self.assertIsNotNone(self.skipped({"TIMELINK_NO_PREPARE": "1"}))
+        self.assertIsNotNone(self.skipped({"TIMELINK_NO_PREPARE": ""}))   # (set, as the game's getenv && strcmp(.., "0"))
 
     def test_a_windows_game_built_on_linux(self):
         self.assertIn("Windows game built on Linux", self.skipped({}, cross=True))
@@ -154,15 +154,15 @@ class SkipTests(unittest.TestCase):
 
 
 class CompileShadersTests(unittest.TestCase):
-    """Compile shaders: --compile-shaders kept in the folder's longshot_options.ini as compile_shaders= (0 Most, 1 All), the
+    """Compile shaders: --compile-shaders kept in the folder's timeLink_options.ini as compile_shaders= (0 Most, 1 All), the
     game's other lines as they are"""
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="longshot-compile-shaders-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="timeLink-compile-shaders-")
         self.addCleanup(self.temporary.cleanup)
         self.out = self.temporary.name
 
     def ini(self):
-        with open(os.path.join(self.out, "longshot_options.ini"), encoding="utf-8") as f:
+        with open(os.path.join(self.out, "timeLink_options.ini"), encoding="utf-8") as f:
             return f.read()
 
     def test_all_written_to_a_new_folder(self):
@@ -172,7 +172,7 @@ class CompileShadersTests(unittest.TestCase):
         self.assertEqual(make_game.folder_compile_level(self.out), "all")
 
     def test_the_other_lines_kept_and_the_choice_replaced(self):
-        with open(os.path.join(self.out, "longshot_options.ini"), "w", encoding="utf-8") as f:
+        with open(os.path.join(self.out, "timeLink_options.ini"), "w", encoding="utf-8") as f:
             f.write("options_version=6\ncompile_shaders=0\nfullscreen=1\n")
         make_game.write_compile_level(self.out, "all")
         self.assertEqual(self.ini(), "options_version=6\nfullscreen=1\ncompile_shaders=1\n")

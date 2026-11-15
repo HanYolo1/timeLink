@@ -30,8 +30,8 @@ on the request's PR, and replaces that person's earlier result. release is the c
 A message that breaks these rules changes nothing. (The approval below is git.magicbean.dev's, so the script checks it
 before claiming; a claim typed by hand on a request that isn't approved shows nowhere on Discord.)
 
-Requests are for Longshot's pull requests on git.magicbean.dev. Only approved requests can be claimed: the PR's author
-may push to Longshot, or a maintainer put the "testing wanted" label on it. Anything else waits for a maintainer to add
+Requests are for timeLink's pull requests on git.magicbean.dev. Only approved requests can be claimed: the PR's author
+may push to timeLink, or a maintainer put the "testing wanted" label on it. Anything else waits for a maintainer to add
 the label (the card on Discord says so, and list shows it last); this keeps strangers' code off testers' PCs until
 someone has looked at it. The script asks git.magicbean.dev, with the team sign-in.
 
@@ -65,7 +65,7 @@ DEFAULT_TTL = 90
 MAX_TTL = 480
 API = "https://git.magicbean.dev/api/v1/repos/MagicBeanDev/Longshot"
 LABEL = "testing wanted"
-WRITERS = ("owner", "admin", "write")  # may push to Longshot: their PRs need no label
+WRITERS = ("owner", "admin", "write")  # may push to timeLink: their PRs need no label
 HISTORY_LIMIT = 50000  # messages read back; renews add one per tester every half hour
 EXIT_REFUSED = team_chat.EXIT_REFUSED
 
@@ -172,7 +172,7 @@ def forge_get(path, token=None):
 
 
 def pr_info(number):
-    """The PR's state (open, draft, merged, closed), its labels and whether its author may push to Longshot, from
+    """The PR's state (open, draft, merged, closed), its labels and whether its author may push to timeLink, from
     git.magicbean.dev (the author check needs the team sign-in; without it only the label counts)."""
     try:
         pr = forge_get("/pulls/%d" % number)

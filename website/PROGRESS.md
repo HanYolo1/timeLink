@@ -1,4 +1,4 @@
-# Longshot progress feed
+# timeLink progress feed
 
 The public source is `MagicBeanDev/Longshot` on MagicBean's Forgejo instance.
 The collector uses its `/api/v1/repos/MagicBeanDev/Longshot` API and follows only

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=Longshot Builder
-Comment=The command-line builder the Longshot Launcher uses: get the launcher to play
+Name=timeLink Builder
+Comment=The command-line builder the timeLink Launcher uses: get the launcher to play
 Exec=AppRun
-Icon=longshot
+Icon=timeLink
 Categories=Game;
 Terminal=false
 Actions=Play;
@@ -11,4 +11,4 @@ Actions=Play;
 [Desktop Action Play]
 Name=Play
 Exec=AppRun --play
-Icon=longshot
+Icon=timeLink

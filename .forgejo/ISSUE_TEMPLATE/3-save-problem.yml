@@ -24,7 +24,7 @@ body:
     attributes:
       label: How you copied
       options:
-        - Longshot Launcher's Saves page
+        - timeLink Launcher's Saves page
         - scripts/oot_saves.py
         - By hand
         - No copy
@@ -33,7 +33,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Longshot version
+      label: timeLink version
       placeholder: v3.0.0
     validations:
       required: true

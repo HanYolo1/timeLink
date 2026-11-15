@@ -1,6 +1,6 @@
 # Forgejo Actions runners
 
-Longshot's CI runs on Forgejo Actions (`.forgejo/workflows/`), on runners the team registers with git.magicbean.dev. Every
+timeLink's CI runs on Forgejo Actions (`.forgejo/workflows/`), on runners the team registers with git.magicbean.dev. Every
 job runs on Linux: **no Windows runner is needed**, and none is registered. These are manual steps for an admin of the
 instance or of MagicBeanDev; nothing here needs a game.
 

@@ -61,7 +61,7 @@
 #include "upscaler_rows.h"
 #include "vk_dlss.h"
 #include "vk_draw.h"
-#include "fsr3_math.h"   // (longshot: FSR 3.1's depth constants from the projection)
+#include "fsr3_math.h"   // (timeLink: FSR 3.1's depth constants from the projection)
 #include "vk_fsr3.h"   // (fsr3_wanted: AMD FSR 3.1 upscales with inputs of its own; fsr3_engine: on this chain)
 #include "vk_fsr4.h"
 #include "vk_menu.h"
@@ -243,7 +243,7 @@ struct State {
     std::atomic<bool> holding{false};   // (an engine's state, images or frees still to do: temporal_idle has something to let go)
 };
 State& st() {
-    // (never destroyed: Longshot leaves through ExitProcess / exit() with the device alive, and `dead` may still hold an
+    // (never destroyed: timeLink leaves through ExitProcess / exit() with the device alive, and `dead` may still hold an
     // engine's state then (an FSR context), whose destructor would call into a library already gone)
     static State& s = *new State;
     return s;
@@ -863,7 +863,7 @@ bool temporal_scene_size(uint32_t width, uint32_t height) {
 
 MkwVkJitter temporal_jitter_sample() {
     static const bool off = env_switch("RX_VK_DLSS_JITTER") == 0;
-    static const bool fsr3_off = env_switch("RX_VK_FSR_JITTER") == 0;   // (longshot: FSR 3.1's own switch, on the chain too)
+    static const bool fsr3_off = env_switch("RX_VK_FSR_JITTER") == 0;   // (timeLink: FSR 3.1's own switch, on the chain too)
     State& s = st();
     const int mode = temporal_mode();
     if (off || mode == ur::GAME || (mode == ur::FSR3 && fsr3_off)) return {};
@@ -928,7 +928,7 @@ void temporal_idle() {
     std::lock_guard lk(s.mu);
     const uint64_t now = texture_frame_no();
     if (now - s.asked <= 120) return;   // (in use, or off for under 120 frames (2 s): kept, a row stepped through comes back at once)
-    // (longshot, a stutter: kept too while DLSS or FSR 4 is still the Upscaler's choice. Each area change's loading screen has no
+    // (timeLink, a stutter: kept too while DLSS or FSR 4 is still the Upscaler's choice. Each area change's loading screen has no
     // gameplay upscale for 2 s and more, and DLSS's feature let go then was made again at the next area's first frame: 44-78 ms
     // of the replay thread at every area entry (12 times in a 15-minute walk, 2026-11-10, #1520). Let go once the row leaves them.
     // RX_VK_DLSS_IDLE_RELEASE=1: let go after 120 frames unused, as before)
@@ -1271,7 +1271,7 @@ bool temporal_upscale(VkCommandBuffer cmd, uint64_t key, bool known, Texture* in
              cam.far_z, cam.fov_y * 57.29578f);
     }
     if (!engine.e->evaluate(cmd, f)) {
-        if (engine.e->retry) {   // (longshot: this frame only, TemporalEngine::retry; a new history next)
+        if (engine.e->retry) {   // (timeLink: this frame only, TemporalEngine::retry; a new history next)
             s.last_frame = 0;
             return fail("its evaluation failed this frame");
         }

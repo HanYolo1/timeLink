@@ -27,8 +27,8 @@
 #include "shader_recompiler/frontend/ir/value.h"
 #include "shader_recompiler/host_translate_info.h"
 #include "shader_recompiler/ir_opt/passes.h"
-#ifndef LONGSHOT_ENV_H   // (env_on: the switches' one rule)
-#include "longshot_env.h"
+#ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
+#include "timeLink_env.h"
 #endif
 
 namespace Shader::Optimization {
@@ -154,7 +154,7 @@ struct StorageInfo {
     /// instructions (the IR does not change while storage buffers are collected).
     std::unordered_map<const IR::Inst*, std::optional<StorageBufferAddr>> biased_tracks;
     std::unordered_map<const IR::Inst*, std::optional<StorageBufferAddr>> unbiased_tracks;
-    StorageBufferSet tables;   // (longshot: TrackTable's, for the fallbacks)
+    StorageBufferSet tables;   // (timeLink: TrackTable's, for the fallbacks)
     std::unordered_map<const IR::Inst*, small_vector<StorageBufferAddr, 4>> native_candidates;
     /// A native access with several candidate pointers was left global.
     bool native_runtime_bounds{};
@@ -165,7 +165,7 @@ struct StorageInfo {
     /// (longshot) Several candidates of an access, and the tracked side of a split one, are bound; cleared when they
     /// would leave too few bindings (Lichii #421: the first result kept instead of overflowing MAX_SSBOS)
     bool bind_candidates{true};
-    /// (longshot, Lichii #410) the tracked side of a split access is bound (see CollectStorageBuffers)
+    /// (timeLink, Lichii #410) the tracked side of a split access is bound (see CollectStorageBuffers)
     bool bind_competing{true};
     bool competing_bound{};
 };
@@ -489,7 +489,7 @@ std::optional<StorageBufferAddr> Track(const IR::Value& value, const Bias* bias,
         }
         return storage_buffer;
     }};
-    // (longshot, from Lichii) A pointer loaded from memory is a new address, not an offset into the buffer that supplied it: its
+    // (timeLink, from Lichii) A pointer loaded from memory is a new address, not an offset into the buffer that supplied it: its
     // load is not followed back to that buffer's own constant-buffer descriptor.
     const auto stop_at_memory = [](IR::Value operand) {
         if (!operand.IsImmediate() && IsGlobalMemory(*operand.InstRecursive())) {
@@ -1278,7 +1278,7 @@ AddrOrigins Origins(const IR::Value& root) {
     }
     return g_origins[top];
 }
-/// (longshot, from Lichii b8d81e20) Whether an address is a select or phi of which one input is a pointer loaded from memory: Ocarina's foliage
+/// (timeLink, from Lichii b8d81e20) Whether an address is a select or phi of which one input is a pointer loaded from memory: Ocarina's foliage
 /// placement records are read from c0[12] or from *c0[12]. Tracked to the constant buffer pointer alone, the loaded path read out of bounds
 /// as zeros, the near-leaf pass wrote NaN positions, and trees had no leaves. Such a load stays global: the backend's page table reads it
 bool MixesLoadedPointer(const IR::Value& value) {
@@ -1321,7 +1321,7 @@ bool MixesLoadedPointer(const IR::Value& value) {
     return merge && loaded;
 }
 
-thread_local bool g_follow_stage = false;   // (longshot: the program being translated is compute, where the page table is)
+thread_local bool g_follow_stage = false;   // (timeLink: the program being translated is compute, where the page table is)
 thread_local bool g_graphics_stage = false;   // (sharkiix: the program being translated is a geometry stage: vertex, tessellation, geometry, task, mesh)
 
 /// Collects the storage buffer used by a global memory instruction and the instruction itself
@@ -1419,7 +1419,7 @@ void CollectStorageBuffers(IR::Block& block, IR::Inst& inst, StorageInfo& info, 
     if (info.pairing && conditions_or_null) {
         const TrackingConditions& conditions{*conditions_or_null};
         // (Fritchii) The 64-bit constant buffer pointer whose low word is summed into the address's low half and whose
-        // high word into its high half. Longshot's mesh programs had a texture handle and a float (c5+0x60) taken for
+        // high word into its high half. timeLink's mesh programs had a texture handle and a float (c5+0x60) taken for
         // their base by the searches below, which read only the low half: the access read zeros (Death Mountain's
         // terrain under its trees missing: the floating trees).
         const std::optional<StorageBufferAddr> paired_pointer{
@@ -1439,7 +1439,7 @@ void CollectStorageBuffers(IR::Block& block, IR::Inst& inst, StorageInfo& info, 
             if (candidates.size() > 1) {
                 // Bind every candidate and keep the access global; the backend picks the buffer at
                 // run time. Rebasing on one of them drops the other path's accesses.
-                // (longshot: unless they would take too many bindings, StorageInfo::bind_candidates: then the run-time
+                // (timeLink: unless they would take too many bindings, StorageInfo::bind_candidates: then the run-time
                 // search alone)
                 if (info.bind_candidates) {
                     for (const StorageBufferAddr& candidate : candidates) {
@@ -1670,7 +1670,7 @@ void GlobalMemoryToStorageBufferPass(Environment& env, IR::Program& program,
     if (!has_global_memory) {
         return;
     }
-    // (longshot: compute only; the task and mesh stages were tried for the foliage, which it did not bring back)
+    // (timeLink: compute only; the task and mesh stages were tried for the foliage, which it did not bring back)
     g_follow_stage = program.stage == Stage::Compute;
     // (geometry stages only: with the fragment stage too, the sky drew black rectangles and the lighting went too bright at the castle)
     g_graphics_stage = program.stage != Stage::Compute && program.stage != Stage::Fragment;
@@ -1679,7 +1679,7 @@ void GlobalMemoryToStorageBufferPass(Environment& env, IR::Program& program,
     std::optional<TrackingConditions> conditions;
     StorageInfo info;
     info.pairing = pairing;
-    // (longshot: every NVN2 program Longshot translates is native, Env::IsNativeProgram)
+    // (timeLink: every NVN2 program timeLink translates is native, Env::IsNativeProgram)
     info.native = pairing && GmNative() && env.IsNativeProgram();
     // (Lichii #410: the global memory functions that pick a buffer at run time need 64-bit integers)
     info.bind_competing = GmCompeting() && host_info.support_int64;
@@ -1704,7 +1704,7 @@ void GlobalMemoryToStorageBufferPass(Environment& env, IR::Program& program,
         }
     }};
     collect();
-    // (longshot, as Lichii #421) The candidates bound together, and the tracked sides of split accesses, must leave room for
+    // (timeLink, as Lichii #421) The candidates bound together, and the tracked sides of split accesses, must leave room for
     // what translate_program.cpp adds after this pass (up to 16 NVN slots, the tables, the pointer table, the miss log):
     // past it the descriptors' static_vector threw bad_alloc. Collected again without them: those accesses are left to
     // the run-time search unbound.

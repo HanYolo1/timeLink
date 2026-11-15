@@ -14,7 +14,7 @@ void hos_input_clear_toggles(void);
 #include "../hos_sdl.h"
 
 /* (the window's app id: an applications menu entry for the game names it as its StartupWMClass) */
-#define HOS_APP_ID "dev.magicbean.Longshot"
+#define HOS_APP_ID "dev.magicbean.timeLink"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,8 +23,8 @@ void hos_input_clear_toggles(void);
 #include "../display_pointer.h"
 #include <math.h>
 #include <limits.h>
-#ifndef LONGSHOT_ENV_H   /* (env_on: the switches' one rule) */
-#include "../../gpu/vk/compat/longshot_env.h"
+#ifndef TIMELINK_ENV_H   /* (env_on: the switches' one rule) */
+#include "../../gpu/vk/compat/timeLink_env.h"
 #endif
 
 int rx_start(void *hwnd);
@@ -254,7 +254,7 @@ int hos_display_init(void) {
     }
     const char *env_class = getenv("HOS_WM_CLASS");
     const char *app_id = (env_class && env_class[0]) ? env_class : HOS_APP_ID;
-    hos_sdl_identity(window_title("Longshot"), app_id);
+    hos_sdl_identity(window_title("timeLink"), app_id);
     hos_sdl_hint("SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0");
     hos_sdl_hint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
     /* (bundled SDL tries x11 before wayland. NVIDIA's X11 surface has no mailbox, and an immediate
@@ -316,12 +316,12 @@ void hos_display_loop(void) {
     }
     vk_window.window = window;
     hos_posix_window[0] = 1;
-    {   /* the window's icon: longshot.png beside the game (make_game.py puts it there), for X11 and the compositors that
+    {   /* the window's icon: timeLink.png beside the game (make_game.py puts it there), for X11 and the compositors that
            take one from the window; the others find it through the menu entry */
         char png[MAX_PATH];
         DWORD n = GetModuleFileNameA(NULL, png, MAX_PATH);
         while (n && png[n - 1] != '/') n--;
-        snprintf(png + n, sizeof png - n, "longshot.png");
+        snprintf(png + n, sizeof png - n, "timeLink.png");
         hos_sdl_icon(window, png);
     }
     if (getenv("HOS_FULLSCREEN") && atoi(getenv("HOS_FULLSCREEN"))) set_fullscreen(1);

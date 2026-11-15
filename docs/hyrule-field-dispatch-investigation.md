@@ -1,10 +1,10 @@
 # Investigating the Hyrule Field slowdown
 
-This is the evidence and A/B plan for [Longshot issue #348](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/348).
+This is the evidence and A/B plan for [timeLink issue #348](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/348).
 The original report describes adult Link riding Epona in Hyrule Field without an area transition. The run started around
 30–35 FPS and fell to about 15 FPS. The cause is still open.
 
-## Longshot v3.0.0-rc.3
+## timeLink v3.0.0-rc.3
 
 The saved Windows 11 log identifies v3.0.0-rc.3 (source fingerprint `cb01b5a3`, release tag commit `0c74253d`). Hardware was
 an RTX 3070 8 GB (NVIDIA 621.14), Ryzen 7 5800X3D and 32 GB RAM. The issue reports 3440×1440, upscaling and frame
@@ -33,7 +33,7 @@ Host-visible and host-coherent flags alone do not identify whether accesses reac
 
 ## Reproduce and compare
 
-1. Start from a named current Longshot commit using the [development A/B workflow](development.md#testing-a-change-against-a-base).
+1. Start from a named current timeLink commit using the [development A/B workflow](development.md#testing-a-change-against-a-base).
    From a local copy of one adult Hyrule Field save, ride the same loop with matching camera, weather, time of day and
    image settings. Include an early and a late fixed-view hold facing the same direction. Record visual workload,
    draw and dispatch counts, route duration, driver, and cache warm-up. Do the first pass on current main with
@@ -52,7 +52,7 @@ Host-visible and host-coherent flags alone do not identify whether accesses reac
    measured, and whether the counter allocation is device-local. If a counter-placement experiment is warranted,
    preserve initialization, read-back and synchronization, and check image output on the same views.
 5. Keep the Market return as a separate residency and traversal test. If needed, compare sparse mirrors on and
-   off on the same current build and record actual mirror use. Longshot [#250](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/250)
+   off on the same current build and record actual mirror use. timeLink [#250](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/250)
    made sparse mirrors the default on supported devices. [#324](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/324)
    changed used-memory reporting and Windows heap commit. Both affect comparisons with previous builds.
    [#326](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/326) measures the separate capture-to-mirror sync path.
@@ -60,7 +60,7 @@ Host-visible and host-coherent flags alone do not identify whether accesses reac
 ## Earlier Hookshot results
 
 These were separate NVIDIA/Windows tests on older Hookshot builds. They help prioritize experiments for the
-Market return and memory pressure, but are neither Longshot measurements nor a diagnosis of the Field dispatch.
+Market return and memory pressure, but are neither timeLink measurements nor a diagnosis of the Field dispatch.
 
 - [Excess eviction](https://github.com/NotRexed/Hookshot/pull/2826), backported to `0ec31ff6` with a runtime toggle,
   was the strongest repeatable change on the moving route. Two enabled runs averaged 47.35 and 48.82 FPS across
@@ -83,9 +83,9 @@ Market return and memory pressure, but are neither Longshot measurements nor a d
   staged all child imports and mirrors before changing the mapping. The old code failed on child mirror allocation
   failures. Nine fault-injection cases passed with the patch. Visible Field-to-Market gameplay under an API-19
   Hookshot host exercised successful trims in both arms. One Market sweep averaged 38.05 FPS before and 37.43 FPS
-  after, with workload differences. This supports a separate correctness investigation. At Longshot `cf605c85` the
+  after, with workload differences. This supports a separate correctness investigation. At timeLink `cf605c85` the
   legacy `mirrors_trim` / `trims_settle` sequence still publishes host imports before the child mirrors are made.
-  A Longshot fault test should establish when that path is reached with sparse mode enabled and disabled and check
+  A timeLink fault test should establish when that path is reached with sparse mode enabled and disabled and check
   mapping and data preservation before proposing a port.
 
 Additional renderer work to check before opening code changes includes

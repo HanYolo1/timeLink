@@ -1,10 +1,10 @@
-"""scripts/longshot_ctl.py, the control bridge's client, against a tiny fake game: a Python stand-in for the executable
+"""scripts/timeLink_ctl.py, the control bridge's client, against a tiny fake game: a Python stand-in for the executable
 that serves the bridge's protocol on $HOS_CONTROL (docs/control.md) and writes down each request. The commands' requests
 and plain output, --json, exit codes (an error reply, a timeout, no game), watch, launch (which starts the stand-in as a
-game folder's longshot and waits for its socket), the mem commands, and complete OoT status/watch snapshots.
+game folder's timeLink and waits for its socket), the mem commands, and complete OoT status/watch snapshots.
 Linux uses a Unix socket; Windows uses the named pipe.
 
-python -I -B tests/test_longshot_ctl.py [--source-root OTHER_CHECKOUT]
+python -I -B tests/test_timeLink_ctl.py [--source-root OTHER_CHECKOUT]
 """
 import argparse
 import importlib.util
@@ -18,11 +18,11 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CTL = Path(os.environ.get("LONGSHOT_CTL_SOURCE", ROOT / "scripts" / "longshot_ctl.py"))
+CTL = Path(os.environ.get("TIMELINK_CTL_SOURCE", ROOT / "scripts" / "timeLink_ctl.py"))
 
 
 def client_module():
-    spec = importlib.util.spec_from_file_location("longshot_ctl", CTL)
+    spec = importlib.util.spec_from_file_location("timeLink_ctl", CTL)
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
@@ -245,7 +245,7 @@ class GamePaths(unittest.TestCase):
         m = client_module()
         with tempfile.TemporaryDirectory() as tmp:
             game = Path(tmp)
-            name = "longshot.exe" if WINDOWS else "longshot"
+            name = "timeLink.exe" if WINDOWS else "longshot"
             (game / name).touch()
             self.assertEqual(m.game_exe(tmp), str(game / name))
             (game / "bin").mkdir()
@@ -263,14 +263,14 @@ class SourceSelection(unittest.TestCase):
             selected = root / "selected.py"
             selected.write_text("raise RuntimeError('selected environment client')\n", encoding="utf-8")
             (root / "scripts").mkdir()
-            (root / "scripts" / "longshot_ctl.py").write_text(
+            (root / "scripts" / "timeLink_ctl.py").write_text(
                 "raise RuntimeError('selected checkout client')\n", encoding="utf-8")
             for args, marker in (([], "selected environment client"),
                                  (["--source-root", str(root)], "selected checkout client")):
                 with self.subTest(args=args):
                     result = subprocess.run([sys.executable, "-I", "-B", str(Path(__file__).resolve()),
                                              *args, "GamePaths"], capture_output=True, text=True, timeout=20,
-                                            env=dict(os.environ, LONGSHOT_CTL_SOURCE=str(selected)))
+                                            env=dict(os.environ, TIMELINK_CTL_SOURCE=str(selected)))
                     self.assertEqual(result.returncode, 1)
                     self.assertIn("RuntimeError: " + marker, result.stderr)
 
@@ -828,12 +828,12 @@ class LongshotCtl(unittest.TestCase):
             f.write(b"\x04\x03\x02\x01" + bytes(1392) + b"\xff\xd8\xff\xd9")
         os.environ["FAKE_SAVES"] = cls.saves
         if WINDOWS:
-            # (launch starts a game folder's longshot.exe, which a script cannot stand in for: the stand-in is started
+            # (launch starts a game folder's timeLink.exe, which a script cannot stand in for: the stand-in is started
             # here, on a pipe of its own; launch is tested on Linux)
             fake = os.path.join(cls.dir, "fake.py")
             with open(fake, "w") as f:
                 f.write(FAKE)
-            cls.sock = "longshot-control-test-%d" % os.getpid()
+            cls.sock = "timeLink-control-test-%d" % os.getpid()
             cls.proc = subprocess.Popen([sys.executable, "-I", fake], env=dict(os.environ, HOS_CONTROL=cls.sock))
             cls.info = {"pid": cls.proc.pid}
             for _ in range(200):   # (until it answers)
@@ -871,7 +871,7 @@ class LongshotCtl(unittest.TestCase):
             reqs = [json.loads(line) for line in f]
         return [r for r in reqs if r["cmd"] == cmd][-1]
 
-    @unittest.skipIf(WINDOWS, "launch starts a game folder's longshot.exe")
+    @unittest.skipIf(WINDOWS, "launch starts a game folder's timeLink.exe")
     def test_launch(self):
         self.assertLess(len(os.fsencode(self.sock)), 108)
         self.assertEqual(os.stat(os.path.dirname(self.sock)).st_mode & 0o777, 0o700)
@@ -1178,5 +1178,5 @@ if __name__ == "__main__":
     parser.add_argument("--source-root", type=Path)
     options, remaining = parser.parse_known_args()
     if options.source_root is not None:
-        CTL = options.source_root.resolve() / "scripts" / "longshot_ctl.py"
+        CTL = options.source_root.resolve() / "scripts" / "timeLink_ctl.py"
     unittest.main(argv=[sys.argv[0]] + remaining)

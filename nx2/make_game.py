@@ -4,7 +4,7 @@
     python -I nx2/make_game.py --romfs <dir> --exefs <dir> --out <folder> [--work <folder>] [--jobs <n>]
     python -I nx2/make_game.py --check --nup <file.nup>       (or --exefs <dir>: is this the right game and version?)
     python -I nx2/make_game.py --update <folder>             (a folder built before, again with these tools: the game files it keeps)
-    python -I nx2/make_game.py --game <.nup or folder> --prepare   (RecompLauncher: --out defaults to ~/Games/Longshot; no window,
+    python -I nx2/make_game.py --game <.nup or folder> --prepare   (RecompLauncher: --out defaults to ~/Games/timeLink; no window,
                                                                     "progress <0..1> <text>" lines and an "error <text>" line on stdout,
                                                                     exit 0 when the game is built; with --check, its "check ok|bad" line)
 
@@ -54,12 +54,12 @@ import toolchain as _toolchain
 import disk as _disk
 import object_store as _object_store
 import lift_store as _lift_store
-# (longshot) RX_TARGET=windows on Linux: the Windows game, with llvm-mingw's Linux release (LONGSHOT_MINGW, or llvm-mingw
+# (longshot) RX_TARGET=windows on Linux: the Windows game, with llvm-mingw's Linux release (TIMELINK_MINGW, or llvm-mingw
 # beside the builder), to run under Proton or copy to a Windows PC
 LINUX, CROSS = not _toolchain.windows(), _toolchain.windows() and os.name != "nt"
 # (SDL2.dll is sdl2-compat: it loads SDL3.dll from beside the exe. Left out of bin\ since v2.0.0, it said "Failed loading SDL3
 # library" three times and no controller worked: Discord #bug-reporting, 11-08)
-BESIDE = ["longshot", "longshot_vk.so", "libSDL2-2.0.so.0"] if LINUX else ["longshot.exe", "longshot_vk.dll", "SDL2.dll", "SDL3.dll", "wgpu_native.dll"]
+BESIDE = ["longshot", "timeLink_vk.so", "libSDL2-2.0.so.0"] if LINUX else ["timeLink.exe", "timeLink_vk.dll", "SDL2.dll", "SDL3.dll", "wgpu_native.dll"]
 LANGUAGES = [("en-US", "English (US)"), ("en-GB", "English (UK)"), ("fr", "French (France)"), ("fr-CA", "French (Canada)"), ("de", "German"),
              ("it", "Italian"), ("es", "Spanish (Spain)"), ("es-419", "Spanish (Latin America)"), ("pt-BR", "Portuguese (Brazil)"), ("nl", "Dutch"),
              ("pl", "Polish"), ("ru", "Russian"), ("ja", "Japanese"), ("ko", "Korean"), ("zh-Hans", "Chinese (Simplified)"),
@@ -96,7 +96,7 @@ def say_prepare(words):
     elif words[0] == "progress" and len(words) > 1:
         lo, hi = _stage["span"]
         print("progress %.3f %s" % (lo + (hi - lo) * float(words[1]), _stage["text"]), flush=True)
-    elif words[0] in ("error", "check"):   # (on stdout, the only stream a launcher reads; LongshotBuilder --cli also takes its "error" line)
+    elif words[0] in ("error", "check"):   # (on stdout, the only stream a launcher reads; timeLinkBuilder --cli also takes its "error" line)
         print(" ".join(words), flush=True)
     elif words[0] == "done":
         print("progress 1.000 Done", flush=True)
@@ -115,7 +115,7 @@ def check_writable(out):
     place) only takes them with administrator rights, and the build used to stop minutes later inside nup.py with a bare
     "PermissionError: [WinError 5]" on its .game folder. A write refused another way (#2792: a FileNotFoundError in a folder
     just made) gets the same plain reason"""
-    probe = os.path.join(out, ".longshot_write_check")
+    probe = os.path.join(out, ".timeLink_write_check")
     try:
         os.makedirs(out, exist_ok=True)
         with open(probe, "w") as f:
@@ -127,8 +127,8 @@ def check_writable(out):
                      for d in protected)
         where = (" Windows protects folders under Program Files and Windows, and only lets administrators write there."
                  if inside and isinstance(e, PermissionError) else "")
-        example = "~/Games/Longshot" if LINUX else r"C:\Games\Longshot"
-        fail("The game folder %s can't be written to (%s).%s In Longshot Builder, choose a game folder of your own, for example "
+        example = "~/Games/timeLink" if LINUX else r"C:\Games\timeLink"
+        fail("The game folder %s can't be written to (%s).%s In timeLink Builder, choose a game folder of your own, for example "
              "%s, and build again." % (out, e.strerror or e, where, example))
 
 
@@ -161,7 +161,7 @@ def drive_error(error):
     drive = ntpath.splitdrive(path)[0] if path and code is not None else ""
     check = ('open a terminal as administrator and run "chkdsk %s /f"' % drive if re.fullmatch("[A-Za-z]:", drive)
              else "check the drive for errors")
-    return ("Your drive could not read %s: %s. This is a fault of the drive or its file system, not of Longshot or your "
+    return ("Your drive could not read %s: %s. This is a fault of the drive or its file system, not of timeLink or your "
             "game files. To repair it, %s, then build again. If it keeps happening the drive may be failing: build on "
             "another drive." % (path or "one of the build's files", reason, check))
 
@@ -231,8 +231,8 @@ KEEP_BUILDS = 20
 
 
 def times_path(work):
-    """Where the builds' times are kept: beside the object cache, in the builder's own folder (LOCALAPPDATA\\LongshotBuilder
-    on Windows, ~/.cache/longshot-builder on Linux). A builder update keeps it, so the next build still knows what this PC
+    """Where the builds' times are kept: beside the object cache, in the builder's own folder (LOCALAPPDATA\\timeLinkBuilder
+    on Windows, ~/.cache/timeLink-builder on Linux). A builder update keeps it, so the next build still knows what this PC
     took, and the one after that can compare."""
     return os.path.join(work, "build_times.json")
 
@@ -437,13 +437,13 @@ def check_modules(exefs):
                 head = f.read(16)
             if head[:4] != b"NSO0":
                 fail("The file %s in this dump is not a game module (it starts %s). Try another dump of the game, or send this message to the "
-                     "Longshot developers." % (name, head.hex()))
+                     "timeLink developers." % (name, head.hex()))
 
 
 def check_supported_build(exefs):
     bid = build_id(os.path.join(exefs, "main"))
     if not bid.startswith(BUILD_ID):
-        fail("This is build %s. Longshot supports build %s." % (bid[:8], BUILD_ID))
+        fail("This is build %s. timeLink supports build %s." % (bid[:8], BUILD_ID))
 
 
 def file_progress(verb, clock=time.monotonic):
@@ -465,7 +465,7 @@ def file_progress(verb, clock=time.monotonic):
     return progress
 
 
-HEADS = ".longshot_romfs_heads"   # (the extraction's damaged .zs list, under the stamp of the unpack that made it)
+HEADS = ".timeLink_romfs_heads"   # (the extraction's damaged .zs list, under the stamp of the unpack that made it)
 
 
 def read_stamp(path):
@@ -502,15 +502,15 @@ def keep_heads(out, game, stamp):
         f.write(stamp.strip() + "\n" + listed)
 
 
-DAMAGED_NOTE = "longshot_damaged_files.txt"   # (in the game folder: the damaged game files the last unpack replaced)
+DAMAGED_NOTE = "timeLink_damaged_files.txt"   # (in the game folder: the damaged game files the last unpack replaced)
 
 
 def stand_in_damaged_files(out, romfs):
     """An incomplete dump's damaged textures replaced by whole ones of the same kind, and said: without them the game
     leaves out the walls and floors that use them (the Water Temple, #1002). Only in a romfs this builder unpacked (its
-    .longshot_romfs stamp), and once per unpack: .longshot_romfs_checked holds the stamp it was checked under"""
-    good = os.path.join(out, ".longshot_romfs")
-    checked = os.path.join(out, ".longshot_romfs_checked")
+    .timeLink_romfs stamp), and once per unpack: .timeLink_romfs_checked holds the stamp it was checked under"""
+    good = os.path.join(out, ".timeLink_romfs")
+    checked = os.path.join(out, ".timeLink_romfs_checked")
     if not os.path.isfile(good) or not os.path.isdir(romfs):
         return
     check_cache_paths(out, (good, checked, romfs))
@@ -556,7 +556,7 @@ def stand_in_damaged_files(out, romfs):
         unresolved = sum(other is None for _, other in done)
         if unresolved:
             fail("The game dump still has %d damaged file%s with no replacement. The build stopped before compiling. "
-                 "Dump the game again and select the complete dump in Longshot Builder. The affected files are listed above." %
+                 "Dump the game again and select the complete dump in timeLink Builder. The affected files are listed above." %
                  (unresolved, "" if unresolved == 1 else "s"))
     write_stamp(checked, checked_stamp)
     with contextlib.suppress(FileNotFoundError):
@@ -591,9 +591,9 @@ def check(a, work):
     else:
         bid = build_id(os.path.join(a.exefs, "main"))
     if bid.startswith(BUILD_ID):
-        say("check", "ok", "This is the version Longshot supports (build %s)." % bid[:8])
+        say("check", "ok", "This is the version timeLink supports (build %s)." % bid[:8])
     else:
-        say("check", "bad", "This is build %s. Longshot supports build %s." % (bid[:8], BUILD_ID))
+        say("check", "bad", "This is build %s. timeLink supports build %s." % (bid[:8], BUILD_ID))
 
 
 def visual_studio_environment():
@@ -728,7 +728,7 @@ def check_linux_prerequisites(work=None):
                 r = subprocess.run([cc] + build.target() + ["-fuse-ld=lld", src, "-o", os.path.join(d, "t")],
                                    capture_output=True, text=True, encoding="utf-8", errors="replace")
                 if r.returncode:
-                    missing.append("C compiler/linker test (clang -fuse-ld=lld, LONGSHOT_SYSROOT when set; install "
+                    missing.append("C compiler/linker test (clang -fuse-ld=lld, TIMELINK_SYSROOT when set; install "
                                    "clang, lld and C library development headers): " + (r.stdout + r.stderr).strip())
             except OSError as e:
                 missing.append("C compiler/linker test (%s): %s" % (cc, e))
@@ -742,7 +742,7 @@ def requested_jobs(value):
     """The builder's explicit worker override, or None to keep its automatic selection."""
     if value is None or value == "":
         return None
-    error = "LONGSHOT_JOBS must be a whole number: use 1 or more, or 0 for automatic."
+    error = "TIMELINK_JOBS must be a whole number: use 1 or more, or 0 for automatic."
     try:
         jobs = int(value)
     except ValueError:
@@ -754,52 +754,52 @@ def requested_jobs(value):
 
 def default_jobs():
     """(issue 418) One compiler per CPU thread: nx2/build.py starts each one only when the memory free holds it (MemoryGate), so the
-    count no longer has to fit the biggest files in the memory free at the start. LONGSHOT_JOBS or --jobs choose"""
+    count no longer has to fit the biggest files in the memory free at the start. TIMELINK_JOBS or --jobs choose"""
     cpus = os.cpu_count() or 2
-    print("build: up to %d compilers at once (one per CPU thread), as the memory allows; LONGSHOT_JOBS=<n> to change" % cpus, flush=True)
+    print("build: up to %d compilers at once (one per CPU thread), as the memory allows; TIMELINK_JOBS=<n> to change" % cpus, flush=True)
     return cpus
 
 
 def chosen_jobs(given):
-    """--jobs when it is given (1 or more), else LONGSHOT_JOBS, else what default_jobs chooses: worked out only when it is
+    """--jobs when it is given (1 or more), else TIMELINK_JOBS, else what default_jobs chooses: worked out only when it is
     needed, so the "compilers at once" line is the number the build uses"""
     if given:
         return given
     try:
-        return requested_jobs(os.environ.get("LONGSHOT_JOBS")) or default_jobs()
+        return requested_jobs(os.environ.get("TIMELINK_JOBS")) or default_jobs()
     except ValueError as e:
         fail(str(e))
 
 
 def bundled_mingw():
     """(as TotK Recomp's installer) llvm-mingw in the tools folder: its clang, headers and libraries build the game, and nothing of
-    Visual Studio or the Windows SDK is needed. LONGSHOT_MINGW set already wins; LONGSHOT_MSVC=1: the Visual Studio route"""
-    if LINUX or os.environ.get("LONGSHOT_MSVC") == "1":
-        return os.environ.get("LONGSHOT_MINGW", "")
-    if not os.environ.get("LONGSHOT_MINGW"):
+    Visual Studio or the Windows SDK is needed. TIMELINK_MINGW set already wins; TIMELINK_MSVC=1: the Visual Studio route"""
+    if LINUX or os.environ.get("TIMELINK_MSVC") == "1":
+        return os.environ.get("TIMELINK_MINGW", "")
+    if not os.environ.get("TIMELINK_MINGW"):
         here = os.path.join(ROOT, "llvm-mingw")
         if os.path.isfile(os.path.join(here, "bin", "clang" + (".exe" if os.name == "nt" else ""))):
-            os.environ["LONGSHOT_MINGW"] = here
+            os.environ["TIMELINK_MINGW"] = here
         elif os.path.isdir(here):
             # (the folder is there and its compiler is not: an antivirus took it (false positives on unsigned tools), or the
             # zip was not unpacked whole. It went on to the Visual Studio route and said "The Windows SDK was not found")
             missing = [n for n in ("clang.exe", "clang++.exe", "ld.lld.exe")
                        if not os.path.isfile(os.path.join(here, "bin", n))]
             fail("Files of the builder's own compiler are missing (%s in %s). Your antivirus most likely removed them "
-                 "(a false alarm on unsigned programs): restore them from its quarantine or allow the Longshot Builder folder, "
-                 "then unzip LongshotBuilder.zip again and build. Visual Studio is not needed."
+                 "(a false alarm on unsigned programs): restore them from its quarantine or allow the timeLink Builder folder, "
+                 "then unzip timeLinkBuilder.zip again and build. Visual Studio is not needed."
                  % (", ".join(missing) or "bin", os.path.join(here, "bin")))
-    return os.environ.get("LONGSHOT_MINGW", "")
+    return os.environ.get("TIMELINK_MINGW", "")
 
 
 def check_mingw():
     """The bundled compiler builds and links a Windows program: found now, not 40 minutes in"""
     sys.path.insert(0, os.path.join(ROOT, "third_party", "a64-kit", "tools"))
     import toolchain
-    cc = toolchain.find("clang")   # (LONGSHOT_MINGW's, else the one toolchain.py finds: the same as the build uses)
-    if not os.path.isfile(cc):   # (LONGSHOT_MINGW set to a folder without the compiler: said here, not as a silent SystemExit)
-        fail("The builder's own compiler was not found at %s. Set LONGSHOT_MINGW to an llvm-mingw folder, or unpack the "
-             "Longshot Builder zip again into a folder your antivirus allows." % cc)
+    cc = toolchain.find("clang")   # (TIMELINK_MINGW's, else the one toolchain.py finds: the same as the build uses)
+    if not os.path.isfile(cc):   # (TIMELINK_MINGW set to a folder without the compiler: said here, not as a silent SystemExit)
+        fail("The builder's own compiler was not found at %s. Set TIMELINK_MINGW to an llvm-mingw folder, or unpack the "
+             "timeLink Builder zip again into a folder your antivirus allows." % cc)
     with tempfile.TemporaryDirectory() as d:
         src = os.path.join(d, "t.c")
         with open(src, "w") as f:
@@ -811,7 +811,7 @@ def check_mingw():
         errors = [l for l in r.stderr.splitlines() if "error" in l]
         fail("The builder's own compiler (tools/llvm-mingw) could not build a test program: %s. Unpack the zip again into a folder "
              "your antivirus allows." % (errors[0] if errors else "no message"))
-    print("the compiler: %s (no Visual Studio needed)" % os.environ["LONGSHOT_MINGW"], flush=True)
+    print("the compiler: %s (no Visual Studio needed)" % os.environ["TIMELINK_MINGW"], flush=True)
 
 
 def check_windows_sdk(work=None):
@@ -822,13 +822,13 @@ def check_windows_sdk(work=None):
         return check_mingw()
     if CROSS:
         fail("Building for Windows on Linux needs llvm-mingw: unpack its Linux release (github.com/mstorsjo/llvm-mingw) and set "
-             "LONGSHOT_MINGW to its folder.")
+             "TIMELINK_MINGW to its folder.")
     sys.path.insert(0, os.path.join(ROOT, "third_party", "a64-kit", "tools"))
     import toolchain
     cc = toolchain.find("clang")
     if not os.path.isfile(cc):   # (toolchain.need() would raise SystemExit, which the builder cannot show: said in its protocol)
         fail("No C compiler was found. Install clang (and lld) and put it on PATH, set EMSDK to an emsdk checkout, or set "
-             "LONGSHOT_MINGW to an llvm-mingw folder. (%s)" % cc)
+             "TIMELINK_MINGW to an llvm-mingw folder. (%s)" % cc)
     # (an INCLUDE set for the whole machine, by an old Visual Studio or another tool, is all clang reads: without the Windows SDK's C
     # library in it, it is dropped and the compiler looks for Visual Studio itself. Issues 80 and 89)
     for k in [n for n in os.environ if n.upper() == "INCLUDE"]:
@@ -979,7 +979,7 @@ def _cleanup_owns(q, work, default_work):
         prefix = home.rstrip("\\") + "\\"
         parts = path[len(prefix):].split("\\") if path.startswith(prefix) else []
         return (len(parts) == 6 and parts[0] == "versions" and bool(parts[1])
-                and parts[2:] == ["longshotbuilder", "tools", "nx2", "make_game.py"])
+                and parts[2:] == ["timelinkbuilder", "tools", "nx2", "make_game.py"])
     if name not in ("clang.exe", "clang++.exe", "clang-cl.exe", "ld.lld.exe", "lld-link.exe"):
         return False
     outputs = []
@@ -1074,7 +1074,7 @@ def _drop_stale_linux(work):
     bytes, not that path, so an update reuses the compiled game when the headers did not change (the Windows stamp leaves
     the builder's install folder out for the same reason, issue 565)."""
     import hashlib
-    sysroot = os.environ.get("LONGSHOT_SYSROOT", "")
+    sysroot = os.environ.get("TIMELINK_SYSROOT", "")
     stdio = os.path.join(sysroot, "usr", "include", "stdio.h") if sysroot else "/usr/include/stdio.h"
     try:
         body = open(stdio, "rb").read()
@@ -1221,7 +1221,7 @@ def drop_stale_objects(work):
     olds = {stamp_for(mine)}
     if os.path.basename(versions).lower() == "versions" and os.path.isdir(versions):
         for v in os.listdir(versions):
-            olds.add(stamp_for(os.path.normcase(os.path.join(versions, v, "LongshotBuilder", "tools")).lower()))
+            olds.add(stamp_for(os.path.normcase(os.path.join(versions, v, "timeLinkBuilder", "tools")).lower()))
     if had and had in olds:
         print("the system headers are the same as the last build's (an earlier version of the builder): its objects are reused", flush=True)
         with open(note, "w") as f:
@@ -1236,19 +1236,19 @@ def drop_stale_objects(work):
 
 
 def seed_pipelines(out):
-    """The pipelines recorded on the development PC (longshot_pipelines_seed.bin in the tools: program keys and draw states, no game
-    code), as the game folder's list (cache/longshot_pipelines.bin, where the game keeps its notes: gpu/vk/vk_draw.cpp
+    """The pipelines recorded on the development PC (timeLink_pipelines_seed.bin in the tools: program keys and draw states, no game
+    code), as the game folder's list (cache/timeLink_pipelines.bin, where the game keeps its notes: gpu/vk/vk_draw.cpp
     pipe_notes_path), so its first start builds them before the title, as TotK Recomp's shipped shader list does, instead of
     compiling each when it is first drawn (the stutter of a first visit). Each release ships the list its own build made: the
     file's first 8 bytes are that build's stamp, and a list the folder has from the same build is kept (it grows as the player
     plays). One loose beside the game goes into cache/ first, as the game's own start moves it (host/game_layout.c)"""
-    seed = os.path.join(ROOT, "longshot_pipelines_seed.bin")
+    seed = os.path.join(ROOT, "timeLink_pipelines_seed.bin")
     cache = os.path.join(out, "cache")
-    dst = os.path.join(cache, "longshot_pipelines.bin")
+    dst = os.path.join(cache, "timeLink_pipelines.bin")
     if not os.path.isfile(seed):
         return
     os.makedirs(cache, exist_ok=True)
-    loose = os.path.join(out, "longshot_pipelines.bin")
+    loose = os.path.join(out, "timeLink_pipelines.bin")
     if os.path.isfile(loose) and not os.path.exists(dst):
         try:
             os.replace(loose, dst)
@@ -1269,13 +1269,13 @@ def seed_pipelines(out):
 def ship_state_list(out):
     """The pipeline state list made from play of the game (assets/pipeline_states/: the pipeline tour's list and the contributed
     ones, merged by nx2/pipeline_states.py, each pipeline once; hashes, formats and draw state only, no game code), written as the
-    folder's longshot_pipeline_states_shipped.bin: the first start's shader preparation builds those pipelines before the
-    title, from the player's own shaders (longshot_shaders.bin), instead of compiling each when it is first drawn. Good for
+    folder's timeLink_pipeline_states_shipped.bin: the first start's shader preparation builds those pipelines before the
+    title, from the player's own shaders (timeLink_shaders.bin), instead of compiling each when it is first drawn. Good for
     any build, and optional: a list that does not read is left out with a line saying so, and the others are shipped (the
     release checks stop on it: nx2/pipeline_states.py check)"""
     import pipeline_states
     src = pipeline_states.sources_dir(ROOT)
-    dst = os.path.join(out, "longshot_pipeline_states_shipped.bin")
+    dst = os.path.join(out, "timeLink_pipeline_states_shipped.bin")
     if not os.path.isdir(src):
         return
     try:
@@ -1303,7 +1303,7 @@ NOT_PREPARED = "the shaders were not prepared now"
 # (a run that prints nothing this long is stopped. Not its whole length: that is 25 minutes on some AMD GPUs, and the driver's own
 # step near the end can sit at 99% for minutes)
 PREPARE_SILENCE = 15 * 60
-GAME_ENV_DROP = ("LONGSHOT_", "PYTHON", "APPDIR", "APPIMAGE", "ARGV0", "OWD")
+GAME_ENV_DROP = ("TIMELINK_", "PYTHON", "APPDIR", "APPIMAGE", "ARGV0", "OWD")
 
 
 def span(seconds):
@@ -1312,8 +1312,8 @@ def span(seconds):
 
 def game_env(environ=None):
     """The environment the game runs in when the tools start it: without what the AppImage runtime and the tools put there (their
-    libraries first on the search path, Python's settings, the LONGSHOT_ build switches), so it loads its own SDL and the system's
-    Vulkan, as when the player starts it. The Linux builder's Play button uses it too; builder/linux/longshot-launch drops the same"""
+    libraries first on the search path, Python's settings, the TIMELINK_ build switches), so it loads its own SDL and the system's
+    Vulkan, as when the player starts it. The Linux builder's Play button uses it too; builder/linux/timeLink-launch drops the same"""
     env = {k: v for k, v in (os.environ if environ is None else environ).items() if not k.startswith(GAME_ENV_DROP)}
     env.pop("LD_LIBRARY_PATH", None)
     return env
@@ -1323,7 +1323,7 @@ def not_prepared(why):
     print("%s (%s): the game prepares them at its first start" % (NOT_PREPARED, why), flush=True)
 
 
-# (Compile shaders, the builders' and the launcher's choice: compile_shaders= in the game folder's longshot_options.ini, the
+# (Compile shaders, the builders' and the launcher's choice: compile_shaders= in the game folder's timeLink_options.ini, the
 # number the game reads (gpu/vk/vk_draw.cpp compile_all). Most, the default: every shader program and the pipelines the lists
 # name, before the title. All: the predicted pipelines too, about 40 % more time for pipelines play almost never draws)
 COMPILE_LEVELS = {"most": 0, "all": 1}
@@ -1331,11 +1331,11 @@ COMPILE_KEY = "compile_shaders"
 
 
 def options_path(out):
-    return os.path.join(out, "longshot_options.ini")
+    return os.path.join(out, "timeLink_options.ini")
 
 
 def folder_compile_level(out):
-    """The Compile shaders choice the folder's longshot_options.ini holds ("most" or "all"), or None when it holds none"""
+    """The Compile shaders choice the folder's timeLink_options.ini holds ("most" or "all"), or None when it holds none"""
     try:
         with open(options_path(out), encoding="utf-8", errors="replace") as f:
             for line in f:
@@ -1349,7 +1349,7 @@ def folder_compile_level(out):
 
 
 def write_compile_level(out, level):
-    """compile_shaders=<n> into the folder's longshot_options.ini, the file's other lines as they are (the game's menu keeps the
+    """compile_shaders=<n> into the folder's timeLink_options.ini, the file's other lines as they are (the game's menu keeps the
     line too). A file with only this line still makes the game's first start a first start (gpu/vk/vk_menu.cpp menu_init)"""
     path = options_path(out)
     lines = []
@@ -1374,9 +1374,9 @@ def prepare_skipped(a, environ=None):
     environ = os.environ if environ is None else environ
     if a.no_prepare_shaders:
         return '"Prepare shaders now" is unticked'
-    if environ.get("LONGSHOT_NO_PREPARE", "0") != "0":   # (set and not 0, as the game reads LONGSHOT_NO_UPDATE_CHECK)
-        return "LONGSHOT_NO_PREPARE is set"
-    if CROSS:   # (longshot.exe can't run here, and under Wine it would prepare for this PC's GPU, not the one that plays it)
+    if environ.get("TIMELINK_NO_PREPARE", "0") != "0":   # (set and not 0, as the game reads TIMELINK_NO_UPDATE_CHECK)
+        return "TIMELINK_NO_PREPARE is set"
+    if CROSS:   # (timeLink.exe can't run here, and under Wine it would prepare for this PC's GPU, not the one that plays it)
         return "a Windows game built on Linux prepares them on the PC it runs on"
     return None
 
@@ -1389,7 +1389,7 @@ def show_prepared(line):
 
 def prepare_shaders(cmd, folder=None, silence=PREPARE_SILENCE):
     """The shaders prepared now, under the builder's progress bar, not at the game's first start behind a black window (minutes on
-    some GPUs, issue 711): longshot --prepare-shaders (host/hos_main.c, gpu/vk/vk_main.cpp), the same work as that first start, in
+    some GPUs, issue 711): timeLink --prepare-shaders (host/hos_main.c, gpu/vk/vk_main.cpp), the same work as that first start, in
     the game's folder and environment, as the builders' Play starts it. A PC whose Vulkan can't (exit 3), a run silent for `silence` seconds (then stopped), or
     any other failure leaves the work to the first start, as before: never a failed build. Returns its exit code (None: stopped)"""
     try:
@@ -1492,16 +1492,16 @@ def profile_readable(prof, any_os=False):
     return r.returncode == 0
 
 
-VK_PROFILE = "longshot_vk.profdata"   # (the renderer's play profile, llvm-profdata's merge of an RX_VK_PGO=gen run's counters)
+VK_PROFILE = "timeLink_vk.profdata"   # (the renderer's play profile, llvm-profdata's merge of an RX_VK_PGO=gen run's counters)
 # (the one every build uses: committed, xz, with its note in assets/profiles/README.md; unpacked into the work folder under its
-# own name, so a developer's work/longshot_vk.profdata copied there earlier is never mistaken for it)
+# own name, so a developer's work/timeLink_vk.profdata copied there earlier is never mistaken for it)
 VK_PROFILE_SHIPPED = os.path.join("assets", "profiles", VK_PROFILE + ".xz")
-VK_PROFILE_UNPACKED = "longshot_vk.shipped.profdata"
+VK_PROFILE_UNPACKED = "timeLink_vk.shipped.profdata"
 
 
 def vk_profile_for(work, environ, readable=None, root=ROOT):
-    """The renderer's profile nx2/build.py is given (RX_VK_PGO), or None. The checkout's work/longshot_vk.profdata when it has one
-    (a developer's recording, copied to <work> by main), else the committed assets/profiles/longshot_vk.profdata.xz, unpacked
+    """The renderer's profile nx2/build.py is given (RX_VK_PGO), or None. The checkout's work/timeLink_vk.profdata when it has one
+    (a developer's recording, copied to <work> by main), else the committed assets/profiles/timeLink_vk.profdata.xz, unpacked
     into <work>; either only when this compiler reads it (on every system: the committed one comes from another LLVM than
     llvm-mingw's). Not when RX_VK_PGO is set already (gen, or another profile: the developer's choice stands); with neither file
     the renderer is built as it always was. After ProjectReLink's make_game.py"""
@@ -1594,7 +1594,7 @@ def shader_census_cmd(romfs, out):
     return PY + [os.path.join(HERE, "shader_census.py"), long_path(romfs), "--out", out]
 
 
-SHADER_LIST_NOTE = "shader_list.txt"   # (in <work>: what the game folder's longshot_shaders.bin was made from)
+SHADER_LIST_NOTE = "shader_list.txt"   # (in <work>: what the game folder's timeLink_shaders.bin was made from)
 CENSUS_READS = ("Shader", "Layout2Shader", "Lib", "Movie", "Effect", os.path.join("Pack", "ZsDic.pack.zs"))   # (shader_census.py)
 
 
@@ -1628,7 +1628,7 @@ def shader_list_note(romfs, out):
 
 
 def shader_list_current(work, romfs, out):
-    """out (the game folder's longshot_shaders.bin) is the list the last build made in this work folder from the same files and tools"""
+    """out (the game folder's timeLink_shaders.bin) is the list the last build made in this work folder from the same files and tools"""
     try:
         with open(os.path.join(work, SHADER_LIST_NOTE), encoding="utf-8") as f:
             had = f.read().strip()
@@ -1728,7 +1728,7 @@ def lift_key(exefs, work, env, planning=True, paths=None):
 
 
 def lift_share_key(exefs, work, out, env):
-    """(LONGSHOT_LIFT_STORE, nx2/lift_store.py) lift_key with the work and game folders' paths taken out of the lift's environment
+    """(TIMELINK_LIFT_STORE, nx2/lift_store.py) lift_key with the work and game folders' paths taken out of the lift's environment
     (OOT_WORK, OOT_EXEFS, OOT_ROMFS, OOT_DUMP, A64_HOT_FUNCS): the files are hashed by their names in those folders already, and
     the lifted C holds no folder path, so two work folders with the same share key lift the same C"""
     w, o = os.path.abspath(work), os.path.abspath(out)
@@ -1881,7 +1881,7 @@ def forget_failed_build(work, linked, failed=()):
         print("the build failed before the link: the next one translates the game again, and compiles only the files not "
               "compiled yet", flush=True)
         return
-    # (LONGSHOT_OBJ_STORE: the objects this link was made from go from the store as well, or the next try takes them from there)
+    # (TIMELINK_OBJ_STORE: the objects this link was made from go from the store as well, or the next try takes them from there)
     store = _object_store.folder(work)
     if store:
         _object_store.forget(store, object_stamps(os.path.join(work, "sa", "build", "obj")))
@@ -1895,8 +1895,8 @@ def ngx_script():
     import importlib.util
     path = os.path.join(ROOT, "scripts", "ngx_sdk.py")
     if not os.path.isfile(path):   # (a builder without scripts/ngx_sdk.py: an older AppImage carried none)
-        fail("NVIDIA DLSS (LONGSHOT_NGX_SDK) needs %s, which this builder does not carry: its renderer is built without DLSS. "
-             "Unset LONGSHOT_NGX_SDK, or build Longshot from source for DLSS." % path)
+        fail("NVIDIA DLSS (TIMELINK_NGX_SDK) needs %s, which this builder does not carry: its renderer is built without DLSS. "
+             "Unset TIMELINK_NGX_SDK, or build timeLink from source for DLSS." % path)
     spec = importlib.util.spec_from_file_location("ngx_sdk", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -1908,18 +1908,18 @@ def ngx_platform():
 
 
 def ngx_folder():
-    """Where --fetch-ngx-sdk keeps NVIDIA's DLSS SDK between builds: LONGSHOT_NGX_SDK, else work/ngx-sdk here"""
-    return os.environ.get("LONGSHOT_NGX_SDK") or os.path.join(ROOT, "work", "ngx-sdk")
+    """Where --fetch-ngx-sdk keeps NVIDIA's DLSS SDK between builds: TIMELINK_NGX_SDK, else work/ngx-sdk here"""
+    return os.environ.get("TIMELINK_NGX_SDK") or os.path.join(ROOT, "work", "ngx-sdk")
 
 
 def fetch_ngx_sdk(a):
-    """--fetch-ngx-sdk (the Longshot Builder's NVIDIA DLSS tick): NVIDIA's DLSS SDK into LONGSHOT_NGX_SDK before the build, once
+    """--fetch-ngx-sdk (the timeLink Builder's NVIDIA DLSS tick): NVIDIA's DLSS SDK into TIMELINK_NGX_SDK before the build, once
     NVIDIA's license was accepted (--accept-nvidia-license: the builder asked first). Only what is missing or not the file
     expected is downloaded"""
-    # (the Builder drops a LONGSHOT_NGX_SDK set on the PC, so a launcher asking through --cli has none: the folder is ours then,
+    # (the Builder drops a TIMELINK_NGX_SDK set on the PC, so a launcher asking through --cli has none: the folder is ours then,
     # and the rest of the build, which reads the variable, finds the SDK there)
     sdk = ngx_folder()
-    os.environ["LONGSHOT_NGX_SDK"] = sdk
+    os.environ["TIMELINK_NGX_SDK"] = sdk
     if not a.accept_nvidia_license:
         fail("NVIDIA DLSS needs NVIDIA's license accepted first (--accept-nvidia-license).")
     ngx = ngx_script()
@@ -1932,12 +1932,12 @@ def fetch_ngx_sdk(a):
 
 
 def ngx_built():
-    """This build has NVIDIA DLSS: LONGSHOT_NGX_SDK holds this platform's library (what nx2/build.py takes)"""
-    sdk = os.environ.get("LONGSHOT_NGX_SDK", "")
+    """This build has NVIDIA DLSS: TIMELINK_NGX_SDK holds this platform's library (what nx2/build.py takes)"""
+    sdk = os.environ.get("TIMELINK_NGX_SDK", "")
     return bool(sdk) and os.path.isfile(ngx_script().library(sdk, ngx_platform()))
 
 
-FSR_MARK = ".longshot_fsr"   # (in a game folder built with AMD FSR 4: --update builds it with FSR again)
+FSR_MARK = ".timeLink_fsr"   # (in a game folder built with AMD FSR 4: --update builds it with FSR again)
 
 
 def fsr_wanted(a, out):
@@ -1958,12 +1958,12 @@ def ffx_script():
 
 
 def ffx_folder():
-    """Where --fetch-fsr-runtime keeps AMD's FSR runtime between builds: LONGSHOT_FFX_SDK, else work/ffx-sdk here"""
-    return os.environ.get("LONGSHOT_FFX_SDK") or os.path.join(ROOT, "work", "ffx-sdk")
+    """Where --fetch-fsr-runtime keeps AMD's FSR runtime between builds: TIMELINK_FFX_SDK, else work/ffx-sdk here"""
+    return os.environ.get("TIMELINK_FFX_SDK") or os.path.join(ROOT, "work", "ffx-sdk")
 
 
 def fetch_fsr_runtime(a):
-    """--fetch-fsr-runtime (with --fsr, Windows; the Longshot Builder's AMD FSR 4 tick): AMD's signed FSR SDK 2.4 Vulkan
+    """--fetch-fsr-runtime (with --fsr, Windows; the timeLink Builder's AMD FSR 4 tick): AMD's signed FSR SDK 2.4 Vulkan
     runtime (scripts/ffx_sdk.py) into ffx_folder() before the build, once AMD's license was accepted (--accept-amd-license:
     the builder asked first, as for NVIDIA's), each file checked against its SHA-256; only what is missing or not the file
     expected is downloaded. Off unless asked: a build with --fsr alone downloads nothing"""
@@ -1994,14 +1994,14 @@ def place_fsr_runtime(out):
 
 
 def place_ngx_runtime(out):
-    """(NVIDIA DLSS) a game built with NVIDIA's SDK (LONGSHOT_NGX_SDK, as nx2/build.py takes it) gets DLSS's runtime in its ngx
+    """(NVIDIA DLSS) a game built with NVIDIA's SDK (TIMELINK_NGX_SDK, as nx2/build.py takes it) gets DLSS's runtime in its ngx
     folder, where gpu/vk/vk_dlss.cpp looks first: nvngx_dlss.dll on Windows, libnvidia-ngx-dlss.so.<version> on Linux; and
     DLSS Frame Generation's beside it (nvngx_dlssg.dll, libnvidia-ngx-dlssg.so.<version>), without which NGX takes the
     driver's own, maybe older, copy. Never NGX's core (_nvngx.dll is the driver's) and nothing beside the exe. Returns DLSS's
     runtime placed, or None"""
     ngx = ngx_script()
     platform = ngx_platform()
-    sdk = os.environ.get("LONGSHOT_NGX_SDK", "")
+    sdk = os.environ.get("TIMELINK_NGX_SDK", "")
     if not sdk or not (os.path.isfile(ngx.library(sdk, platform)) and os.path.isfile(ngx.runtime(sdk, platform))):
         # (a folder built with DLSS before and rebuilt without it loses NVIDIA's runtimes too)
         for kind in ngx.RUNTIMES:
@@ -2031,26 +2031,26 @@ def parse_args():
     p.add_argument("--exefs")
     p.add_argument("--out")
     p.add_argument("--work", default=os.path.join(os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache"),
-                                                  "longshot-builder-windows" if CROSS else "longshot-builder")   # (the objects apart)
-                   if os.name != "nt" else os.environ.get("LONGSHOT_SETUP_BASE") or
-                   os.path.join(os.environ.get("LOCALAPPDATA", ROOT), "LongshotBuilder"))
-    # (LONGSHOT_JOBS: fewer compilers on a PC short of memory; the AppImage's builds pass no --jobs)
+                                                  "timeLink-builder-windows" if CROSS else "timeLink-builder")   # (the objects apart)
+                   if os.name != "nt" else os.environ.get("TIMELINK_SETUP_BASE") or
+                   os.path.join(os.environ.get("LOCALAPPDATA", ROOT), "timeLinkBuilder"))
+    # (TIMELINK_JOBS: fewer compilers on a PC short of memory; the AppImage's builds pass no --jobs)
     p.add_argument("--jobs", type=int)
     p.add_argument("--language", help="the game's language: a code from LANGUAGES, written to language.txt. Not given: the one the "
                                       "folder has; else the system's with --prepare; else en-US")
     p.add_argument("--check", action="store_true")
     p.add_argument("--game", help="your copy: a .nup file, or a folder with romfs and exefs in it (the same as --nup, or --romfs and --exefs)")
-    p.add_argument("--prepare", action="store_true", help="for RecompLauncher: no window, progress lines, --out ~/Games/Longshot unless given")
+    p.add_argument("--prepare", action="store_true", help="for RecompLauncher: no window, progress lines, --out ~/Games/timeLink unless given")
     p.add_argument("--update", help="a game folder built before: built again from the game files it keeps (the game's update offer)")
     p.add_argument("--no-prepare-shaders", action="store_true",
                    help="leave the shaders' preparation to the game's first start (the builder's \"Prepare shaders now\" unticked)")
     p.add_argument("--compile-shaders", choices=tuple(COMPILE_LEVELS),
                    help="what the shaders' preparation builds: most (the default) every shader and the pipelines the lists name; "
-                        "all the predicted pipelines too (about 40%% longer). Kept in the folder's longshot_options.ini "
+                        "all the predicted pipelines too (about 40%% longer). Kept in the folder's timeLink_options.ini "
                         "(compile_shaders=), which the game's own preparations follow; not given: the folder's")
     p.add_argument("--log", metavar="FILE", help="also save build output to a UTF-8 file (replaces the file if it exists)")
-    # (NVIDIA DLSS, off unless asked: NVIDIA's SDK into LONGSHOT_NGX_SDK first, under NVIDIA's license. scripts/ngx_sdk.py)
-    p.add_argument("--fetch-ngx-sdk", action="store_true", help="download NVIDIA's DLSS SDK into LONGSHOT_NGX_SDK before the build")
+    # (NVIDIA DLSS, off unless asked: NVIDIA's SDK into TIMELINK_NGX_SDK first, under NVIDIA's license. scripts/ngx_sdk.py)
+    p.add_argument("--fetch-ngx-sdk", action="store_true", help="download NVIDIA's DLSS SDK into TIMELINK_NGX_SDK before the build")
     p.add_argument("--accept-nvidia-license", action="store_true", help="NVIDIA's DLSS SDK license, accepted (with --fetch-ngx-sdk)")
     # (AMD FSR 4, off unless asked: nothing is downloaded. gpu/vk/vk_fsr4.cpp)
     p.add_argument("--fsr", action="store_true", help="build with AMD FSR 4 (AMD's DLLs are not included: see the readme)")
@@ -2062,9 +2062,9 @@ def parse_args():
     if a.prepare:   # (first: a bad --game below is said as RecompLauncher's "error" line)
         global PREPARE
         PREPARE = True
-        a.out = a.out or (os.path.join(os.path.dirname(os.environ["LONGSHOT_SETUP_BASE"]), "Longshot")
-                          if os.name == "nt" and os.environ.get("LONGSHOT_BUILDER_PORTABLE") == "1" and
-                          os.environ.get("LONGSHOT_SETUP_BASE") else os.path.join(os.path.expanduser("~"), "Games", "Longshot"))
+        a.out = a.out or (os.path.join(os.path.dirname(os.environ["TIMELINK_SETUP_BASE"]), "timeLink")
+                          if os.name == "nt" and os.environ.get("TIMELINK_BUILDER_PORTABLE") == "1" and
+                          os.environ.get("TIMELINK_SETUP_BASE") else os.path.join(os.path.expanduser("~"), "Games", "timeLink"))
     if a.game:   # (a path from a launcher: said plainly before any folder is made, not as a traceback halfway in)
         if os.path.isdir(a.game):
             a.romfs, a.exefs = os.path.join(a.game, "romfs"), os.path.join(a.game, "exefs")
@@ -2098,7 +2098,7 @@ def warn_slow_disk(*folders):
 def end_stale_games(folders):
     """(Windows) The running processes whose exe is in one of folders (the game being updated): those with no visible window, a
     copy left behind (a shader preparation that hung, a game whose window closed but whose process did not end), are ended and
-    waited for, as their file could not be replaced while they ran ("Could not replace bin/longshot.exe", Discord 2026-11-10).
+    waited for, as their file could not be replaced while they ran ("Could not replace bin/timeLink.exe", Discord 2026-11-10).
     Returns the process ids of those with a window, which the player is to close: a game in play is never ended."""
     if os.name != "nt":   # (tests run the finish step as Windows on Linux too: nothing to look for there)
         return []
@@ -2156,7 +2156,7 @@ def end_stale_games(folders):
             continue
         h = k32.OpenProcess(0x0001 | 0x00100000, False, pid)   # (PROCESS_TERMINATE | SYNCHRONIZE)
         if h:
-            print("A copy of Longshot left running without a window (process %d) was ended so the update can replace it" % pid,
+            print("A copy of timeLink left running without a window (process %d) was ended so the update can replace it" % pid,
                   flush=True)
             k32.TerminateProcess(h, 1)
             k32.WaitForSingleObject(h, 10000)
@@ -2189,9 +2189,9 @@ def main(a=None):
     # with it, and its headers are checked. One set in the shell is not taken for this build's: --fsr, or the folder's mark, decides)
     fsr = fsr_wanted(a, out)
     if fsr:
-        os.environ["LONGSHOT_FSR"] = "1"
+        os.environ["TIMELINK_FSR"] = "1"
     else:
-        os.environ.pop("LONGSHOT_FSR", None)
+        os.environ.pop("TIMELINK_FSR", None)
     if getattr(a, "fetch_ngx_sdk", False):
         fetch_ngx_sdk(a)   # (the Vulkan back end is compiled with NVIDIA DLSS)
     check_windows_sdk(work)
@@ -2213,11 +2213,11 @@ def main(a=None):
 
     say("stage", "read", "Reading your game files")
     clear_folder(exefs)
-    kept = os.path.join(out, ".longshot_exefs")   # (the game's code as read, kept in the folder: what an update builds from again)
+    kept = os.path.join(out, ".timeLink_exefs")   # (the game's code as read, kept in the folder: what an update builds from again)
     if a.update:
         if not os.path.isdir(kept) or not os.path.isdir(romfs):
             fail("This game folder has no copy of the game files to update from: it was built before updates came in. Choose your game files "
-                 "in Longshot Builder and build into the same folder once; updates after that work by themselves.")
+                 "in timeLink Builder and build into the same folder once; updates after that work by themselves.")
         check_cache_paths(out, (kept, romfs))
         shutil.copytree(kept, exefs)
         check_modules(exefs)
@@ -2226,14 +2226,14 @@ def main(a=None):
         # (what an earlier build left is not kept without a reason to trust it: builders before the compressed .nup fix wrote those files as
         # they lay, so a folder they left held broken game data, and the game crashed at start over its empty dictionaries)
         game = os.path.join(out, ".game")
-        good = os.path.join(out, ".longshot_romfs")
+        good = os.path.join(out, ".timeLink_romfs")
         check_cache_paths(out, (game, good, kept, romfs))
         # (an update of the builder over the same .nup: nothing to read again, only what the build needs. Issues 21 and 28)
         try:
             st = os.stat(a.nup)
         except OSError as e:
             fail("Could not access your .nup file %s: %s. Check that the file is still there, reconnect its drive if needed, "
-                 "or choose the file again in Longshot Builder." % (a.nup, e))
+                 "or choose the file again in timeLink Builder." % (a.nup, e))
         stamp = "unpacked by this builder: %s %d" % (os.path.basename(a.nup), st.st_size)
         same = False
         if os.path.exists(good) and os.path.isdir(romfs) and os.path.isdir(kept):
@@ -2244,7 +2244,7 @@ def main(a=None):
         else:
             shutil.rmtree(game, ignore_errors=True)
             with contextlib.suppress(FileNotFoundError):   # (a new unpack is checked again)
-                os.remove(os.path.join(out, ".longshot_romfs_checked"))
+                os.remove(os.path.join(out, ".timeLink_romfs_checked"))
             # Keep the last usable cache until the new package has been read and validated.
             staged_exefs = os.path.join(game, "exefs")
             try:
@@ -2285,8 +2285,8 @@ def main(a=None):
     check_supported_build(exefs)
 
     # (made once on the development PC: lists of addresses and counts, no game code)
-    # (longshot_vk.profdata: the renderer's own profile, counts over Longshot's own code)
-    for name in ("hot_funcs.txt", "hot_order.txt", "longshot_pieces.prof", VK_PROFILE, "longshot.res"):
+    # (timeLink_vk.profdata: the renderer's own profile, counts over timeLink's own code)
+    for name in ("hot_funcs.txt", "hot_order.txt", "timeLink_pieces.prof", VK_PROFILE, "timeLink.res"):
         src = os.path.join(ROOT, "work", name)
         dst = os.path.join(work, name)
         # (copied only when it differs: a compiler still ending from a cancelled build keeps the profile mapped, WinError 1224)
@@ -2299,8 +2299,8 @@ def main(a=None):
     env = {"OOT_WORK": work, "OOT_EXEFS": exefs, "OOT_ROMFS": romfs, "OOT_DUMP": out, "RX_RELEASE": "1", "A64_HOT_CHUNK": "1"}
     if os.path.exists(os.path.join(work, "hot_funcs.txt")):
         env["A64_HOT_FUNCS"] = os.path.join(work, "hot_funcs.txt")
-    if os.path.exists(os.path.join(work, "longshot_pieces.prof")) and profile_readable(os.path.join(work, "longshot_pieces.prof")):
-        env["RX_PGO"] = os.path.join(work, "longshot_pieces.prof")
+    if os.path.exists(os.path.join(work, "timeLink_pieces.prof")) and profile_readable(os.path.join(work, "timeLink_pieces.prof")):
+        env["RX_PGO"] = os.path.join(work, "timeLink_pieces.prof")
     vk_profile = vk_profile_for(work, os.environ)
     if vk_profile:
         env["RX_VK_PGO"] = vk_profile
@@ -2344,7 +2344,7 @@ def main(a=None):
                             except OSError as e:
                                 fail("Could not remove earlier translated file %s: %s. The new translation has not started." %
                                      (os.path.join(gen_dir, f), e))
-                # (LONGSHOT_LIFT_STORE: the lift another work folder made from the same inputs, nx2/lift_store.py. Its share key is taken
+                # (TIMELINK_LIFT_STORE: the lift another work folder made from the same inputs, nx2/lift_store.py. Its share key is taken
                 # before the lift, from what this one starts from, as that folder's was; the restored folder gets that lift's chunk
                 # boundaries and hot pieces too, so its key is taken again after it)
                 lifts = _lift_store.root()
@@ -2382,13 +2382,13 @@ def main(a=None):
             print("translated files cut short (%s): the game is translated again" % ", ".join(cut[:6]), flush=True)
         else:
             fail("The translated game came out cut short twice (%s). Check that the drive with %s has free space, and that no antivirus "
-                 "and no second Longshot Builder is working in that folder, then update again." % (", ".join(cut[:6]), work))
+                 "and no second timeLink Builder is working in that folder, then update again." % (", ".join(cut[:6]), work))
 
     translate()
 
     # (the compile's timer: build.py reads the record of the earlier builds on this PC, says which files this run really
     # rebuilds and how long the rest will take, and reports each module's seconds; they go into the record below)
-    env["LONGSHOT_TIMES"] = times_path(work)
+    env["TIMELINK_TIMES"] = times_path(work)
     run_files, plan = {}, [0, 0]
     say("stage", "compile", "Compiling")
     compile_started = time.time()
@@ -2463,17 +2463,17 @@ def main(a=None):
     say("stage", "finish", "Putting the game folder together")
     built = os.path.join(work, "sa", "build")
     # (the new files are copied in beside the old ones as <name>.new and swapped in only once all are complete: a build stopped while
-    # copying, or a full disk, left a half-written 460 MB longshot.exe and no game to play. The old game stays playable until the swap)
-    # (Windows) longshot.exe in the folder is the game's launcher: the builder's small setup (builder/setup/setup.c), which starts
-    # bin\longshot.exe. The game and its DLLs are in bin\; its files (image.bin, romfs, saves, settings, caches)
-    # stay in the folder (host/hos_paths.h). Without the setup (a development build) the game stays longshot.exe in the folder
+    # copying, or a full disk, left a half-written 460 MB timeLink.exe and no game to play. The old game stays playable until the swap)
+    # (Windows) timeLink.exe in the folder is the game's launcher: the builder's small setup (builder/setup/setup.c), which starts
+    # bin\timeLink.exe. The game and its DLLs are in bin\; its files (image.bin, romfs, saves, settings, caches)
+    # stay in the folder (host/hos_paths.h). Without the setup (a development build) the game stays timeLink.exe in the folder
     staged = []
-    # (Linux) the same launcher, as a script, when this is a packaged builder (the AppImage sets LONGSHOT_TOOLS). A source
-    # checkout leaves longshot in the folder, as a development build on Windows does when the setup exe is not beside it
-    launcher = os.path.join(os.path.dirname(os.path.abspath(ROOT)), "LongshotBuilder-Setup.exe")
+    # (Linux) the same launcher, as a script, when this is a packaged builder (the AppImage sets TIMELINK_TOOLS). A source
+    # checkout leaves timeLink in the folder, as a development build on Windows does when the setup exe is not beside it
+    launcher = os.path.join(os.path.dirname(os.path.abspath(ROOT)), "timeLinkBuilder-Setup.exe")
     if LINUX:
-        script = os.path.join(ROOT, "builder", "linux", "longshot-folder")
-        launcher = script if os.environ.get("LONGSHOT_TOOLS") and os.path.isfile(script) else None
+        script = os.path.join(ROOT, "builder", "linux", "timeLink-folder")
+        launcher = script if os.environ.get("TIMELINK_TOOLS") and os.path.isfile(script) else None
     else:
         launcher = launcher if os.path.isfile(launcher) else None
     game_dir = os.path.join(out, "bin") if launcher else out
@@ -2498,17 +2498,17 @@ def main(a=None):
     if not LINUX:   # (a copy of this game still running holds its exe: one with no window is a leftover, ended; else named)
         shown = end_stale_games([game_dir, out])
         if shown:
-            fail("Longshot is still running from this folder (%s). Close it, then retry. No installed files were replaced."
+            fail("timeLink is still running from this folder (%s). Close it, then retry. No installed files were replaced."
                  % ", ".join("process %d" % pid for pid in shown))
     for src, dst in staged:
         try:
             os.replace(dst + ".new", dst)   # (linux: a running copy keeps its own file; windows: a running exe cannot be replaced)
         except PermissionError:
-            fail("Could not replace %s. Close any running copy of Longshot and check that the file and folder are writable, then retry. "
+            fail("Could not replace %s. Close any running copy of timeLink and check that the file and folder are writable, then retry. "
                  "Staged replacements remain beside the installed files; the compiled source remains at %s." % (dst, src))
-    if launcher:   # (a folder built before the launcher: its libraries left the folder for bin\; longshot is the launcher now)
+    if launcher:   # (a folder built before the launcher: its libraries left the folder for bin\; timeLink is the launcher now)
         stale = [] if LINUX else sorted(f for f in os.listdir(out) if f.endswith(".dll") and f.startswith(("av", "sw")))
-        for n in BESIDE[1:] + stale + ["longshot.map", "longshot-game.exe"]:
+        for n in BESIDE[1:] + stale + ["timeLink.map", "timeLink-game.exe"]:
             try:
                 if os.path.isfile(os.path.join(out, n)):
                     os.remove(os.path.join(out, n))
@@ -2520,12 +2520,12 @@ def main(a=None):
     # every shader of the game, for its first start to translate (gpu/vk/vk_shader.cpp seed_open). Without it the game still runs, compiling them
     # as it meets them: not worth stopping a finished build for
     # (made again only when the game's shader files, the census or the list itself changed: 4 s and 514 MB written at every update)
-    if shader_list_current(work, romfs, os.path.join(out, "longshot_shaders.bin")):
+    if shader_list_current(work, romfs, os.path.join(out, "timeLink_shaders.bin")):
         print("the shader list is the one the last build made from the same files: not made again", flush=True)
-    elif run(shader_census_cmd(romfs, os.path.join(out, "longshot_shaders.bin")), check=False, output=sys.stderr):
+    elif run(shader_census_cmd(romfs, os.path.join(out, "timeLink_shaders.bin")), check=False, output=sys.stderr):
         print("the shader list was not made: the game will compile its shaders as it plays", flush=True)
     else:
-        note_shader_list(work, romfs, os.path.join(out, "longshot_shaders.bin"))
+        note_shader_list(work, romfs, os.path.join(out, "timeLink_shaders.bin"))
     # (longshot) the button prompts of other controllers (host/prompts.c): the game's icon font redrawn per controller, with fontTools.
     # Without it the game shows its own icons
     prompts = os.path.join(out, "prompts")
@@ -2536,9 +2536,9 @@ def main(a=None):
              ([] if launcher else ["--incremental"]), check=False, output=sys.stderr):
         print("the button prompts of other controllers were not made: the game shows its own", flush=True)
         shutil.rmtree(prompts, ignore_errors=True)
-    icon = os.path.join(ROOT, "assets", "longshot.png")
+    icon = os.path.join(ROOT, "assets", "timeLink.png")
     if LINUX and os.path.exists(icon):   # (the window's icon: host/posix/display_sdl.c)
-        copy_writable(icon, os.path.join(out, "longshot.png"))   # (a second build overwrites the first's)
+        copy_writable(icon, os.path.join(out, "timeLink.png"))   # (a second build overwrites the first's)
     seed_pipelines(out)
     ship_state_list(out)
     language = os.path.join(out, "language.txt")   # (the same text as host/nn_applet.c writes)
@@ -2555,10 +2555,10 @@ def main(a=None):
             if tag:
                 break
     if tag:
-        with open(os.path.join(out, "longshot_version.txt"), "w", encoding="utf-8", newline="\n") as f:
+        with open(os.path.join(out, "timeLink_version.txt"), "w", encoding="utf-8", newline="\n") as f:
             f.write("version=%s\n" % tag)
-            if os.environ.get("LONGSHOT_BUILDER_EXE"):
-                f.write("builder=%s\n" % os.environ["LONGSHOT_BUILDER_EXE"])
+            if os.environ.get("TIMELINK_BUILDER_EXE"):
+                f.write("builder=%s\n" % os.environ["TIMELINK_BUILDER_EXE"])
     # (the game's code as read: written again by every build, so not left behind in the work folder. The translated code (sa\gen)
     # and the compiled objects stay: the next build skips the lift when nothing it reads changed (#428) and compiles only what
     # changed; the builder says how much stays and lets it go. Kept in a development checkout)
@@ -2568,19 +2568,19 @@ def main(a=None):
         # compiled objects of this build stay (~1 GB; those of earlier builds go): without them every update compiled all ~600 files
         # again, an hour and more on many PCs (issue 1287, "updates rebuild everything"), where the update changes a few. The next
         # update translates again (minutes) and compiles only what changed. The builder's Free up space lets them go too.
-        # LONGSHOT_KEEP_BUILD_FILES=1 keeps everything, as before)
+        # TIMELINK_KEEP_BUILD_FILES=1 keeps everything, as before)
         # The rest of the lift (~130 MB: its headers, runtime tables and image) stays too, with build.py's list of the lifted files'
         # object keys: an update with the same tools then skips the lift (keep_translation, kept_before)
-        if os.environ.get("LONGSHOT_KEEP_BUILD_FILES", "0") in ("", "0"):
+        if os.environ.get("TIMELINK_KEEP_BUILD_FILES", "0") in ("", "0"):
             kept = prune_object_cache(work)
             lift_kept = keep_translation(work, key)
             for sub in ("probe",) if lift_kept is not None else ("sa", "probe"):
                 shutil.rmtree(os.path.join(work, sub), ignore_errors=True)
             print("the build files in %s were deleted but this build's compiled objects (%d MB)%s, so that an update compiles only "
-                  "what changed (LONGSHOT_KEEP_BUILD_FILES=1 keeps all)" % (
+                  "what changed (TIMELINK_KEEP_BUILD_FILES=1 keeps all)" % (
                       work, kept >> 20, "" if lift_kept is None else " and the translation's other files (%d MB)" % (lift_kept >> 20)),
                   flush=True)
-    # (LONGSHOT_OBJ_STORE: the store's own clean-up, after the folder's; nx2/object_store.py prune)
+    # (TIMELINK_OBJ_STORE: the store's own clean-up, after the folder's; nx2/object_store.py prune)
     removed, freed = _object_store.prune()
     if removed:
         print("object store: %d objects no work folder used lately let go (%d MB)" % (removed, freed >> 20), flush=True)
@@ -2631,7 +2631,7 @@ def cli():
                 say("error", drive_error(e))
                 sys.exit(1)
             say("error", "The builder stopped on an error it did not expect: %s: %s. Please send the text under Show details to the "
-                "Longshot issues page." % (type(e).__name__, str(e)[:300]))
+                "timeLink issues page." % (type(e).__name__, str(e)[:300]))
             sys.exit(1)
 
 

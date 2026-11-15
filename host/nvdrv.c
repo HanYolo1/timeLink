@@ -18,8 +18,8 @@
 #include <stdlib.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#ifndef LONGSHOT_ENV_H   /* (env_on: the switches' one rule) */
-#include "../gpu/vk/compat/longshot_env.h"
+#ifndef TIMELINK_ENV_H   /* (env_on: the switches' one rule) */
+#include "../gpu/vk/compat/timeLink_env.h"
 #endif
 
 void hos_system_event_init(uint64_t key, int autoclear);
@@ -472,7 +472,7 @@ static uint32_t ioctl_gpu(int fd, uint32_t group, uint32_t nr, uint64_t p, uint6
         return NV_OK;
     case 0x18: case 0x1A: {   /* ALLOC_GPFIFO_EX(2) {u32 entries, jobs, flags; NvFence out; reserved} */
         LOCK();
-        if (!fds[fd].syncpt) {   /* (longshot: ids are used again after the last one; they index syncpt[] and syncpt_max[]) */
+        if (!fds[fd].syncpt) {   /* (timeLink: ids are used again after the last one; they index syncpt[] and syncpt_max[]) */
             fds[fd].syncpt = next_syncpt++;
             if (next_syncpt >= SYNCPTS) next_syncpt = 24;
         }

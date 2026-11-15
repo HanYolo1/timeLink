@@ -1,4 +1,4 @@
-/* The Vulkan back end (longshot_vk.dll, longshot_vk.so on Linux) and the game executable: what each gives the other.
+/* The Vulkan back end (timeLink_vk.dll, timeLink_vk.so on Linux) and the game executable: what each gives the other.
 
    The executable records the game's NVN command buffers (host/nvn_native.c) and calls a renderer through the rx_*
    functions (gpu/render/rx_nvn.h). Unless RX_BACKEND names another, host/rx_backend.c loads it, hands it the host
@@ -69,7 +69,7 @@ enum { HOS_OPT_DAMAGE_TAKEN = 55 };
    choice). host/nvn_native.c answers the game's present poll at once with it. The existing option callback: no new member.) */
 enum { HOS_OPT_RENDER_THREAD = 58 };
 
-/* (longshot) the controls' names (host/nn_hid.c, host/pad_sdl.c, the pad_ and key_ lines of longshot_options.ini):
+/* (longshot) the controls' names (host/nn_hid.c, host/pad_sdl.c, the pad_ and key_ lines of timeLink_options.ini):
    the Switch's buttons in nn::hid's bit order, and a gamepad's inputs by position (the bottom face button first:
    A on an Xbox pad, cross on a DualSense). Keep the saved position values when adding inputs. */
 enum { HOS_SW_A, HOS_SW_B, HOS_SW_X, HOS_SW_Y, HOS_SW_LS, HOS_SW_RS, HOS_SW_L, HOS_SW_R, HOS_SW_ZL, HOS_SW_ZR,
@@ -112,14 +112,14 @@ typedef struct MkwVkPointer {
 } MkwVkPointer;
 
 /* (longshot) one of the Insert menu's settings, for the control bridge (MkwVkRenderer setting): key is its line in
-   longshot_options.ini, name the row's, text how the menu shows the value */
+   timeLink_options.ini, name the row's, text how the menu shows the value */
 typedef struct MkwVkSetting {
     char key[32], name[48], text[64], tab[16];
     int value, lo, hi, step;
     int restart, fixed;   /* the change applies at the next start; nothing to choose on this PC (the menu shows it greyed) */
 } MkwVkSetting;
 
-/* (longshot, version 22) typed text for the Insert menu's text fields (MkwVkHost.take_text, host/rx_backend.c): a character
+/* (timeLink, version 22) typed text for the Insert menu's text fields (MkwVkHost.take_text, host/rx_backend.c): a character
    comes as its Unicode code point, an editing key as HOS_TEXT_KEY | its Windows key code (VK_LEFT, VK_RIGHT, VK_HOME, VK_END,
    VK_BACK, VK_DELETE, VK_RETURN, VK_ESCAPE). The focus take_text is given: none, a field has the keyboard, or that and a paste
    asked (the clipboard's first line comes as typed) */
@@ -207,19 +207,19 @@ typedef struct MkwVkHost {
        (a bit each; HOS_WIDE_KEEP=<hex> over it); returns the margin of the middle 16:9 at either side, a fraction of the
        picture's width (0: the picture is 16:9) */
     float (*wide_menus)(uint32_t keep_mask);
-    /* (version 15, longshot) the FPS counter's Breakdown (gpu/vk/vk_fps.cpp): time asleep so far, in ns (host/hos_thread.c):
+    /* (version 15, timeLink) the FPS counter's Breakdown (gpu/vk/vk_fps.cpp): time asleep so far, in ns (host/hos_thread.c):
        [0] OoT's present poll, waiting for its frame's GPU work; [1] the window's acquire pacing the frames (both whichever
        thread they are on), and the calling thread's other guest sleeps. Asked by the thread that presents, at its present */
     void (*slept_ns)(int64_t out[2]);
-    /* (version 15, longshot) whether the host times those sleeps: 1 while the Breakdown shows, 0 (the default) costs nothing */
+    /* (version 15, timeLink) whether the host times those sleeps: 1 while the Breakdown shows, 0 (the default) costs nothing */
     void (*fps_timing)(int on);
-    /* (version 17, longshot) what of the button prompts a change of face or controls reaches at once (host/prompts.c):
+    /* (version 17, timeLink) what of the button prompts a change of face or controls reaches at once (host/prompts.c):
        HOS_PROMPTS_LIVE_* bits; 0 none (a mod's files, built without the prompts, or not loaded yet) */
     int (*prompts_live)(void);
-    /* (version 20, longshot) the main screen's size in pixels, as host/hos_main.c takes its shape at the start (Windows: the
+    /* (version 20, timeLink) the main screen's size in pixels, as host/hos_main.c takes its shape at the start (Windows: the
        primary's; Linux: SDL's primary desktop), for the Insert menu's Aspect ratio and Output resolution rows: 0 when not known */
     int (*screen_size)(int *width, int *height);
-    /* (version 22, longshot) the Insert menu's text fields (21 added the renderer's nvn_program_created).
+    /* (version 22, timeLink) the Insert menu's text fields (21 added the renderer's nvn_program_created).
        focus HOS_TEXT_OFF while none has the keyboard (the window takes no text then: no input method opens over the game,
        and what was queued is dropped), HOS_TEXT_ON while one has it,
        HOS_TEXT_PASTE to paste the clipboard's first line into it; then what was typed since the last call into out, at most
@@ -268,7 +268,7 @@ typedef struct MkwVkRenderer {
     void (*nvn_texture_created)(const nvn_tex *t);
     /* the CPU set an event's value: in order with the submits (the GPU's waits on it) */
     void (*nvn_event_signal)(uint64_t gpu, uint32_t value);
-    int (*option)(int id);   /* (longshot, the Insert menu) 0: game time follows the clock, 1: the menu is open, 2: dynamic resolution, 3: its fixed scale in percent, 4: the controllers count behind other windows, 5: text speed (0 normal to 3 instant), 6: Mouse camera (host/mouse_native.c; 1 native mouse look, 2 off: the mouse is never captured),
+    int (*option)(int id);   /* (timeLink, the Insert menu) 0: game time follows the clock, 1: the menu is open, 2: dynamic resolution, 3: its fixed scale in percent, 4: the controllers count behind other windows, 5: text speed (0 normal to 3 instant), 6: Mouse camera (host/mouse_native.c; 1 native mouse look, 2 off: the mouse is never captured),
                                 7: the mouse's sensitivity in percent, 8: its up and down swapped (host/nn_hid.c),
                                 18 to 23: the Motion page (HOS_OPT_GYRO*: motion controls from a pad's gyroscope, host/pad_sdl.c;
                                 the horizontal and vertical sensitivity in percent, each turned around, the deadzone),
@@ -278,12 +278,12 @@ typedef struct MkwVkRenderer {
     void (*nvn_submit_q)(const uint64_t *handles, int n, uint64_t queue);
     /* (longshot) a fence of one queue: the value its own last submission signals (nvnQueueFenceSync) */
     uint64_t (*nvn_fence_q)(uint64_t queue);
-    /* (longshot, the Insert menu) a setting changed from the game's side, kept in the options file: 7 the mouse's sensitivity
+    /* (timeLink, the Insert menu) a setting changed from the game's side, kept in the options file: 7 the mouse's sensitivity
        in percent (the - and = keys, host/nn_hid.c) */
     void (*option_set)(int id, int value);
     /* (version 14) one coherent camera-jitter sample, without per-axis queries */
     void (*jitter_sample)(MkwVkJitter *out);
-    /* (version 16, longshot) the control bridge (host/control.c, docs/control.md) */
+    /* (version 16, timeLink) the control bridge (host/control.c, docs/control.md) */
     /* the presents replayed so far, the draws recorded since the start, and the picture's size (the window's swapchain, or
        the offscreen image's) */
     void (*frame_info)(int64_t *presents, int64_t *draws, int *width, int *height);
@@ -292,12 +292,12 @@ typedef struct MkwVkRenderer {
        (too many waiting) */
     int (*shot)(const char *path, int64_t after, void (*done)(void *ctx, int64_t present, int ok), void *ctx);
     /* the Insert menu's settings rows (shown on this PC; not the headings or the debug tools): the index-th, to list them (0:
-       past the last; an index is no name, rows come and go), and the one whose longshot_options.ini key is key set to value
+       past the last; an index is no name, rows come and go), and the one whose timeLink_options.ini key is key set to value
        as the menu's Left and Right set it, kept in the options file, out the row after it (1 set, 0 no such row, -1 nothing
        to choose on this PC, -2 no step of a list row reaches value here, left as it was) */
     int (*setting)(int index, MkwVkSetting *out);
     int (*setting_set)(const char *key, int value, MkwVkSetting *out);
-    /* (version 21, longshot: 20 is the host's screen_size, which main added while this was 20 on its branch) the game gave a program its shaders (nvnProgramSetShaders, nvnProgramInitializeFromBuilder), on the
+    /* (version 21, timeLink: 20 is the host's screen_size, which main added while this was 20 on its branch) the game gave a program its shaders (nvnProgramSetShaders, nvnProgramInitializeFromBuilder), on the
        game's thread, before any draw uses it: what the back end kept ready for it can be loaded now (gpu/vk/vk_programs.cpp).
        Its stages' code and control sections are in the game's memory at this call */
     void (*nvn_program_created)(const nvn_prog *p);

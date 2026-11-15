@@ -35,9 +35,9 @@ def dry_run(tools, work, **extra):
     """nx2/build.py as nx2/make_game.py runs it in the AppImage (AppRun's variables, and linux_tools.py's for the build tools
     in the builder's toolchains folder, work/toolchain), with nothing else of this PC's"""
     t = work / "toolchain"
-    env = {**extra, "PATH": "/usr/bin:/bin", "HOME": str(work / "home"), "LANG": "C.UTF-8", "LONGSHOT_TOOLS": str(tools),
-           "EMSDK": str(t / "usr/lib/longshot/emsdk"), "LONGSHOT_SYSROOT": str(t / "usr/lib/longshot/sysroot"),
-           "LONGSHOT_FFMPEG": str(t / "usr/lib/longshot/ffmpeg"), "RX_CPM": str(t / "usr/share/longshot/cpm"),
+    env = {**extra, "PATH": "/usr/bin:/bin", "HOME": str(work / "home"), "LANG": "C.UTF-8", "TIMELINK_TOOLS": str(tools),
+           "EMSDK": str(t / "usr/lib/timeLink/emsdk"), "TIMELINK_SYSROOT": str(t / "usr/lib/timeLink/sysroot"),
+           "TIMELINK_FFMPEG": str(t / "usr/lib/timeLink/ffmpeg"), "RX_CPM": str(t / "usr/share/timeLink/cpm"),
            "OOT_WORK": str(work / "work"), "RX_RELEASE": "1",
            "A64_HOT_CHUNK": "1", "RX_MARCH": "x86-64-v3"}
     return subprocess.run([sys.executable, "-I", "-B", "-u", "-X", "utf8", "nx2/build.py", "--standalone", "--jobs", "1",
@@ -47,26 +47,26 @@ def dry_run(tools, work, **extra):
 @unittest.skipUnless(sys.platform.startswith("linux"), "the AppImage is made on Linux")
 class PlayerBuildFromTheAppImage(unittest.TestCase):
     def setUp(self):
-        temp = tempfile.TemporaryDirectory(prefix="longshot-appimage-build-")
+        temp = tempfile.TemporaryDirectory(prefix="timeLink-appimage-build-")
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
-        self.tools = self.root / "AppDir/usr/share/longshot"
+        self.tools = self.root / "AppDir/usr/share/timeLink"
         self.tools.mkdir(parents=True)
         package(self.tools)
         # (stand-ins for tools.lock's tools: a compiler that is never run, the sysroot, FFmpeg, the Vulkan headers in their CPM
         # layout)
         t = self.root / "toolchain"
-        (t / "usr/lib/longshot/emsdk/upstream/bin").mkdir(parents=True)
+        (t / "usr/lib/timeLink/emsdk/upstream/bin").mkdir(parents=True)
         for name in ("clang", "clang++"):
-            clang = t / "usr/lib/longshot/emsdk/upstream/bin" / name
+            clang = t / "usr/lib/timeLink/emsdk/upstream/bin" / name
             clang.write_text("#!/bin/sh\nexit 1\n")
             clang.chmod(0o755)
         for d in ("sysroot", "ffmpeg/include", "ffmpeg/lib"):
-            (t / "usr/lib/longshot" / d).mkdir(parents=True)
+            (t / "usr/lib/timeLink" / d).mkdir(parents=True)
         for probe in ("vulkanheaders/v1/include/vulkan/vulkan.h", "spirv-headers/v1/include/spirv/unified1/spirv.h",
                       "vulkanmemoryallocator/v1/include/vk_mem_alloc.h"):
-            (t / "usr/share/longshot/cpm" / probe).parent.mkdir(parents=True, exist_ok=True)
-            (t / "usr/share/longshot/cpm" / probe).write_text("")
+            (t / "usr/share/timeLink/cpm" / probe).parent.mkdir(parents=True, exist_ok=True)
+            (t / "usr/share/timeLink/cpm" / probe).write_text("")
         (self.root / "home").mkdir()
 
     def test_starts_from_the_packaged_tree(self):
@@ -87,7 +87,7 @@ class PlayerBuildFromTheAppImage(unittest.TestCase):
         (sdk / "include").mkdir(parents=True)
         (sdk / "lib").mkdir()
         (sdk / "lib/libnvsdk_ngx.a").write_bytes(b"")
-        r = dry_run(self.tools, self.root, LONGSHOT_NGX_SDK=str(sdk))
+        r = dry_run(self.tools, self.root, TIMELINK_NGX_SDK=str(sdk))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("with NVIDIA DLSS", r.stdout)
         self.assertRegex(r.stdout, r"dry run: [1-9]\d* files to compile besides the lift's, 0 missing")
@@ -95,7 +95,7 @@ class PlayerBuildFromTheAppImage(unittest.TestCase):
     def test_fsr_compiles_the_back_end_from_the_packaged_tree(self):
         # (AMD FSR 4 chosen: the build compiles gpu/vk from the image's tree with AMD's FSR API headers, which the image
         # carries in third_party/fidelityfx)
-        r = dry_run(self.tools, self.root, LONGSHOT_FSR="1")
+        r = dry_run(self.tools, self.root, TIMELINK_FSR="1")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertIn("with AMD FSR 4", r.stdout)
         self.assertRegex(r.stdout, r"dry run: [1-9]\d* files to compile besides the lift's, 0 missing")
@@ -129,24 +129,24 @@ class TheChecksAreWired(unittest.TestCase):
         script = (ROOT / "scripts/linux/check_player_build.sh").read_text(encoding="utf-8")
         self.assertIn("""sed '/^if \\[ "\\${1:-}" = "--cli" \\]/,$d'""", script)
         self.assertIn("build_tools || exit 1", script)
-        self.assertIn("LONGSHOT_BUILDER_HOME=", script)
+        self.assertIn("TIMELINK_BUILDER_HOME=", script)
         self.assertIn("--dry-run", script)
 
     def test_no_prebuilt_renderer(self):
         # (2026-11-14: the AppImage's prebuilt Vulkan back end is gone, and every build compiles it, as with DLSS and FSR 4: one
-        # way to build it. Nothing sets or reads LONGSHOT_VK_PREBUILT, appimage.sh builds no renderer and copies none into the
+        # way to build it. Nothing sets or reads TIMELINK_VK_PREBUILT, appimage.sh builds no renderer and copies none into the
         # image, and the image still carries what a player's build compiles it from: gpu/vk, and assets/ with its profile)
         for folder, suffixes in (("nx2", (".py",)), ("scripts", (".py", ".sh")), ("builder", (".py", ".sh", ".cs")),
                                  (".forgejo/workflows", (".yml",))):
             for f in (ROOT / folder).rglob("*"):
                 if f.is_file() and f.suffix in suffixes:
-                    self.assertNotIn("LONGSHOT_VK_PREBUILT", f.read_text(encoding="utf-8", errors="replace"), f)
+                    self.assertNotIn("TIMELINK_VK_PREBUILT", f.read_text(encoding="utf-8", errors="replace"), f)
         apprun = (ROOT / "builder/linux/AppRun").read_text(encoding="utf-8")
-        self.assertNotIn("LONGSHOT_VK_PREBUILT", apprun)
-        self.assertNotIn("longshot_vk.so", apprun)
+        self.assertNotIn("TIMELINK_VK_PREBUILT", apprun)
+        self.assertNotIn("timeLink_vk.so", apprun)
         script = (ROOT / "scripts/linux/appimage.sh").read_text(encoding="utf-8")
         self.assertNotIn("RX_VK_ONLY", script)
-        self.assertNotIn("usr/lib/longshot", script)
+        self.assertNotIn("usr/lib/timeLink", script)
         self.assertRegex(script, r'\ncp -a gpu/vk gpu/compat gpu/third_party "\$T/gpu/"\n')
         self.assertRegex(script, r'\ncp -a nx2 host scripts LICENSE README.md assets tools.lock "\$T/"\n')
         build = (ROOT / "nx2/build.py").read_text(encoding="utf-8")
@@ -156,13 +156,13 @@ class TheChecksAreWired(unittest.TestCase):
     def test_the_test_sets_what_apprun_sets(self):
         # (AppRun's own variables, and the build tools' that linux_tools.py prints for it)
         apprun = (ROOT / "builder/linux/AppRun").read_text(encoding="utf-8")
-        exported = set(re.findall(r"^export (LONGSHOT_\w+|EMSDK)=", apprun, re.MULTILINE))
+        exported = set(re.findall(r"^export (TIMELINK_\w+|EMSDK)=", apprun, re.MULTILINE))
         tools = (ROOT / "builder/linux/linux_tools.py").read_text(encoding="utf-8")
-        exported |= set(re.findall(r'\("(LONGSHOT_\w+|EMSDK|RX_CPM)", ', tools[tools.index("\nENV = "):tools.index("\nTAG = ")]))
-        self.assertTrue({"EMSDK", "LONGSHOT_SYSROOT", "LONGSHOT_FFMPEG", "RX_CPM"} <= exported, exported)
+        exported |= set(re.findall(r'\("(TIMELINK_\w+|EMSDK|RX_CPM)", ', tools[tools.index("\nENV = "):tools.index("\nTAG = ")]))
+        self.assertTrue({"EMSDK", "TIMELINK_SYSROOT", "TIMELINK_FFMPEG", "RX_CPM"} <= exported, exported)
         source = Path(__file__).read_text(encoding="utf-8")
-        used = set(re.findall(r'"(LONGSHOT_\w+|EMSDK|RX_CPM)":', source))
-        self.assertEqual(exported - used - {"LONGSHOT_SDL2", "LONGSHOT_BUILDER_EXE"}, set())   # (those two: the game's, after the build)
+        used = set(re.findall(r'"(TIMELINK_\w+|EMSDK|RX_CPM)":', source))
+        self.assertEqual(exported - used - {"TIMELINK_SDL2", "TIMELINK_BUILDER_EXE"}, set())   # (those two: the game's, after the build)
 
 
 if __name__ == "__main__":

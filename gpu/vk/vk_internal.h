@@ -10,19 +10,19 @@
 
 #include "vk_loader.h"
 #include "vk_api.h"
-#ifndef LONGSHOT_ENV_H   // (env_on: the switches' one rule)
-#include "compat/longshot_env.h"
+#ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
+#include "compat/timeLink_env.h"
 #endif
 #include "vk_vendor.h"
 
 #if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
 #include <intrin.h>
-#define LONGSHOT_RDTSC() ((uint64_t)__rdtsc())
-#define LONGSHOT_PAUSE() _mm_pause()
+#define TIMELINK_RDTSC() ((uint64_t)__rdtsc())
+#define TIMELINK_PAUSE() _mm_pause()
 #elif defined(__x86_64__) || defined(__i386__)
 #include <x86intrin.h>
-#define LONGSHOT_RDTSC() ((uint64_t)__rdtsc())
-#define LONGSHOT_PAUSE() _mm_pause()
+#define TIMELINK_RDTSC() ((uint64_t)__rdtsc())
+#define TIMELINK_PAUSE() _mm_pause()
 #endif
 
 typedef struct VmaAllocation_T* VmaAllocation;   // (vk_mem_alloc.h's handle)
@@ -121,7 +121,7 @@ extern Device dev;
 
 /// (longshot) Windows Intel's compiler (igvk64, UHD and Arc) faults when two threads hand it shaders at once. An Arc
 /// A750 froze the PC on four compute pipelines (issue 496). An Intel UHD on Windows read address 0x170 inside igvk64
-/// during the first scene's compiles (two frames in longshot_vk.dll, and no "driver faulted compiling" line, so the
+/// during the first scene's compiles (two frames in timeLink_vk.dll, and no "driver faulted compiling" line, so the
 /// call was not inside guarded_graphics). One thread enters vkCreateShaderModule and vkCreate*Pipelines.
 /// Other vendors, and Intel on other systems, are not held. The Intel shader compiles row's Side by side, or
 /// RX_VK_NO_INTEL_SERIAL=1 over it: side by side, as before.
@@ -177,18 +177,18 @@ struct BufferRef {
     }
 };
 bool memory_init();                                   // vk_memory.cpp
-void memory_cpu_owned(uint64_t guest, uint64_t size);   // (longshot: words the replay writes on the CPU, left out of write-backs)
+void memory_cpu_owned(uint64_t guest, uint64_t size);   // (timeLink: words the replay writes on the CPU, left out of write-backs)
 // (longshot) The replay's own CPU writes of guest memory, by GPU address: every one goes through guest_cpu_write (or, for a
 // write made in pieces, host->gpu_write and then guest_cpu_wrote over the whole range), so that the write-back diff's shadows
 // hear of it before this submission's write-back (vk_memory.cpp, "the write-back's diff"). tests/test_wb_diff_cpu_writes.py
 int guest_cpu_write(uint64_t gpu, const void* src, uint64_t n);
 void guest_cpu_wrote(uint64_t gpu, uint64_t n);
-void memory_table_begin();                         // (longshot: a recording's page table changes held back for its upload commands)
+void memory_table_begin();                         // (timeLink: a recording's page table changes held back for its upload commands)
 bool memory_table_flush();
-uint64_t memory_guest_pages();                        // (longshot: the device address of guest memory's page table, 0: none)
+uint64_t memory_guest_pages();                        // (timeLink: the device address of guest memory's page table, 0: none)
 void memory_sync();                                   // (at each submit: pools the game made or let go)
-extern std::atomic<int64_t> memsync_lock_wait_ns;     // (longshot, diagnostics: time memory_sync waited for its two locks; the slow-submit line)
-extern std::atomic<int64_t> memsync_part_ns[3];       // (longshot, diagnostics: submit_memory_work's memory_sync, memory_take_capture, memory_collect_written)
+extern std::atomic<int64_t> memsync_lock_wait_ns;     // (timeLink, diagnostics: time memory_sync waited for its two locks; the slow-submit line)
+extern std::atomic<int64_t> memsync_part_ns[3];       // (timeLink, diagnostics: submit_memory_work's memory_sync, memory_take_capture, memory_collect_written)
 BufferRef gpu_buffer(uint64_t gpu, uint64_t size);   // (empty when no pool holds the range)
 /// A range as a binding of the replay sees it: the pool's VRAM mirror when it has one (vk_memory.cpp), else the
 /// imported pool. written: the GPU may write it (copied back to guest memory at the submission's end).
@@ -207,8 +207,8 @@ uint64_t gpu_bind_stamp();
 /// Around each submission's recording: mirrors wanted since the last one are made (begin), what the GPU wrote into
 /// mirrors goes back to guest memory (end, outside any pass, before the closing barrier)
 void memory_begin_submission();
-void memory_sync_mirrors_before_segments();   // (longshot: vk_memory.cpp)
-bool probe_on();                                // (longshot: vk_draw.cpp, RX_VK_PROBE)
+void memory_sync_mirrors_before_segments();   // (timeLink: vk_memory.cpp)
+bool probe_on();                                // (timeLink: vk_draw.cpp, RX_VK_PROBE)
 bool probe_serial();
 void probe_dump_all(const char* why);
 void probe_log(uint64_t frame);
@@ -263,8 +263,8 @@ void memory_collect_written();
 void memory_capture_submit();
 /// The replay of the next submit: its capture (false: none, the pages are collected now as before)
 bool memory_take_capture(uint64_t value, uint64_t completed);
-int64_t memory_late_wait_ns();   // (longshot: RX_VK_FRAME_TRACE's late_wait_ms)
-bool memory_capture_now(uint64_t value, uint64_t completed);   // (longshot: made and taken at once)
+int64_t memory_late_wait_ns();   // (timeLink: RX_VK_FRAME_TRACE's late_wait_ms)
+bool memory_capture_now(uint64_t value, uint64_t completed);   // (timeLink: made and taken at once)
 /// The submission the replay records next (bindings note it: a pool's mirror is in use until it is done)
 void memory_recording_value(uint64_t value, uint64_t completed);
 // (longshot) The recording being made, as vk_replay.cpp numbers them (Recording::part), and the newest of them in which
@@ -386,10 +386,10 @@ bool vram_usage_now(uint64_t* used, uint64_t* budget);
 void vma_log_heaps();
 void vma_log_image_blocks();   // (the image pools' blocks: what they hold, and their free ranges)
 PFN_vkGetInstanceProcAddr instance_proc();   // vk_main.cpp
-/// (longshot, the Insert menu's Bug report) The device the game runs on and its driver, as the issue form asks them: "NVIDIA
+/// (timeLink, the Insert menu's Bug report) The device the game runs on and its driver, as the issue form asks them: "NVIDIA
 /// GeForce RTX 4090, NVIDIA 580.95.05" (vk_main.cpp; the log has only the driver's packed number)
 std::string device_report_text();
-/// (longshot, the Insert menu's Bug report: its picture) A PNG of the next present, as the control bridge's shots are taken
+/// (timeLink, the Insert menu's Bug report: its picture) A PNG of the next present, as the control bridge's shots are taken
 /// (vk_replay.cpp shot_ask: an image and a buffer of their own, copied from the game's frame, read back once the GPU is past it)
 int shot_ask_next(const char* path, void (*done)(void* ctx, int64_t present, int ok), void* ctx);
 
@@ -410,7 +410,7 @@ void state_list_run();                        // (an update: the state list's pi
 bool predict_pending();   // vk_draw.cpp
 void predict_run(void (*progress)(size_t done, size_t total));   // (after a prepare_run that prepared: the notes' predictions)
 /// (longshot) Compile shaders: whether a preparation builds the predicted pipelines too (All), or leaves them out (Most, the
-/// default). RX_VK_COMPILE_SHADERS=all or most (the game's --compile-shaders), else compile_shaders= in longshot_options.ini
+/// default). RX_VK_COMPILE_SHADERS=all or most (the game's --compile-shaders), else compile_shaders= in timeLink_options.ini
 /// (1 All, 0 Most)
 bool compile_all();   // vk_draw.cpp
 /// (longshot) The CPUs this process may run on: its affinity mask (sched_getaffinity on Linux, through host/posix), not every CPU
@@ -433,11 +433,11 @@ void prepare_guess(size_t out[3]);   // (the three parts' counts from the files,
 /// what is done kept (the program cache, the driver's) and not counted as a start that ended inside them
 void prepare_stop();
 bool prepare_stopped();
-int driver_faults();   // (longshot, vk_draw.cpp) the driver faults the pipeline compiles caught so far (guarded_graphics, guarded_compute)
-/// (longshot, vk_draw.cpp) the pipelines the driver refused for want of memory so far (VK_ERROR_OUT_OF_DEVICE_MEMORY or
+int driver_faults();   // (timeLink, vk_draw.cpp) the driver faults the pipeline compiles caught so far (guarded_graphics, guarded_compute)
+/// (timeLink, vk_draw.cpp) the pipelines the driver refused for want of memory so far (VK_ERROR_OUT_OF_DEVICE_MEMORY or
 /// _HOST_MEMORY): texture_frame gives textures up when it grows
 extern std::atomic<int64_t> st_driver_out_of_memory;
-void prepare_left_workers_note();   // (longshot, vk_draw.cpp) predict_run or precompile_run left workers inside the driver
+void prepare_left_workers_note();   // (timeLink, vk_draw.cpp) predict_run or precompile_run left workers inside the driver
 bool prepare_left_workers();
 void fill_replay_table(MkwVkRenderer& t);     // vk_replay.cpp
 
@@ -459,16 +459,16 @@ inline int64_t perf_ticks_to_ns(int64_t ticks, int64_t freq) {
 // A cheap nanosecond clock for the per-phase replay timers. Ten QueryPerformanceCounter reads a draw were ~4% of
 // the GPU thread (gpu/render/rx_internal.h). The hot path reads the invariant TSC; the counter calibrates the scale once.
 inline int64_t prof_now() {
-#if defined(LONGSHOT_RDTSC)
+#if defined(TIMELINK_RDTSC)
     struct Scale { double ns_per; bool ok; };
     static const Scale scale = [] {
         LARGE_INTEGER f, a, b;
         QueryPerformanceFrequency(&f);
-        const uint64_t c0 = LONGSHOT_RDTSC();
+        const uint64_t c0 = TIMELINK_RDTSC();
         QueryPerformanceCounter(&a);
         volatile int sink = 0;
-        for (int i = 0; i < 400000; i++) { LONGSHOT_PAUSE(); sink += 1; }
-        const uint64_t c1 = LONGSHOT_RDTSC();
+        for (int i = 0; i < 400000; i++) { TIMELINK_PAUSE(); sink += 1; }
+        const uint64_t c1 = TIMELINK_RDTSC();
         QueryPerformanceCounter(&b);
         const int64_t dns = perf_ticks_to_ns(b.QuadPart - a.QuadPart, f.QuadPart);
         Scale s;
@@ -476,7 +476,7 @@ inline int64_t prof_now() {
         s.ns_per = s.ok ? (double)dns / (double)(c1 - c0) : 0.0;
         return s;
     }();
-    if (scale.ok) return (int64_t)((double)LONGSHOT_RDTSC() * scale.ns_per);
+    if (scale.ok) return (int64_t)((double)TIMELINK_RDTSC() * scale.ns_per);
 #endif
     LARGE_INTEGER t;
     QueryPerformanceCounter(&t);

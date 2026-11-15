@@ -71,7 +71,7 @@ int wmain(int argc, wchar_t **argv) {
     CHECK(g_home_ok && !wcscmp(g_home.root,argv[3]));
     CHECK(g_home.portable == (mode != 3));
     wchar_t inherited[MAX_PATH];
-    CHECK(GetEnvironmentVariableW(L"LONGSHOT_SETUP_BASE",inherited,MAX_PATH) && !wcscmp(inherited,argv[3]));
+    CHECK(GetEnvironmentVariableW(L"TIMELINK_SETUP_BASE",inherited,MAX_PATH) && !wcscmp(inherited,argv[3]));
     if (mode == 1) CHECK(hb_home_marked(g_home.root)==1);
     return 0;
 }
@@ -84,11 +84,11 @@ int wmain(int argc, wchar_t **argv) {
                         "-municode", "-I" + str(ROOT / "builder/setup"), str(c), "-o", str(exe)], check=True)
         tree = root / "Portable ü, tree"
         tree.mkdir()
-        home = tree / "LongshotBuilder-data"   # (not LongshotBuilder: the builder the zip carries, beside the setup)
+        home = tree / "timeLinkBuilder-data"   # (not timeLinkBuilder: the builder the zip carries, beside the setup)
         profile = root / "authored AppData"
         setup = tree / "Setup.exe"
         import os
-        env = {k: v for k, v in os.environ.items() if k.upper() not in ("LONGSHOT_SETUP_BASE", "LONGSHOT_BUILDER_PORTABLE")}
+        env = {k: v for k, v in os.environ.items() if k.upper() not in ("TIMELINK_SETUP_BASE", "TIMELINK_BUILDER_PORTABLE")}
         count = 0
         def run(module, expected, mode, overrides=None):
             nonlocal count
@@ -97,19 +97,19 @@ int wmain(int argc, wchar_t **argv) {
             count += 1
         run(setup, home, 1)
         run(setup, home, 0)
-        run(root / "downloaded-setup.exe", home, 0, {"LONGSHOT_SETUP_BASE": str(home), "LONGSHOT_BUILDER_PORTABLE": "1"})
+        run(root / "downloaded-setup.exe", home, 0, {"TIMELINK_SETUP_BASE": str(home), "TIMELINK_BUILDER_PORTABLE": "1"})
         moved = root / "Relocated ü, tree"
         tree.rename(moved)
-        home = moved / "LongshotBuilder-data"
+        home = moved / "timeLinkBuilder-data"
         run(moved / "Setup.exe", home, 0)
-        run(root / "standard-setup.exe", profile / "LongshotBuilder", 3)
-        run(root / "downloaded-setup.exe", home, 2, {"LONGSHOT_SETUP_BASE": "relative"})
-        run(root / "downloaded-setup.exe", home, 2, {"LONGSHOT_SETUP_BASE": str(profile), "LONGSHOT_BUILDER_PORTABLE": "1"})
+        run(root / "standard-setup.exe", profile / "timeLinkBuilder", 3)
+        run(root / "downloaded-setup.exe", home, 2, {"TIMELINK_SETUP_BASE": "relative"})
+        run(root / "downloaded-setup.exe", home, 2, {"TIMELINK_SETUP_BASE": str(profile), "TIMELINK_BUILDER_PORTABLE": "1"})
         readonly = root / "write-protected fixture"
         readonly.mkdir()
-        run(root / "downloaded-setup.exe", readonly, 4, {"LONGSHOT_SETUP_BASE": str(readonly)})
-        assert not (readonly / ".longshot-portable").exists()
-        marker = home / ".longshot-portable"
+        run(root / "downloaded-setup.exe", readonly, 4, {"TIMELINK_SETUP_BASE": str(readonly)})
+        assert not (readonly / ".timeLink-portable").exists()
+        marker = home / ".timeLink-portable"
         marker.write_text("broken")
         run(moved / "Setup.exe", home, 2)
         assert not profile.exists(), "No persistent AppData writes expected during fixture startup"

@@ -490,7 +490,7 @@ void AddOffsetToCoordinates(EmitContext& ctx, const IR::TextureInstInfo& info, I
     }
     coords = ctx.OpIAdd(result_type, coords, offset);
 }
-// (longshot, mma_layout.h fetch_bounds) Whether a texel fetch of image at coords (with its level, or its sample, when it has one)
+// (timeLink, mma_layout.h fetch_bounds) Whether a texel fetch of image at coords (with its level, or its sample, when it has one)
 // is inside the image, as U1; coords, lod and sample are made ones that are (a coordinate out of range 0, a level or sample past
 // the last 0), so that the fetch itself never leaves the image, and the caller answers zero for it. NVIDIA's GPUs answer an
 // out-of-bounds fetch with zero (measured on an RTX 3090 with robustness off: every texture type, past each edge, past the last
@@ -784,7 +784,7 @@ Id EmitImageFetch(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id c
         // This image is multisampled, lod must be implicit
         lod = Id{};
     }
-    if (fetch_bounds) {   // (longshot: FetchInBounds)
+    if (fetch_bounds) {   // (timeLink: FetchInBounds)
         const Id image{TextureImage(ctx, info, index)};
         const Id in_bounds{FetchInBounds(ctx, info, image, coords, lod, ms)};
         const ImageOperands operands(lod, ms);

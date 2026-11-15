@@ -1,6 +1,6 @@
 /* (longshot) The control bridge: HOS_CONTROL=<socket path> lets a tool on the same PC (a test, a script, a coding agent)
    drive the running game and read its state over a local socket, instead of a file the game polls (HOS_INPUT_LIVE) and its
-   log scraped for the frame rate and draw counts. docs/control.md has the protocol; scripts/longshot_ctl.py is a client.
+   log scraped for the frame rate and draw counts. docs/control.md has the protocol; scripts/timeLink_ctl.py is a client.
 
    Off unless HOS_CONTROL is set. Linux: a Unix domain socket at that path, made 0600 (the umask around bind too), never
    over an existing file that is not a socket, and a client of another user is turned away (SO_PEERCRED). Windows: a named
@@ -2001,7 +2001,7 @@ static int folder_private(const char *path) {
         return ctl_log("control: %s: the socket's folder %s is not there", path, dir), 0;
     if (st.st_uid != getuid() || (st.st_mode & (S_IWGRP | S_IWOTH)))
         return ctl_log("control: %s: the socket's folder %s must be this user's and writable by no one else (mode %03o): "
-                       "use a folder of your own, as longshot_ctl.py launch makes (0700, in $XDG_RUNTIME_DIR)",
+                       "use a folder of your own, as timeLink_ctl.py launch makes (0700, in $XDG_RUNTIME_DIR)",
                        path, dir, (unsigned)(st.st_mode & 0777)), 0;
     return 1;
 }

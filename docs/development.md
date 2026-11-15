@@ -1,7 +1,7 @@
-# Longshot (oot-recomp)
+# timeLink (oot-recomp)
 
-**Longshot** is the port's name (as Skybound is TOTKPort's and BlueShell is mkw-recomp's); the maintainer's repository
-folder stays `oot-recomp`. The game builds as `longshot.exe` + `longshot_vk.dll` (`longshot` + `longshot_vk.so` on Linux).
+**timeLink** is the port's name (as Skybound is TOTKPort's and BlueShell is mkw-recomp's); the maintainer's repository
+folder stays `oot-recomp`. The game builds as `timeLink.exe` + `timeLink_vk.dll` (`timeLink` + `timeLink_vk.so` on Linux).
 
 A static recompilation of the Switch 2 *The Legend of Zelda: Ocarina of Time* remake to native x86-64 Windows and Linux:
 the game's code lifted to C (NotRexed's a64-kit, Rexcomp's AArch64 kit), the Horizon OS and NVN2 implemented
@@ -18,32 +18,32 @@ the lessons carried over from MKW: [design.md](design.md).
 
 Requirements: Python 3 with `pip install -r requirements.txt` (`lz4`, `numpy`, `capstone`, `unicorn` 2.1,
 `zstandard`, and the button-prompt packages); a compiler: on Windows llvm-mingw
-(`LONGSHOT_MINGW`, or an `llvm-mingw` folder in the clone), else emsdk's clang at `C:\emsdk` (or `EMSDK`) with Visual
+(`TIMELINK_MINGW`, or an `llvm-mingw` folder in the clone), else emsdk's clang at `C:\emsdk` (or `EMSDK`) with Visual
 Studio's C++ tools; on Linux clang and lld. For the Vulkan back end: distro Vulkan / SPIR-V / VMA headers under
-`/usr`, or `LONGSHOT_VULKAN_HEADERS` / `LONGSHOT_SPIRV_HEADERS` / `LONGSHOT_VMA_HEADERS`, or a CPM package cache
+`/usr`, or `TIMELINK_VULKAN_HEADERS` / `TIMELINK_SPIRV_HEADERS` / `TIMELINK_VMA_HEADERS`, or a CPM package cache
 (`RX_CPM`, else `cpm` in the clone, else the old caches in mkw-recomp's `work/eg` or `..\Eglantine\.cache\cpm`).
 Without those the standalone build stops. [CONTRIBUTING.md](../CONTRIBUTING.md#development-setup) has the rest.
 
 On Linux, `make_game.py` checks the mandatory Python modules, compilers/linker, renderer headers and FFmpeg
 development libraries before reading or translating the dump, and lists every missing prerequisite in one error.
-It uses the compile's lookup order: CPM caches first, then `LONGSHOT_*_HEADERS`, then `/usr/local` and `/usr`;
-FFmpeg comes from `LONGSHOT_FFMPEG` when it holds `lib/libavcodec.a`, otherwise from `pkg-config`. The C probe
-uses the selected compiler, lld and `LONGSHOT_SYSROOT` if set. Every build compiles the Vulkan back end, the AppImage's
+It uses the compile's lookup order: CPM caches first, then `TIMELINK_*_HEADERS`, then `/usr/local` and `/usr`;
+FFmpeg comes from `TIMELINK_FFMPEG` when it holds `lib/libavcodec.a`, otherwise from `pkg-config`. The C probe
+uses the selected compiler, lld and `TIMELINK_SYSROOT` if set. Every build compiles the Vulkan back end, the AppImage's
 too, so the renderer headers and clang++ (for it and the native translator) are always needed.
-The AppImage uses tools.lock's Linux tools (builder/linux/linux_tools.py sets `EMSDK`, `LONGSHOT_SYSROOT`,
-`LONGSHOT_FFMPEG`, `LONGSHOT_SDL2` and `RX_CPM` to them),
+The AppImage uses tools.lock's Linux tools (builder/linux/linux_tools.py sets `EMSDK`, `TIMELINK_SYSROOT`,
+`TIMELINK_FFMPEG`, `TIMELINK_SDL2` and `RX_CPM` to them),
 and `RX_TARGET=windows` keeps the Windows toolchain checks rather than requiring Linux development libraries.
 The button-prompt packages in `nx2/prompt_requirements.txt` remain optional; this check installs nothing.
 The sysroot (`scripts/linux/deps.sh tools`) copies the system libraries it takes by value: a host's absolute
 development alias such as `libmvec.so` becomes the library's bytes, so the packed tool does not depend on the player's
 filesystem. Only its own relative `lib -> usr/lib` stays a link.
 
-On Linux, a game folder's `longshot` (`builder/linux/longshot-folder`) starts the program named by `builder=` in
-`longshot_version.txt`, the one that built the folder (the Longshot Launcher, or a builder AppImage), with
-`--launch <folder>`; when that one is gone, it starts `bin/longshot` (`tests/test_linux_downgrade.py`). The builders have
+On Linux, a game folder's `timeLink` (`builder/linux/timeLink-folder`) starts the program named by `builder=` in
+`timeLink_version.txt`, the one that built the folder (the timeLink Launcher, or a builder AppImage), with
+`--launch <folder>`; when that one is gone, it starts `bin/timeLink` (`tests/test_linux_downgrade.py`). The builders have
 no window: the AppImage's `--launch <folder>` (a folder it built with `--cli`) plays that folder's game, and `--cli` runs
-`make_game.py`. On Windows the folder's `longshot.exe` (`builder/setup/setup.c`) starts `bin\longshot.exe` itself. They never look
-for or install another version (the Longshot Launcher does).
+`make_game.py`. On Windows the folder's `timeLink.exe` (`builder/setup/setup.c`) starts `bin\timeLink.exe` itself. They never look
+for or install another version (the timeLink Launcher does).
 
 Run everything with `python -I` from this folder.
 
@@ -55,7 +55,7 @@ Run everything with `python -I` from this folder.
 | `python -I nx2/census.py --nx2` | instruction census per module, after the Switch 2 forms |
 | `python -I nx2/test_insn.py [--per 6 --states 12]` | every instruction form the game uses, Unicorn vs lifted C |
 | `python -I nx2/test_leaf.py [--count 3000 --states 4] [--calls]` | random whole functions (or call trees), Unicorn vs recompiled native code on the real image |
-| `python -I nx2/lift.py --standalone --write` then `python -I nx2/build.py --standalone --jobs 4` | the standalone game: `work/sa/build/longshot.exe` + `longshot_vk.dll` |
+| `python -I nx2/lift.py --standalone --write` then `python -I nx2/build.py --standalone --jobs 4` | the standalone game: `work/sa/build/timeLink.exe` + `timeLink_vk.dll` |
 | `powershell -File scripts/run-vk.ps1 [-Window] [-Seconds 120] [-Name x]` | a muted test run on Vulkan, with screenshots in `work/runs/<name>/shots` |
 | `python -I scripts/prof.py <stacks file>` | a profile sampled with `HOS_PROFILE=<seconds>` + `HOS_SAMPLE=<thread>` + `HOS_SAMPLE_FILE=<stacks file>` (the sampler runs only with `HOS_PROFILE` set), named from the linker maps |
 | `python -I scripts/tested_configurations.py [--output work/tested-configurations.md]` | Read the [tested configurations](tested-configurations.md), combining new run files with the frozen table; UTF-8 stdout by default, or a local Markdown file that is not committed |
@@ -94,14 +94,14 @@ These queries do not change bindings, load a mapping file, or change which contr
 
 A log line is info unless it says otherwise: `hos_log` and the renderer's `logf` write it as before. `hos_log_at(HOS_LOG_TRACE,
 ...)` (host/hos.h) and `logf_at(log_trace, ...)` (gpu/vk/vk_internal.h) give it another level, written after the thread's tag:
-`[hos host] [trace] vk: ...`, and likewise `[error]`, `[warn]` and `[debug]`. The log file keeps every line. The Longshot
+`[hos host] [trace] vk: ...`, and likewise `[error]`, `[warn]` and `[debug]`. The log file keeps every line. The timeLink
 Launcher's build log shows info and above unless its level picker asks for more; a builder or launcher that doesn't read the tag
 shows the line with it. Per-item lines a player can't act on (one per program or pipeline, a decoder's details) are debug or
 trace; `HOS_TRACE`'s calls are trace. `tests/test_log_levels.py` checks the tags.
 
 ## Switches for testing and debugging
 
-The running game reads its switches from the environment or from `longshot_env.txt` beside `image.bin` (one
+The running game reads its switches from the environment or from `timeLink_env.txt` beside `image.bin` (one
 `NAME=VALUE` a line, `#` for notes; `HOS_ENV_FILE=<path>` reads that file instead). The environment goes first: a name
 already set when the game starts keeps its value and the file's line for it is left out (the log says so). A switch
 that stands in for a menu row lasts for its run; the options file keeps the player's value (`env_override` in
@@ -119,7 +119,7 @@ A pull request that adds or changes one lists it in its description's *Flags and
 and the recommendation) and documents it here. There are several hundred more, most of them one-off
 experiments: `grep -rnE '(getenv|env_on)\("' host gpu/vk` lists them, and the comment where each is read says what it
 does. An on/off switch ("(set)" below) is on for `1` or any other value, and off when it is unset, empty, `0`, `false`,
-`off` or `no` (`env_on` in `gpu/vk/compat/longshot_env.h`, `kit.env_on` in Python); it used to be that any value turned
+`off` or `no` (`env_on` in `gpu/vk/compat/timeLink_env.h`, `kit.env_on` in Python); it used to be that any value turned
 one on, `0` included. A switch that takes a number or a list reads its value as it says.
 
 `RX_VK_MESH_NOCULL=<prefix,...>` turns off the culling in the task shaders whose native code key starts with one of
@@ -186,7 +186,7 @@ See [the format and history rules](temporal-history.md#psychov35-with-dlssdlaa-a
 | `RX_VK_DEVICE=<n>` | The graphics card listed as `vk: device <n>` in the log, over the menu's GPU device |
 | `HOS_TRACE=1` | Every Horizon call logged, as `--trace` does |
 | `HOS_CV_SIGNAL_ALWAYS` (set) | SignalConditionVariable takes its lock and wakes even when no thread waits, as before it returned at once for no waiter (`host/nn_os_sync.c`); a control for a hang or a movie stutter |
-| `RX_BACKEND=<name>` | Unset or `vulkan`: `longshot_vk.dll`; any other value: the WebGPU renderer, when the exe was built with one |
+| `RX_BACKEND=<name>` | Unset or `vulkan`: `timeLink_vk.dll`; any other value: the WebGPU renderer, when the exe was built with one |
 | `HOS_GPU_ALLOC_RETRY=0` | A model's material-block allocations from a full heap (the OptimizeChangeBank thread's two CPU buffers and two GPU-memory calls in f_804566e0) not tried in the heap's parents, as shipped (`host/oot_heap_retry.c`, issue 1697) |
 | `HOS_GPU_ALLOC_TEST_FAIL=<n>` or `<gpu>,<cpu>` | A test: the first n of those allocations of each kind (or that many of the GPU memory and of the CPU buffers) refused by the heap they name, as a full heap would, so the retry runs |
 | `HOS_MEMINFO_OLD=1` | The used memory the game is told (`QueryMemoryInfo`, svc `GetInfo` 7 and 22) is the program and the system's share alone, as before. By default it adds the heap and the pages the game mapped through `AllocateMemoryPages`, at most the console's total (`hos_used_memory`, `host/hos_mem.c`): told less, OoT kept mapping pages for its caches (7.9 GB in a long session). For A/B |
@@ -231,7 +231,7 @@ that the last run did not end cleanly. It cannot distinguish a power cut,
 forced termination, an out-of-memory kill, or a handler that could not run.
 Only file size/time and named trouble flags from the last log's tail are added,
 not arbitrary log text. Recovery runs before log rotation. The private marker keeps
-the host's selected destination (`logs/longshot_log.txt`, or its beside-game fallback)
+the host's selected destination (`logs/timeLink_log.txt`, or its beside-game fallback)
 or an externally redirected stderr file, rather than assuming a loose log.
 Live markers are skipped, even when two games use one folder; process-id liveness is not the test.
 SIGTERM, SIGINT and SIGHUP are deliberately not crash signals here. Logout,
@@ -315,7 +315,7 @@ case-sensitive, and an unknown one is ignored.
 |---|---|
 | `HOS_PROFILE=<seconds>` | Every interval, the busiest threads in the log; it also starts the samplers below |
 | `HOS_SAMPLE=<thread>` + `HOS_SAMPLE_FILE=<file>` | One thread's stacks, sampled every millisecond (needs `HOS_PROFILE`); `python -I scripts/prof.py <file>` reads them |
-| `HOS_SAMPLE_ALL=<file>` | Every game and renderer thread every 2 ms while `<file>.go` exists (needs `HOS_PROFILE`); `scripts/crit.py`, `scripts/vkprof.py`, `scripts/hotlist.py` and `scripts/cpu_report.py` (the [CPU profile](cpu-profile.md): CPU time by category, thread and function, and what limits the frame) read it (on Linux with `RX_MAPS=<game folder>`: they name frames from its `longshot` and `longshot_vk.so`) |
+| `HOS_SAMPLE_ALL=<file>` | Every game and renderer thread every 2 ms while `<file>.go` exists (needs `HOS_PROFILE`); `scripts/crit.py`, `scripts/vkprof.py`, `scripts/hotlist.py` and `scripts/cpu_report.py` (the [CPU profile](cpu-profile.md): CPU time by category, thread and function, and what limits the frame) read it (on Linux with `RX_MAPS=<game folder>`: they name frames from its `timeLink` and `timeLink_vk.so`) |
 | `HOS_CHAIN=<file>` | While `<file>.go` exists, every wait of a game thread that blocks, every signal that can end one, every sleep and every present, with the time, the thread, the object and the caller; written to `<file>` when `<file>.go` goes away (about 2 million records at most). `python -I scripts/chain.py <file> [<HOS_SAMPLE_ALL file>]` walks each frame back from its present (the thread that ran, the wait that stopped it, the thread whose signal ended it) and prints the frame's critical path by thread: running, wake-ups, sleeps, and, with a sample file of the same run, the functions on it |
 | `HOS_HLE_STATS=1` | About every 5 s, calls of each HLE function and host call (`hle:` lines, most called first), with measured monotonic clock boundaries. `scripts/cpu_report.py --calls` joins complete blocks to native frames in that clock span; per-call occupancy estimates require the same run's timestamped stacks. Off by default; take performance numbers from a run without counting |
 | `HOS_THREAD_TIMES=<seconds>` | Every interval, the threads that used over 5% of a core |
@@ -328,7 +328,7 @@ case-sensitive, and an unknown one is ignored.
 | `RX_VK_SLOW_LOG=<ms>` | The replay's times for each frame that took longer than this |
 | `RX_VK_LOG_PROGRAM_LIFE=1` | The programs' life: a log line at each program the game makes (its shaders set) or frees and at each program's first draw or dispatch (what it needed: a program read from the cache, a translation, a pipeline from a cache or compiled, left out, and how long after its create call), and a `program census` line every 600 presents |
 | `RX_VK_PRESENT_THREAD=1` | On (off by default: the game's thread presents). Where the device has a second queue that can present to the window (a second queue of the replay's family, else a compute family's): each present is made on a thread and queue of its own once the frame's copy into the window is done, and the game's thread goes on at once (with NVIDIA's driver on Wayland the present otherwise waits ~2.4 ms a frame for the GPU there). One present out at most; under V-Sync On (FIFO) with `VK_KHR_present_wait`, until it is shown. The log has the fence's and the present's time (and how long after it the frame was shown) every 600 presents |
-| `HOS_PGO=<file>` | In a run of an `RX_PGO=gen` build: `<file>.reset` clears the counters, `<file>.dump` writes them to `<file>`. It is read before `longshot_env.txt`, so set it in the environment |
+| `HOS_PGO=<file>` | In a run of an `RX_PGO=gen` build: `<file>.reset` clears the counters, `<file>.dump` writes them to `<file>`. It is read before `timeLink_env.txt`, so set it in the environment |
 | `RX_VK_PGO_FILE=<file>` | The same in a run of an `RX_VK_PGO=gen` renderer, for the renderer's own counters ([the renderer's play profile](#the-renderers-play-profile)); set it in the environment too |
 
 The periodic `GPU-bound wait` log value is **recording-slot reuse only** (the line says so), not a bottleneck test.
@@ -363,27 +363,27 @@ Pipeline-cache file ownership, temporary storage and failure behavior are descri
 | `RX_VK_PIPE_SKIP=0`, `1` or `2` | Default/`1`: wait for shader translation (with `RX_VK_TRANSLATE_WAIT_MS` set, a draw whose targets hold an earlier frame waits at most that long a frame in all, then is left out). A pending pipeline can be skipped only for attachment-only draws whose targets hold an earlier frame. `0`: wait for every translation and pipeline. `2`: restore the old skip for untranslated draws with persistent targets at once; this can omit writes before the shader is known. Translated memory-writing draws still wait |
 | `RX_VK_TRANSLATE_WAIT_MS=<ms>` | Off by default: each shader still translating is waited out, as #1573 does. Set (`8` is the tested value): how long, in all, each recording thread waits in a frame for shaders still translating before leaving their draws on earlier frames' targets out. For first-visit pauses of 0.2-3 s on a cold or changed program bank; a translation slower than the bound can lose a memory write, since its writes are not known before it is translated. A negative value is off; anything but a number is ignored with a warning; the value in use is logged. Compute dispatches still wait their translation out |
 | `RX_VK_JOB_STEAL=0` | A draw that must wait for its shader translation or pipeline build waits for a worker to reach it, behind every job queued before it, as before. By default a job it waits for that no worker has started yet is taken out of the queue and run on the waiting thread (it runs once either way; one a worker has started is waited for). The log's `vk: a draw's ... ran where it waited` lines (the first 10) say when it happened. Off follows the on/off rule above (`0`, `false`, `off`, `no`) |
-| `RX_VK_QUICK_MS=<ms>` | Quick pipelines (ported from Mako, by sharkiix): a draw whose pipeline is still being built by a worker first asks the caches for the full one without compiling (where the driver has `pipelineCreationCacheControl`), else gets one made at once without the driver's optimizer, into no pipeline cache, and is drawn with it until the worker's full build replaces it. Up to this many ms of those a frame on each recording thread for draws that could be left out: a build is not started where the thread's last one would not fit in what is left, but a frame's first always is, so a frame runs past the budget by at most one build. Draws that must wait get one whatever the budget. Off by default on every driver until measured in the game (it is for AMD's proprietary driver, where the optimizer took 5-13 s a pipeline: Mako, Volvagia's intro a black silhouette); `8` is the suggested value (half a 60 fps frame, as `RX_VK_TRANSLATE_WAIT_MS`; Mako's 1000 trades a missing draw for a hitch of up to a second). Where a quick build takes longer than that (tens of ms on AMD's proprietary driver), `8` means about one quick build a frame on each recording thread, each a hitch of that build's length; `0` or unset: off. Not made where the full build is made without the optimizer already (`RX_VK_NOOPT`, AMD's task and mesh programs); while the driver-fault gate has another build of the program in the driver (AMD, often the entry's own full build) none is made then, and a later draw tries again. The gate is per program, and a worker waiting at it takes it back before a later draw's try, so on AMD quick pipelines mostly come for programs no worker has reached yet (a backlog, as in a new area): a draw whose program is already building is left out or waits for the whole build, as without quick pipelines. Not with `RX_VK_PIPE_SKIP=0`, which waits for every pipeline. Deliberately, a full build that fails (or that the driver faults on) leaves the quick pipeline drawn with for the session, where the draw was left out before. Memory: a quick pipeline the full build replaced is not destroyed (nothing tells when the recordings that used it are done on the GPU), so each entry that got one keeps one more pipeline, unoptimised, for the session; the log's quick pipeline lines count them. Quick builds are not counted in the stats' pipelines. Anything but a number is ignored with a warning; the value in use is logged. Untested in the game in Longshot |
+| `RX_VK_QUICK_MS=<ms>` | Quick pipelines (ported from Mako, by sharkiix): a draw whose pipeline is still being built by a worker first asks the caches for the full one without compiling (where the driver has `pipelineCreationCacheControl`), else gets one made at once without the driver's optimizer, into no pipeline cache, and is drawn with it until the worker's full build replaces it. Up to this many ms of those a frame on each recording thread for draws that could be left out: a build is not started where the thread's last one would not fit in what is left, but a frame's first always is, so a frame runs past the budget by at most one build. Draws that must wait get one whatever the budget. Off by default on every driver until measured in the game (it is for AMD's proprietary driver, where the optimizer took 5-13 s a pipeline: Mako, Volvagia's intro a black silhouette); `8` is the suggested value (half a 60 fps frame, as `RX_VK_TRANSLATE_WAIT_MS`; Mako's 1000 trades a missing draw for a hitch of up to a second). Where a quick build takes longer than that (tens of ms on AMD's proprietary driver), `8` means about one quick build a frame on each recording thread, each a hitch of that build's length; `0` or unset: off. Not made where the full build is made without the optimizer already (`RX_VK_NOOPT`, AMD's task and mesh programs); while the driver-fault gate has another build of the program in the driver (AMD, often the entry's own full build) none is made then, and a later draw tries again. The gate is per program, and a worker waiting at it takes it back before a later draw's try, so on AMD quick pipelines mostly come for programs no worker has reached yet (a backlog, as in a new area): a draw whose program is already building is left out or waits for the whole build, as without quick pipelines. Not with `RX_VK_PIPE_SKIP=0`, which waits for every pipeline. Deliberately, a full build that fails (or that the driver faults on) leaves the quick pipeline drawn with for the session, where the draw was left out before. Memory: a quick pipeline the full build replaced is not destroyed (nothing tells when the recordings that used it are done on the GPU), so each entry that got one keeps one more pipeline, unoptimised, for the session; the log's quick pipeline lines count them. Quick builds are not counted in the stats' pipelines. Anything but a number is ignored with a warning; the value in use is logged. Untested in the game in timeLink |
 | `RX_VK_PIPE_WAIT_MS=<ms>` | Off by default. Set (Mako uses 100): a draw on earlier frames' targets whose pipeline is still being built, with no quick one, has its build moved to the front of the workers' queue and waits for it at most this long a frame in all, on each recording thread, before it is left out. The build is not run on the waiting thread (one started cannot be stopped, and took seconds on AMD). Pipelines only: shaders still translating follow `RX_VK_TRANSLATE_WAIT_MS`. Anything but a number is ignored with a warning |
 | `RX_VK_TEST_SLOW_MS=<ms>` | A test, off by default: each draw's full pipeline build (a worker's) is held this long (at most 60000) inside the driver-fault gate, as AMD's optimizer on a cold cache, to watch quick pipelines and the brief wait on any GPU. The gate holds one build of a program at a time only on AMD: elsewhere add `RX_VK_DRIVER_FAULTS=2` to see a quick build meet the program's full build in the driver, as on AMD. Anything but a number is ignored with a warning |
-| `RX_VK_LOAD=create` or `start` | When programs and their pipelines are loaded from what the preparation kept. Without the switch: `create` where the GPU has mesh shaders, `start` where it draws mesh programs through the compute fallback; and `start` on an install where first uses waited for loads for over 2 s in one session, or for over 500 ms in two sessions running (only waits longer than 20 ms count; one such session alone leaves `longshot_load_start.txt.waited`, which the next start takes away), or where the loads found over 500 listed pipelines in no cache (draws left out for pipelines no list names are not counted: they happen in `start` too) (`longshot_load_start.txt` in the game folder's `cache`, removed by a preparation or by hand). The first start of the game after a preparation builds every noted pipeline and every kept compute program's pipeline into the pipeline cache once, before the title, and lets each go; the preparation's own process does the same to fill the driver's cache but leaves no marker, since its pipeline cache does not answer the game's process on NVIDIA. With the compressed program cache (`RX_VK_PROGRAM_CACHE_ZSTD=1`) always `start`, whatever this switch says: its records are only read whole. The log says which and why. `start`: every listed one before the title, as before. `create`: none by a list; each program's kept variants and noted pipelines are loaded by a background job when the game makes the program (from the caches only: never a translation or a compile there), and a first draw that comes before its job ran runs it itself. The first start after a preparation builds each noted pipeline into the pipeline cache once and lets it go (before the title, with the precompile's progress), and only then loads at create. `RX_VK_LOAD_WORKERS=<n>` (2): the jobs that run at once (0, to measure: none, a draw loads what it needs itself); `RX_VK_LOAD_UNLISTED=1`: programs no list has a pipeline of are loaded at their create call too (otherwise at their first draw, as with `start`); `RX_VK_LOAD_WORKERS_LOADING=<n>`: while no frame was presented for 100 ms (the same unless set) |
-| `RX_VK_MODULE_IDS=0` | Shader module identifiers off (`VK_EXT_shader_module_identifier`). With them a compute program's module is learned by its identifier when it is first made from its code (`longshot_module_ids.bin`, for one program cache and one driver), and in a later run the load at the program's create call makes that variant's pipeline from the caches without reading its code or making a module; where no cache has the pipeline the code is read as before |
-| `RX_VK_COMPILE_SHADERS=all` or `most` | What a preparation builds, over `compile_shaders` in `longshot_options.ini` (the game's `--compile-shaders` sets it): `all` the predicted pipelines too (`predict_run`), `most` without them. The log's `vk: Compile shaders:` line says which and why. Most also removes what an earlier preparation on All left (`longshot_pipelines.bin.predicting`, `.predicted`, `.predicted_keys`) |
+| `RX_VK_LOAD=create` or `start` | When programs and their pipelines are loaded from what the preparation kept. Without the switch: `create` where the GPU has mesh shaders, `start` where it draws mesh programs through the compute fallback; and `start` on an install where first uses waited for loads for over 2 s in one session, or for over 500 ms in two sessions running (only waits longer than 20 ms count; one such session alone leaves `timeLink_load_start.txt.waited`, which the next start takes away), or where the loads found over 500 listed pipelines in no cache (draws left out for pipelines no list names are not counted: they happen in `start` too) (`timeLink_load_start.txt` in the game folder's `cache`, removed by a preparation or by hand). The first start of the game after a preparation builds every noted pipeline and every kept compute program's pipeline into the pipeline cache once, before the title, and lets each go; the preparation's own process does the same to fill the driver's cache but leaves no marker, since its pipeline cache does not answer the game's process on NVIDIA. With the compressed program cache (`RX_VK_PROGRAM_CACHE_ZSTD=1`) always `start`, whatever this switch says: its records are only read whole. The log says which and why. `start`: every listed one before the title, as before. `create`: none by a list; each program's kept variants and noted pipelines are loaded by a background job when the game makes the program (from the caches only: never a translation or a compile there), and a first draw that comes before its job ran runs it itself. The first start after a preparation builds each noted pipeline into the pipeline cache once and lets it go (before the title, with the precompile's progress), and only then loads at create. `RX_VK_LOAD_WORKERS=<n>` (2): the jobs that run at once (0, to measure: none, a draw loads what it needs itself); `RX_VK_LOAD_UNLISTED=1`: programs no list has a pipeline of are loaded at their create call too (otherwise at their first draw, as with `start`); `RX_VK_LOAD_WORKERS_LOADING=<n>`: while no frame was presented for 100 ms (the same unless set) |
+| `RX_VK_MODULE_IDS=0` | Shader module identifiers off (`VK_EXT_shader_module_identifier`). With them a compute program's module is learned by its identifier when it is first made from its code (`timeLink_module_ids.bin`, for one program cache and one driver), and in a later run the load at the program's create call makes that variant's pipeline from the caches without reading its code or making a module; where no cache has the pipeline the code is read as before |
+| `RX_VK_COMPILE_SHADERS=all` or `most` | What a preparation builds, over `compile_shaders` in `timeLink_options.ini` (the game's `--compile-shaders` sets it): `all` the predicted pipelines too (`predict_run`), `most` without them. The log's `vk: Compile shaders:` line says which and why. Most also removes what an earlier preparation on All left (`timeLink_pipelines.bin.predicting`, `.predicted`, `.predicted_keys`) |
 | `RX_VK_PRECOMPILE=0` or `1` | The shader preparation before the title off or on (on in builds made with `RX_RELEASE=1`, as the builders' are) |
-| `RX_VK_MESH_SHADERS=native` or `compute` | How task and mesh programs run, read as the device is made (`gpu/vk/mesh_mode.h`; it was the Graphics tab's Mesh shaders row). Unset or any other value: Automatic, the GPU's own mesh shaders where it has them; the compute fallback where it has not, on Linux AMD (RADV, issue 2245), and for the task + mesh draws of the GPUs `RX_VK_TASK_MESH_FALLBACK`'s default names. `native`: the GPU's own for every draw (a GPU without them still gets the fallback). `compute`: the fallback on every GPU. `RX_VK_FORCE_MESH_FALLBACK=1` is `compute` over it. The log's `vk: mesh shaders:` line says which and where it came from. A change translates the programs again, as the program cache's stamp holds the GPU's mesh path (and every `RX_VK_MESH*` switch's text). The old `mesh_shaders=` line in `longshot_options.ini` is no longer read: the log names it, and the menu's next save drops it |
+| `RX_VK_MESH_SHADERS=native` or `compute` | How task and mesh programs run, read as the device is made (`gpu/vk/mesh_mode.h`; it was the Graphics tab's Mesh shaders row). Unset or any other value: Automatic, the GPU's own mesh shaders where it has them; the compute fallback where it has not, on Linux AMD (RADV, issue 2245), and for the task + mesh draws of the GPUs `RX_VK_TASK_MESH_FALLBACK`'s default names. `native`: the GPU's own for every draw (a GPU without them still gets the fallback). `compute`: the fallback on every GPU. `RX_VK_FORCE_MESH_FALLBACK=1` is `compute` over it. The log's `vk: mesh shaders:` line says which and where it came from. A change translates the programs again, as the program cache's stamp holds the GPU's mesh path (and every `RX_VK_MESH*` switch's text). The old `mesh_shaders=` line in `timeLink_options.ini` is no longer read: the log names it, and the menu's next save drops it |
 | `RX_VK_TASK_MESH_FALLBACK=0` or `1` | Task + mesh draws through the compute fallback (1) or the driver's mesh shaders (0). By default the fallback is on for AMD's Navi 21 (RX 6800, 6800 XT, 6900 XT, 6950 XT, Radeon Pro W6800, W6900X, V620), Navi 22 (RX 6700, 6700 XT, 6750 XT, 6700M to 6850M XT) and Navi 23 (RX 6600, 6600 XT, 6650 XT, their mobile models, Radeon Pro W6600, W6600M) on Windows: each chip's every ID that pci-ids or amdgpu.ids name a card for, where the native path timed out the driver ([Hookshot #996](https://github.com/NotRexed/Hookshot/issues/996)). Navi 24 (RX 6300, 6400, 6500 XT, Radeon Pro W6300 to W6500M) is not on by default: no report yet; `RX_VK_TASK_MESH_FALLBACK=1` to try. The device IDs: `mesh_rule::task_mesh_fallback_default` in `gpu/vk/mesh_mode.h` |
 | `RX_VK_FALLBACK_LOADED=0` | Where mesh programs are drawn through the compute fallback: the start makes the compute pipelines only of the fallback programs it reads in for that, as before, and not of those read in earlier in the same start (the state lists' programs, in the start that prepares the shaders), whose first draws are then left out until their pipelines are compiled in play |
 | `RX_VK_FALLBACK_PHI_LIMIT=<n>` | RADV on GCN 1-4 cards (RX 400/500, R9 2xx/3xx/Fury): a mesh fallback compute stage with more than this many phis is not built and its draws are left out (default 50000; `0`: no limit; anything but decimal digits is ignored with a warning; the limit in use is logged). Its compiler did not finish the two biggest mesh programs (80,000 phis) and grew past 25 GB (`gpu/vk/fallback_size_policy.h`) |
-| `RX_VK_DRIVER_FAULTS=0` or `2` | 0: programs the driver's compiler faulted on are asked of it again. By default they are left out for the rest of the run and, through `longshot_driver_faults.txt` in the game folder's `cache`, on later runs with the same driver, and on AMD one program's builds go to the driver one at a time (issue 996). 2: one at a time on every driver |
-| `RX_VK_NO_INTEL_SERIAL=1` | On Windows, Intel's compiler (UHD and Arc) is entered by one thread, and a fault creating a shader or pipeline leaves that one out. This builds them side by side, as on every other GPU and on Intel elsewhere, for the run: the Debug tab's Intel shader compiles row shows it and is not changed (`longshot_options.ini` keeps the row's own, `intel_shader_compiles=`). The log says which |
-| `RX_VK_COMPUTE_QUICK_FIRST=0` | With Intel's compute pipelines built one at a time on Windows (Intel's own driver; not on Linux, where Mesa's ANV ignores the optimizer flag), a dispatch's pipeline is built first without the driver's optimizer (seconds where the optimizer took up to minutes on a UHD Graphics) and the optimized one is bound once it is built behind the others. This builds the optimized one only, as before, for the run: the Debug tab's Intel quick compute builds row shows it (`longshot_options.ini` keeps the row's own, `intel_quick_compute_builds=`) |
+| `RX_VK_DRIVER_FAULTS=0` or `2` | 0: programs the driver's compiler faulted on are asked of it again. By default they are left out for the rest of the run and, through `timeLink_driver_faults.txt` in the game folder's `cache`, on later runs with the same driver, and on AMD one program's builds go to the driver one at a time (issue 996). 2: one at a time on every driver |
+| `RX_VK_NO_INTEL_SERIAL=1` | On Windows, Intel's compiler (UHD and Arc) is entered by one thread, and a fault creating a shader or pipeline leaves that one out. This builds them side by side, as on every other GPU and on Intel elsewhere, for the run: the Debug tab's Intel shader compiles row shows it and is not changed (`timeLink_options.ini` keeps the row's own, `intel_shader_compiles=`). The log says which |
+| `RX_VK_COMPUTE_QUICK_FIRST=0` | With Intel's compute pipelines built one at a time on Windows (Intel's own driver; not on Linux, where Mesa's ANV ignores the optimizer flag), a dispatch's pipeline is built first without the driver's optimizer (seconds where the optimizer took up to minutes on a UHD Graphics) and the optimized one is bound once it is built behind the others. This builds the optimized one only, as before, for the run: the Debug tab's Intel quick compute builds row shows it (`timeLink_options.ini` keeps the row's own, `intel_quick_compute_builds=`) |
 | `HOS_VIDEO_NO_CATCHUP=1` | A movie does not skip pictures that are behind its sound. By default, pictures already decoded are skipped, and a decoder that keeps up decodes ahead to skip a late one (at most one picture's time in a frame). A decoder slower than the gap between pictures, timed over its recent pictures, shows the late one instead of decoding the next in order to drop it |
 | `HOS_VIDEO_ACQUIRE_TRIES=1` | The movie waits for a picture by 50 sleeps of 2 ms, as before. By default the wait is by the clock: about 100 ms for each picture, the first too, and none after a Stop or Flush with nothing submitted since |
 | `RX_VK_GM_LOOP=0` or `1` | The storage buffer tables of a global memory access searched in a loop (1) or written out entry by entry (0). On by default on Intel, whose compiler did not finish the culling programs with the entries written out |
 | `RX_VK_HANDLE_TABLES=0` | A texture handle a shader reads from a table at an index of its own (OoT's clustered lights: each light's shadow map, read per pixel from the light table) translated as before instead of as a descriptor array of the table's first 64 entries (`handle_tables_on` in `gpu/vk/vk_shader.cpp`, the texture pass's handle tables): those shadow tests then read no texture (the dark and green blocks of issue 52). Off, the texture pass's other changes that came with the tables are off too (its search skipping texture results and float math, words of 12- and 16-byte loads, the shared handle programs, the pointer words), so the translation is the one before them. On by default where the GPU indexes sampled image arrays per pixel (`shaderSampledImageArrayNonUniformIndexing`) and has at least 256 sampled images, samplers and resources a stage and 512 sampled images and samplers a set; the log says `vk: handle tables as descriptor arrays: on`, or which check turned them off. Part of the program cache's stamp when off; `nx2/bake_ds` bakes with them on unless `--feature no-handle-tables` |
 | `RX_VK_IMPORT_CHUNK_MB=<MB>` | The size game memory is imported for the GPU by, and so a pool's VRAM mirror's least size (default 4 where the pools have VRAM mirrors, discrete cards; 16 without them, and before). Larger: fewer imports, more of each mirror outside the game's pools |
-| `RX_VK_NO_PROGRAM_CACHE` (set) | Neither reads nor writes `longshot_programs.bin` and the pipeline notes |
-| `RX_VK_PCACHE_STAMP=0` | Keeps `longshot_vk_pipelines.bin` and its play files whatever translator made them. By default they are dropped at a start when `longshot_vk_pipelines.stamp` says another translator made them (as the program cache starts over), since their pipelines can no longer be hit |
+| `RX_VK_NO_PROGRAM_CACHE` (set) | Neither reads nor writes `timeLink_programs.bin` and the pipeline notes |
+| `RX_VK_PCACHE_STAMP=0` | Keeps `timeLink_vk_pipelines.bin` and its play files whatever translator made them. By default they are dropped at a start when `timeLink_vk_pipelines.stamp` says another translator made them (as the program cache starts over), since their pipelines can no longer be hit |
 | `RX_VK_PCACHE_FETCH_LOCK=0` or `1` | A pipeline cache's data fetched (`vkGetPipelineCacheData`, the saves) only while no pipeline is being built with a cache, and a build waiting for a fetch: Intel's Windows driver crashes in `igvk64.dll` when the two overlap. The lock is held around `vkGetPipelineCacheData` alone, never across a file's write nor a wait for the builds. The background save waits up to 2 s for a moment with no build, else is put off to the next one (after 3 in a row the next one queues, up to 10 s); the forced saves wait; the window's close waits up to 10 s for the builds under way, then leaves the play file unwritten rather than hang (and up to 10 s more for each of its two fetches). With it off every wait is as before: the close waits for the builds. Default 1 with Intel's Windows driver, 0 elsewhere |
 | `RX_VK_FETCH_BOUNDS=0` or `1`, `RX_VK_NAN_BITS=0` or `1`, `RX_VK_GATHER_OFFSET=0` or `1` | The translation's vendor and driver workarounds (`gpu/vk/vk_vendor.h`) off or on for one run, whatever the GPU; the log's `vk: vendor fixes` line says which are on. By default: out-of-bounds texel fetches answered with 0 on every GPU but NVIDIA's; NaN tests on a value's bits on AMD's older Windows shader compiler (RX 5000 and RX 6000); gathers nudged by 1/512 of a texel on AMD's and Intel's drivers. They change the shaders' translation (one preparation of the shaders) |
 | `RX_VK_NATIVE_FADD=0` or `1` | The shaders' float adds to storage buffers: 1 the GPU's own atomic where it has `VK_EXT_shader_atomic_float`'s `shaderBufferFloat32AtomicAdd`, 0 a compare-exchange loop on every GPU, the extension not enabled. By default the GPU's own on NVIDIA's driver, on Intel's Windows driver from 101.9175 with the Meteor Lake and Arrow Lake iGPUs (PCI device 0x7Dxx), and from 101.9154 with the Arc B-series cards (Battlemage, 0xE2xx; the loop lost the device on entering Kokiri Forest on a B580): what it was tried on in the game. Changing it, or the first start after an update that changes it, empties the whole program cache and `mkw_vk_pipelines.bin` (the translator's stamp holds it): everything is translated and prepared again, one long start on an iGPU. Elsewhere (AMD, Mesa's Intel driver, Intel's other GPUs and older drivers on Windows) the loop until runs there show the native add works (the log's `vk: float atomic add on storage buffers:` line says which, and why). The loop gives up after 1024 attempts, and an add that gives up is lost |
@@ -415,9 +415,9 @@ Pipeline-cache file ownership, temporary storage and failure behavior are descri
 | `RX_VK_SHADOW_FOLLOWS_SYNC=0` | The write-back shadow is filled from guest memory at the write-back, as before, instead of taking the same bytes as the mirror's sync (with it off the diff can write a capture's older words over the CPU's newer ones) |
 | `RX_VK_WB_OBSERVE=1` | Opt-in diagnostics for actual mirror/shadow differences in the write-back diff pass. Reports completed chunks and bytes covered by changed chunks every 600 submissions; does not change copy decisions. See [write-back observations](writeback-observations.md) for interpretation and tests |
 | `RX_VK_DLSS=0/1/2`, `RX_VK_DLSS_PRESET=<letter>`, `RX_VK_DLSS_LOG=1`, `RX_VK_REFLEX`, `RX_VK_REFLEX_LOG=1`, `RX_VK_REFLEX_SUBMIT_IDS=0`, `RX_VK_ANTILAG=0/1` | NVIDIA DLSS and Reflex, and AMD Anti-Lag 2, for one run (`=-` on Reflex or Anti-Lag 2: its extensions not even enabled): the readme's NVIDIA DLSS section. `RX_VK_DLSS_TRACE=<frames>` logs one frame's large draws every that many frames, `RX_VK_DLSS_DEBUG=motion` shows the motion vectors, `=alternate` the game's own upscale every other frame. `RX_VK_DLSS_HDR=0` keeps DLSS's LDR feature and clamped colour with Native HDR too, for comparisons. `RX_VK_REFLEX_SUBMIT_IDS=0` sends the queue submits without their game frame (`VkLatencySubmissionPresentIdNV`, `gpu/vk/vk_reflex.cpp`), for comparisons: with frame generation, Reflex's "to the GPU's end" timing then goes wrong by hundreds of ms. Actor motion (skinned models' own motion, drawn over the camera's for every temporal upscaler, `gpu/vk/vk_temporal.cpp`): `RX_VK_DLSS_ACTORS=0` turns it off, `RX_VK_DLSS_ACTOR_LIVE=1` copies each pose from the game's memory at the upscale as before rather than reading it at the draw (for an A/B), and `RX_VK_DLSS_ACTOR_REACH=<units a second>` (default 60, over at most 1/30 s: 2 units) is how far a copy of a model may move between two frames and still pair with itself by place |
-| `RX_VK_FSR4=0/1/2`, `RX_VK_FSR_DIR=<folder>`, `RX_VK_FSR4_HDR=0` | AMD FSR 4 for one run (0 never, 1 FSR 4, 2 its Native AA), and another folder for AMD's DLLs (not from `longshot_env.txt`): the readme's AMD FSR 4 section. `RX_VK_FSR4=1/2` and `RX_VK_DLSS=1/2` go over the Upscaler row, a saved FSR 3.1 too where the engine they ask for runs; `RX_VK_FSR=1` goes over them (one upscaler at a time). The DLSS trace and debug switches above (and `RX_VK_DLSS_JITTER=0`) apply to FSR 4 too, and to FSR 3.1 on the chain, on the frame chain they share. `RX_VK_FSR4_HDR=0`: with HDR on Native, FSR 4 keeps its LDR context and the colour clamped at the paper white, as before (by default it takes the game's HDR colour as linear light while the game presents PQ). `RX_VK_FSR4_TUNE=0`: AMD's passes as AMD made them; by default, on AMD GPUs, the network's layers run 64 lanes wide, the weight tables the layers and the postpass copy into per-thread arrays are read from a tail of the library's storage buffer, and the small layers with weight tables are unrolled, built one at a time in the background (`gpu/vk/fsr4_tune.h`, `vk_fsr4.cpp`); checked bit for bit against AMD's output on an RX 6700 XT with Adrenalin 26.10.1 (other drivers: the same maths, not necessarily the same bits). Where the library binds its buffer without the tail, or destroys it, AMD's own shaders are bound for that context and the log says so (`AMD's own shaders in place of the tuned ones`). `RX_VK_FSR4_UNROLL=0`: all of that but the unrolling |
+| `RX_VK_FSR4=0/1/2`, `RX_VK_FSR_DIR=<folder>`, `RX_VK_FSR4_HDR=0` | AMD FSR 4 for one run (0 never, 1 FSR 4, 2 its Native AA), and another folder for AMD's DLLs (not from `timeLink_env.txt`): the readme's AMD FSR 4 section. `RX_VK_FSR4=1/2` and `RX_VK_DLSS=1/2` go over the Upscaler row, a saved FSR 3.1 too where the engine they ask for runs; `RX_VK_FSR=1` goes over them (one upscaler at a time). The DLSS trace and debug switches above (and `RX_VK_DLSS_JITTER=0`) apply to FSR 4 too, and to FSR 3.1 on the chain, on the frame chain they share. `RX_VK_FSR4_HDR=0`: with HDR on Native, FSR 4 keeps its LDR context and the colour clamped at the paper white, as before (by default it takes the game's HDR colour as linear light while the game presents PQ). `RX_VK_FSR4_TUNE=0`: AMD's passes as AMD made them; by default, on AMD GPUs, the network's layers run 64 lanes wide, the weight tables the layers and the postpass copy into per-thread arrays are read from a tail of the library's storage buffer, and the small layers with weight tables are unrolled, built one at a time in the background (`gpu/vk/fsr4_tune.h`, `vk_fsr4.cpp`); checked bit for bit against AMD's output on an RX 6700 XT with Adrenalin 26.10.1 (other drivers: the same maths, not necessarily the same bits). Where the library binds its buffer without the tail, or destroys it, AMD's own shaders are bound for that context and the log says so (`AMD's own shaders in place of the tuned ones`). `RX_VK_FSR4_UNROLL=0`: all of that but the unrolling |
 | `RX_VK_FSR3_CHAIN=0` | AMD FSR 3.1 upscales with inputs of its own (`vk_fsr3_inputs.cpp`: the camera's motion alone) instead of as an engine of `vk_temporal.cpp`'s chain (the skinned draws' own motion, as DLSS and FSR 4 get it), for comparisons. The log says `vk: fsr3 on the chain: N frames drawn` on the chain, `vk: fsr3 ... with assembled depth and camera motion` without |
-| Threaded rendering (the Insert menu's row, `threaded_rendering=` in `longshot_options.ini`) | The player's one setting for the two threads (`gpu/vk/threaded_rendering.h`): Off (2) is the replay on the game's submitting thread; On (1) is the render thread, exactly as `RX_VK_ASYNC=1` below, and the recorder thread, as `RX_VK_RECORDER=thread`, together; Auto (0, the default) picks On where the process may run on 12 or more logical processors (its affinity mask, `usable_cpus`, not the PC's count) and Off with fewer, and Off where the mode is not safe: `RX_VK_CAPTURE=0`, `RX_VK_LOW_SPEC`, `RX_VK_DUMP`, `RX_VK_BENCH`, or buffer pools with no mirrors (`RX_VK_MIRROR=0`, an integrated GPU, GCN). One constant, `threaded::kAutoEnabled` in that header, is the gate over Auto's rule: it is `true`, and turning it to `false` makes Auto Off on every PC again, with nothing else to change. Still open with it on: GPU-written tables over 16 KiB that the game reads back without waiting (Hyrule Field's culling tables) can be a frame old behind the game. Not yet in Auto's rule: a pool refused its mirror, or over the mirrors' budget, while the game runs (it needs a fall-back at run time, which is not written). The row is read once, at the start (`menu_threaded_rendering`, logged as `vk: Threaded rendering: ...`): a change applies at the next start. The switches stay over it, for testing: `RX_VK_ASYNC` set chooses the replay's thread and `RX_VK_RECORDER` set the recorder, each for its own half, whatever the row says; unset, the row decides. The host learns the replay's half from the renderer (`HOS_OPT_RENDER_THREAD`, `host/nvn_native.c`'s present poll), not from `RX_VK_ASYNC` |
+| Threaded rendering (the Insert menu's row, `threaded_rendering=` in `timeLink_options.ini`) | The player's one setting for the two threads (`gpu/vk/threaded_rendering.h`): Off (2) is the replay on the game's submitting thread; On (1) is the render thread, exactly as `RX_VK_ASYNC=1` below, and the recorder thread, as `RX_VK_RECORDER=thread`, together; Auto (0, the default) picks On where the process may run on 12 or more logical processors (its affinity mask, `usable_cpus`, not the PC's count) and Off with fewer, and Off where the mode is not safe: `RX_VK_CAPTURE=0`, `RX_VK_LOW_SPEC`, `RX_VK_DUMP`, `RX_VK_BENCH`, or buffer pools with no mirrors (`RX_VK_MIRROR=0`, an integrated GPU, GCN). One constant, `threaded::kAutoEnabled` in that header, is the gate over Auto's rule: it is `true`, and turning it to `false` makes Auto Off on every PC again, with nothing else to change. Still open with it on: GPU-written tables over 16 KiB that the game reads back without waiting (Hyrule Field's culling tables) can be a frame old behind the game. Not yet in Auto's rule: a pool refused its mirror, or over the mirrors' budget, while the game runs (it needs a fall-back at run time, which is not written). The row is read once, at the start (`menu_threaded_rendering`, logged as `vk: Threaded rendering: ...`): a change applies at the next start. The switches stay over it, for testing: `RX_VK_ASYNC` set chooses the replay's thread and `RX_VK_RECORDER` set the recorder, each for its own half, whatever the row says; unset, the row decides. The host learns the replay's half from the renderer (`HOS_OPT_RENDER_THREAD`, `host/nvn_native.c`'s present poll), not from `RX_VK_ASYNC` |
 | `RX_VK_ASYNC=1` | The render thread (off by default; the Threaded rendering row's On turns it on too, with this unset; any value but `0` turns it on, and there is no `=2` any more: the older replay thread that `=1` used to mean, on which the game still waited for the replay at every frame, is removed): the replay on a thread of its own instead of the game's submitting thread, with the game let run one frame ahead of it, so a frame costs the larger of the game's work and the replay's instead of their sum. The game's present poll is answered at once and the present waits for room instead. It replays whole frames: the present is handed over after the main thread's signal for its frame, and the render thread starts a frame's jobs when that present has been handed over, so it never replays a frame the game is still writing (that drew the lit scene black for one frame at some of the moments it caught up with the game); what a game thread waits for (a queue finish, a texture read back, a fence of the frame in the making) goes on at once, and so does a job with no present behind it after `RX_VK_FRAME_GATE_MS` (1000); the log's `vk: the render thread's whole frames (600 presents)` line counts those (`RX_VK_FRAME_GATE=0`, a test: jobs replayed as they come, as before; `RX_VK_PRESENT_AFTER_SIGNAL=0`/`1`, a test: the present's part alone). Readbacks of small ranges (meters and counters, up to 16 KiB) wait for the write-backs recorded so far, not for the queue, as do larger ones: a read the game makes without waiting for the GPU gets the latest result that has landed, as on the console (`RX_VK_READBACK_EXACT=1`, a test: every range is read after everything handed over before the read is replayed; `=2`: only the ranges over 16 KiB; `RX_VK_LOG_READBACK_RANGES=2` logs the ranges, largest first, with how many frames old what each read got is); nothing but a present or `RX_VK_HOLD_MS` forces a stopped queue; occlusion queries stay on. GPU results the game reads without waiting for the GPU reach it up to a frame later than with the default; for the large GPU-written tables (over 16 KiB: Hyrule Field's culling tables) whether that is what the console gives is an open TODO, and this must not become the default until it is closed. The log's `vk: the render thread (600 presents ...)` line says what its jobs took and what the game waited for. `HOS_PRESENT_NOWAIT=0` with it: the poll as before (the game then waits for each frame's GPU work) |
 | `RX_VK_REPLAY_PIN=0` | A/B switch: a thread that replays a submission (the default, `RX_VK_ASYNC` off) stays on its own processors instead of moving to the core kept for the replay (`HOS_RESERVE_CORE`) while it replays, on Windows and Linux. The log says `vk: replays run on logical processors ...` when the move is on |
 | `RX_VK_RECORDER_OWN` (set), `RX_VK_RECORDER_IDLE=wait` | With `RX_VK_RECORDER=thread` (the recorder thread, `gpu/vk/vk_recorder.h`): a recording slot's own command pool and descriptor pool resets at its reuse made without waiting for the recorder; and the recorder's idle a 20 us spin, then a wait on its ring (`WaitOnAddress`, a futex on Linux) instead of the adaptive spin. Both off by default; each named in the recorder's start line |
@@ -434,30 +434,30 @@ A build reads and writes tens of gigabytes. When the game folder or the build fi
 
 | Switch | What it does |
 |---|---|
-| `LONGSHOT_JOBS=<n>` (or `--jobs`) | Compilers at once (default one per CPU thread, each started when the free memory holds it; `LONGSHOT_MEM_GATE=0` turns that check off) |
-| `LONGSHOT_LIFT_JOBS=<n>` | Processes that write the lifted C and make its edits (default the cores, at most 16, one per 2 GB free; on Windows, where they start as new processes, one per 0.75 GB free) |
-| `LONGSHOT_KEEP_BUILD_FILES=1` | Keeps the lifted C and the objects after a build, so that the next one compiles only what changed |
-| `LONGSHOT_PROMPT_JOBS=<n>` | Processes that draw the button prompts' faces (default one a face, at most the CPU threads and one per GB free) |
-| `LONGSHOT_OBJ_STORE=<dir>` | One store of compiled objects for every work folder (`nx2/object_store.py`): a build in a new `--work` folder compiles only what no other folder built with the same compiler and headers. Hard links (a copy across drives), so keep it on the work folders' drive. Off when unset, empty or `0`; `scripts/dev_packs.py` turns it on (below) |
-| `LONGSHOT_LIFT_STORE=<dir>` | Translations kept for every work folder (`nx2/lift_store.py`): after a lift, its C, image, chunk boundaries and hot pieces are saved under the lift key without the work and game folders' paths (`make_game.py lift_share_key`), and a new `--work` folder whose key matches copies them (copy-on-write clones on btrfs and XFS) instead of translating the game. Never hard links. `LONGSHOT_LIFT_STORE_KEEP=<n>` keeps the newest n (3). Off when unset, empty or `0`; `scripts/dev_packs.py` turns it on |
-| `LONGSHOT_OBJ_STORE_GB=<n>`, `LONGSHOT_OBJ_STORE_DAYS=<n>` | The store's own clean-up after each `make_game.py` build: an object no work folder holds goes once nobody used it for 14 days, and the oldest first while those come to more than 8 GB. One a work folder holds stays: it costs no space of its own |
-| `LONGSHOT_FORCE_PROMPTS=1` | Regenerates button-prompt assets even when unchanged. Unset, empty, `0`, `false`, `off` and `no` (case-insensitive, surrounding spaces ignored) are off |
-| `LONGSHOT_MINGW=<dir>`, `LONGSHOT_MSVC=1` | The llvm-mingw to build with; the Visual Studio route instead |
+| `TIMELINK_JOBS=<n>` (or `--jobs`) | Compilers at once (default one per CPU thread, each started when the free memory holds it; `TIMELINK_MEM_GATE=0` turns that check off) |
+| `TIMELINK_LIFT_JOBS=<n>` | Processes that write the lifted C and make its edits (default the cores, at most 16, one per 2 GB free; on Windows, where they start as new processes, one per 0.75 GB free) |
+| `TIMELINK_KEEP_BUILD_FILES=1` | Keeps the lifted C and the objects after a build, so that the next one compiles only what changed |
+| `TIMELINK_PROMPT_JOBS=<n>` | Processes that draw the button prompts' faces (default one a face, at most the CPU threads and one per GB free) |
+| `TIMELINK_OBJ_STORE=<dir>` | One store of compiled objects for every work folder (`nx2/object_store.py`): a build in a new `--work` folder compiles only what no other folder built with the same compiler and headers. Hard links (a copy across drives), so keep it on the work folders' drive. Off when unset, empty or `0`; `scripts/dev_packs.py` turns it on (below) |
+| `TIMELINK_LIFT_STORE=<dir>` | Translations kept for every work folder (`nx2/lift_store.py`): after a lift, its C, image, chunk boundaries and hot pieces are saved under the lift key without the work and game folders' paths (`make_game.py lift_share_key`), and a new `--work` folder whose key matches copies them (copy-on-write clones on btrfs and XFS) instead of translating the game. Never hard links. `TIMELINK_LIFT_STORE_KEEP=<n>` keeps the newest n (3). Off when unset, empty or `0`; `scripts/dev_packs.py` turns it on |
+| `TIMELINK_OBJ_STORE_GB=<n>`, `TIMELINK_OBJ_STORE_DAYS=<n>` | The store's own clean-up after each `make_game.py` build: an object no work folder holds goes once nobody used it for 14 days, and the oldest first while those come to more than 8 GB. One a work folder holds stays: it costs no space of its own |
+| `TIMELINK_FORCE_PROMPTS=1` | Regenerates button-prompt assets even when unchanged. Unset, empty, `0`, `false`, `off` and `no` (case-insensitive, surrounding spaces ignored) are off |
+| `TIMELINK_MINGW=<dir>`, `TIMELINK_MSVC=1` | The llvm-mingw to build with; the Visual Studio route instead |
 | `RX_CPM=<dir>`, `WGPU_NATIVE=<dir>` | The CPM cache (Vulkan and SPIR-V headers, VMA, FFmpeg) and wgpu-native |
-| `RX_TARGET=windows` | On Linux: the Windows game, with llvm-mingw's Linux build in `LONGSHOT_MINGW` |
+| `RX_TARGET=windows` | On Linux: the Windows game, with llvm-mingw's Linux build in `TIMELINK_MINGW` |
 | `RX_RELEASE=1` | A release build (`make_game.py` sets it): no console window, the shaders prepared before the title |
 | `RX_PGO=gen` or `RX_PGO=<file>` | The hot code counting its branches for a profile, or built with one (`make_game.py` passes the shipped profile) |
-| `RX_VK_PGO=gen` or `RX_VK_PGO=<file>` | The Vulkan back end's own files counting their branches for a profile, or built with one (`make_game.py` passes `work/longshot_vk.profdata` when it is there, else the committed `assets/profiles/longshot_vk.profdata.xz`; a compiler that can't read it builds without): [the renderer's play profile](#the-renderers-play-profile) |
+| `RX_VK_PGO=gen` or `RX_VK_PGO=<file>` | The Vulkan back end's own files counting their branches for a profile, or built with one (`make_game.py` passes `work/timeLink_vk.profdata` when it is there, else the committed `assets/profiles/timeLink_vk.profdata.xz`; a compiler that can't read it builds without): [the renderer's play profile](#the-renderers-play-profile) |
 | `RX_HOT_OPT=<level>` | The hot pieces' optimisation level (default `O2`); `O1` for [a faster build for development](#a-faster-build-for-development) |
-| `LONGSHOT_SPLIT_GIANTS=<KB>` | Compiles each lifted function of 256 KB of C or more as pieces of about `<KB>` (8 is the measured best) cut at its labels, with a dispatch loop under its own name (`nx2/split_giants.py`). Measured on a Ryzen 5 5600, 16 GB: the 15 giant-function chunks compile 2.6x faster one at a time (their largest compile's peak memory 2,263 -> 586 MB; a single 2-6 MB function's peak falls to about a fifth), and a whole first build's compile (`--jobs 4`) takes ~21% less time, with ~6% less summed compiler memory. The lifted files are not changed (`build.py` compiles a copy). On by default at 8; `0` turns it off |
-| `RX_MARCH=<level>` | The CPU level to build for. Default: `native` (this PC's own CPU) on a CPU with `x86-64-v3`'s features, else `x86-64-v2`, else `x86-64`; `x86-64-v3` if clang can't say what `native` is here. With `native` the CPU clang finds goes into the object keys (`-DLONGSHOT_NATIVE_CPU=`, in the build log), so another CPU compiles again ([issue 182](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/182)). `RX_MARCH=x86-64-v3` builds as before. `native` also tunes for this CPU (the Steam Deck's Zen 2 too), so there is no tuning switch |
+| `TIMELINK_SPLIT_GIANTS=<KB>` | Compiles each lifted function of 256 KB of C or more as pieces of about `<KB>` (8 is the measured best) cut at its labels, with a dispatch loop under its own name (`nx2/split_giants.py`). Measured on a Ryzen 5 5600, 16 GB: the 15 giant-function chunks compile 2.6x faster one at a time (their largest compile's peak memory 2,263 -> 586 MB; a single 2-6 MB function's peak falls to about a fifth), and a whole first build's compile (`--jobs 4`) takes ~21% less time, with ~6% less summed compiler memory. The lifted files are not changed (`build.py` compiles a copy). On by default at 8; `0` turns it off |
+| `RX_MARCH=<level>` | The CPU level to build for. Default: `native` (this PC's own CPU) on a CPU with `x86-64-v3`'s features, else `x86-64-v2`, else `x86-64`; `x86-64-v3` if clang can't say what `native` is here. With `native` the CPU clang finds goes into the object keys (`-DTIMELINK_NATIVE_CPU=`, in the build log), so another CPU compiles again ([issue 182](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/182)). `RX_MARCH=x86-64-v3` builds as before. `native` also tunes for this CPU (the Steam Deck's Zen 2 too), so there is no tuning switch |
 | `RX_VK_ONLY=1` | Only the Vulkan back end, with no lift |
 | `OOT_WORK`, `OOT_DUMP`, `OOT_EXEFS`, `OOT_ROMFS` | The work folder and the dump's folders, over `work/dump.txt` |
 
-The Longshot Launcher's build settings set two of these for its build. **Build workers**: Automatic keeps
-`LONGSHOT_JOBS` (or the free-memory policy without it); a number overrides it for that build. More workers need more
+The timeLink Launcher's build settings set two of these for its build. **Build workers**: Automatic keeps
+`TIMELINK_JOBS` (or the free-memory policy without it); a number overrides it for that build. More workers need more
 memory and are not always faster. **Build memory**: Automatic keeps the free-memory policy; a number of GB sets
-`LONGSHOT_MEM_LIMIT_GB`, so the compilers may reserve that much together whatever is free now (the ones that always run,
+`TIMELINK_MEM_LIMIT_GB`, so the compilers may reserve that much together whatever is free now (the ones that always run,
 up to 4 on Windows, still run under a smaller number). The builders' `--cli` passes both on as it finds them.
 
 Source-checkout builds keep the button prompts when their source, fonts, game assets, button tables, image overrides,
@@ -489,13 +489,13 @@ RX_HOT_OPT=O1 python -I nx2/build.py --standalone --jobs 8
 ```
 
 `build.py` run on its own uses no profile unless `RX_PGO` is set. `make_game.py` always passes the shipped profile
-(`work/longshot_pieces.prof`), so `RX_HOT_OPT=O1` through `make_game.py` gives `-O1` with the profile, which saves less.
+(`work/timeLink_pieces.prof`), so `RX_HOT_OPT=O1` through `make_game.py` gives `-O1` with the profile, which saves less.
 Run on its own, `build.py` also lacks the rest of `make_game.py`'s environment (`RX_RELEASE`, `A64_HOT_CHUNK`), so its
 runtime objects differ from a `make_game.py` build's.
 
 The objects are cached by their flags, so `-O1` and `-O2` objects can sit side by side, and `make_game.py` leaves
 `RX_HOT_OPT` and `RX_PGO` out of its lift key. In the checkout's own `work/` folder, or with
-`LONGSHOT_KEEP_BUILD_FILES=1`, switching back and forth therefore neither translates the game again nor recompiles
+`TIMELINK_KEEP_BUILD_FILES=1`, switching back and forth therefore neither translates the game again nor recompiles
 anything built before. In any other `--work` folder, `make_game.py`'s clean-up keeps only the last build's objects and a
 translation that fits them, so each switch translates the game again and recompiles the hot pieces.
 
@@ -522,10 +522,10 @@ and no release or player build. Build those with the defaults.
 #### The renderer's play profile
 
 The Vulkan back end is built with a play profile of its own (after
-[ProjectReLink](https://github.com/pixl27/ProjectReLink)): `assets/profiles/longshot_vk.profdata.xz`, committed, with
+[ProjectReLink](https://github.com/pixl27/ProjectReLink)): `assets/profiles/timeLink_vk.profdata.xz`, committed, with
 its note in `assets/profiles/README.md` (where and how it was recorded, and what it measured: about -4 to -5 % frame
 time standing and -3 % running in the Market on an RTX 3090). Every build that compiles the renderer uses it: a
-player's (with DLSS or FSR 4 too), the AppImage's, a developer's. A checkout's own `work/longshot_vk.profdata` is used in
+player's (with DLSS or FSR 4 too), the AppImage's, a developer's. A checkout's own `work/timeLink_vk.profdata` is used in
 its place, and `RX_VK_PGO` set by hand (`gen`, or another file) in place of both. Recording a new one:
 
 1. **Build a renderer that counts**, `RX_VK_PGO=gen`: the back end's own files (`gpu/vk/*.cpp` and suyu's texture
@@ -543,12 +543,12 @@ its place, and `RX_VK_PGO` set by hand (`gen`, or another file) in place of both
    the counters are written to `<file>` within half a second and the `.dump` file goes. Several places can each be
    dumped to a file of their own.
 3. **Merge** with the `llvm-profdata` of the compiler that built it:
-   `llvm-profdata merge -o work/longshot_vk.profdata <file> [<file> ...]`.
-4. **Build with it**: `make_game.py` copies `work/longshot_vk.profdata` to its work folder and passes it
+   `llvm-profdata merge -o work/timeLink_vk.profdata <file> [<file> ...]`.
+4. **Build with it**: `make_game.py` copies `work/timeLink_vk.profdata` to its work folder and passes it
    (`RX_VK_PGO=<file>`), unless `RX_VK_PGO` is set already; without one it unpacks the committed profile there
-   (`longshot_vk.shipped.profdata`) and passes that. Either only when this compiler reads it, on every system (a
+   (`timeLink_vk.shipped.profdata`) and passes that. Either only when this compiler reads it, on every system (a
    profile from a newer LLVM than the compiler's would stop the build): else the renderer is built without one.
-   To ship it: `xz -9e -c work/longshot_vk.profdata > assets/profiles/longshot_vk.profdata.xz`, the note in
+   To ship it: `xz -9e -c work/timeLink_vk.profdata > assets/profiles/timeLink_vk.profdata.xz`, the note in
    `assets/profiles/README.md` updated, in a pull request. `nx2/build.py` run on its own takes it only from
    `RX_VK_PGO`. `dev_packs.py` builds a pack of the renderer alone with its base's profile. The lift key leaves
    `RX_VK_PGO` out, and only the back end's own objects (35 files) are named by the profile's contents: another profile
@@ -564,7 +564,7 @@ a Windows build matches the renderer's own functions and leaves the C++ library'
 built back end (since 2026-11-14): every player's build compiles it, with or without DLSS or FSR 4, with the AppImage's copy
 of the profile (`assets/profiles/`) and for the player's own CPU. The AppImage workflow compiles it once as a build check.
 
-The file holds the names of the back end's functions (Longshot's own source), a hash of each one's shape and how often
+The file holds the names of the back end's functions (timeLink's own source), a hash of each one's shape and how often
 each branch ran: nothing of the game's code or data. It says which code paths the recorded places exercised, no more.
 
 #### Testing a change against a base
@@ -586,7 +586,7 @@ python -I scripts/dev_packs.py pack ../base-main my-fix --tree <the change's che
 python -I scripts/dev_packs.py rt   ../base-main ../rt-my-fix my-fix
 ```
 
-- **`base`** builds a checkout at the commit to compare against (with `LONGSHOT_KEEP_BUILD_FILES=1`).
+- **`base`** builds a checkout at the commit to compare against (with `TIMELINK_KEEP_BUILD_FILES=1`).
   `--seed` copies an older game folder's shader caches first, as an update keeps them: the caches are stamped
   by the shader translator, so the prepare redoes only what changed instead of starting cold.
   `--predict-s N` stops building the whole game's predicted pipelines after N seconds (`RX_VK_PREDICT_S`); the
@@ -596,7 +596,7 @@ python -I scripts/dev_packs.py rt   ../base-main ../rt-my-fix my-fix
   uncommitted changes and its untracked files all count.
   - **How it builds:** a change to renderer files alone (`gpu/vk/`, `imgui`, FidelityFX) that the game is not
     built from builds the renderer alone (`RX_VK_ONLY`, no lift: seconds to minutes). Any other change builds the
-    game with `make_game.py` (`LONGSHOT_NO_PREPARE=1`), both modules and the game folder. The renderer files the
+    game with `make_game.py` (`TIMELINK_NO_PREPARE=1`), both modules and the game folder. The renderer files the
     game is built from are found in the checkout: what `host/` includes from `gpu/`, what `build.py` adds to the
     game's dependencies, and what those include.
   - **What it keeps:** a module when one of the objects it is linked from differs from the base's (its link list,
@@ -614,7 +614,7 @@ python -I scripts/dev_packs.py rt   ../base-main ../rt-my-fix my-fix
   - **Prepare:** the runtime prepares again when the shader translator (`gpu/vk/{eden,sirit,compat}/`,
     `vk_shader.cpp`, `vk_bank.cpp`, `vk_state.h`: what `build.py` stamps the shader caches with, as
     `nx2/translator_files.py` names them) or the shader seed changed; `--prepare` / `--no-prepare` decide instead.
-    A base prepares once its outputs are recorded, as `make_game.py` does: `LONGSHOT_NO_PREPARE` (set and not `0`)
+    A base prepares once its outputs are recorded, as `make_game.py` does: `TIMELINK_NO_PREPARE` (set and not `0`)
     skips it, and a preparation that fails (no usable Vulkan, a driver that stopped responding) keeps the base, with
     the reason in `base.json`'s `not_prepared`, and leaves the work to its first start.
   - **Where:** game packs share one work folder per base (`<base>/game-work`). The lift key holds that folder's
@@ -630,12 +630,12 @@ python -I scripts/dev_packs.py rt   ../base-main ../rt-my-fix my-fix
   copies the caches play made or grew (pipelines, play files, programs) back into the base's game folder, and
   deletes the runtime, so every later runtime starts warm for those scenes. Only cache files are copied.
 - **One job at a time per base:** `base`, `pack`, `rt` and `warm` hold `<base>/dev_packs.busy` while they run.
-- **Objects shared by every base:** its builds use one [object store](#building) (`LONGSHOT_OBJ_STORE`, by default
-  `~/.cache/longshot-objects`, `%LOCALAPPDATA%\Longshot\objects` on Windows), so a new base compiles only the files no
+- **Objects shared by every base:** its builds use one [object store](#building) (`TIMELINK_OBJ_STORE`, by default
+  `~/.cache/timeLink-objects`, `%LOCALAPPDATA%\timeLink\objects` on Windows), so a new base compiles only the files no
   earlier base or pack on this PC compiled. On another drive than the bases it copies instead of linking: set
-  `LONGSHOT_OBJ_STORE` to a folder on the bases' drive, or to `0` for none.
-- **Translations shared by every base:** the same for the lift (`LONGSHOT_LIFT_STORE`, by default
-  `~/.cache/longshot-lifts`, `%LOCALAPPDATA%\Longshot\lifts`): a new base, or a base's first game pack, copies the
+  `TIMELINK_OBJ_STORE` to a folder on the bases' drive, or to `0` for none.
+- **Translations shared by every base:** the same for the lift (`TIMELINK_LIFT_STORE`, by default
+  `~/.cache/timeLink-lifts`, `%LOCALAPPDATA%\timeLink\lifts`): a new base, or a base's first game pack, copies the
   translation an earlier base or pack made from the same game, translator, HLE functions, hot list and settings
   instead of translating the game again. `0` for none.
 
@@ -681,10 +681,10 @@ shaders"), [getting started](getting-started.md), [common problems](common-issue
 export XDG_DATA_HOME=$PWD/data XDG_CACHE_HOME=$PWD/cache    # no tools, work folder or objects from earlier builds
 export __GL_SHADER_DISK_CACHE_PATH=$PWD/nvcache             # an empty NVIDIA shader cache (mkdir it first)
 B=https://git.magicbean.dev/MagicBeanDev/Longshot/releases/download/<tag>
-curl -fLO $B/SHA256SUMS -fLO $B/SHA256SUMS.sig -fLO $B/Longshot-<tag>-x86_64.AppImage
+curl -fLO $B/SHA256SUMS -fLO $B/SHA256SUMS.sig -fLO $B/timeLink-<tag>-x86_64.AppImage
 python -I scripts/release.py verify SHA256SUMS              # then sha256sum -c for the AppImage's line
-chmod +x Longshot-<tag>-x86_64.AppImage && ./Longshot-<tag>-x86_64.AppImage --appimage-extract
-cd squashfs-root/usr/share/longshot
+chmod +x timeLink-<tag>-x86_64.AppImage && ./timeLink-<tag>-x86_64.AppImage --appimage-extract
+cd squashfs-root/usr/share/timeLink
 ../../../AppRun --cli --nup <your .nup> --out <new folder> --language en-US --compile-shaders most 2>&1 \
     | ts -s '%.s' | tee build.log
 ```
@@ -709,12 +709,12 @@ Each has a note beside it (`<name>.md`) that says who recorded it, on what GPU, 
 route. [`assets/pipeline_states/README.md`](../assets/pipeline_states/README.md) has how to record and add a list. Each
 record is a pipeline the game asked for: its shaders' hashes, the program variant's hash, and the target formats,
 vertex formats and draw state it was made with (`nx2/pipeline_states.py` has the layout). It holds no game code: a
-player's build turns the hashes back into shaders from their own `longshot_shaders.bin`.
+player's build turns the hashes back into shaders from their own `timeLink_shaders.bin`.
 
 A record can also name a compute program the game ran, by the hash of its shader alone (the record's kind says which;
 the file format is the same, and lists from before read as they did). The game writes one the first time a run
 dispatches a program. Every start keeps the pipelines of the listed compute programs ready before the title: the
-shipped list's, and the ones in the game folder's `longshot_computes.bin`, which holds what this install's play has
+shipped list's, and the ones in the game folder's `timeLink_computes.bin`, which holds what this install's play has
 dispatched (the same programs its own state list names). Without a list entry, a program is loaded and its pipeline
 made at its first dispatch, and a dispatch whose pipeline takes more than 50 ms is skipped. The log's
 `precompile: compute programs` and `compute pipelines` lines say how many were listed, from where, and how many
@@ -725,7 +725,7 @@ start as well; `learned` leaves the shipped list's out, to compare; `all` keeps 
 keeps none. The game keeps every compute program a shipped list names and never drops one: the bound is
 `pipeline_states.py check`, which stops on a merged list that names more than `COMPUTE_MOST`, for someone to decide.
 
-`nx2/make_game.py` merges the sources at every build into the game folder's `longshot_pipeline_states_shipped.bin`. It
+`nx2/make_game.py` merges the sources at every build into the game folder's `timeLink_pipeline_states_shipped.bin`. It
 takes the tour's list first, then the contributed ones by name, and keeps each pipeline once. The same sources always
 give the same bytes, and the first start's shader preparation builds those pipelines before the title. Without them a
 new install builds them in play, and draws left out while they compile wash the first field load white for seconds
@@ -741,12 +741,12 @@ Every release carries them:
 
 xz rather than zstd: the AppImage's Python is 3.12, whose standard library has `lzma` but not `compression.zstd`.
 
-A game run writes `longshot_pipeline_states.bin` beside the executable, adding each pipeline it makes in play. To add a
+A game run writes `timeLink_pipeline_states.bin` beside the executable, adding each pipeline it makes in play. To add a
 list, play on a build of the current source and add that file as a contributed list. `add` keeps only the pipelines no
 other contributed list holds:
 
 ```sh
-python -I nx2/pipeline_states.py add <name> <game folder>/longshot_pipeline_states.bin --who ... --gpu ... --build ... --settings ... --route ...
+python -I nx2/pipeline_states.py add <name> <game folder>/timeLink_pipeline_states.bin --who ... --gpu ... --build ... --settings ... --route ...
 python -I nx2/pipeline_states.py tour <tour lists>... --gpu ... --build ... --settings ... --route ...   # the tour's, replaced
 python -I nx2/pipeline_states.py check                      # every source, and the merge, as CI and the release checks read them
 python -I nx2/pipeline_states.py merge --out merged.bin     # the list make_game writes beside the game
@@ -757,8 +757,8 @@ at 1440p with DLSS shares few pipelines with one recorded at 360p.
 
 Players send theirs to issue #14 with **Save my pipeline list** (the menu's Debug tab, under Developer: `gpu/vk/pipeline_share.h` and
 `vk_menu.cpp` `share_pipeline_list`; from the command line: `nx2/pipeline_share.py`, `--json` for a program that runs it). It checks the list as `pipeline_states.py --check` does and writes
-`longshot-pipelines-<date>.zip` to the Downloads folder with exactly two files, the list and `longshot_pipeline_report.txt`
-(the issue's template filled in from the run or from the game folder's log and `longshot_options.ini`), then copies the
+`timeLink-pipelines-<date>.zip` to the Downloads folder with exactly two files, the list and `timeLink_pipeline_report.txt`
+(the issue's template filled in from the run or from the game folder's log and `timeLink_options.ini`), then copies the
 template, shows the folder and opens the issue; never with `HOS_HEADLESS`. The list is zipped as the game wrote it, compute
 records included (the report's `Pipelines` line counts them); `pipeline_states.py --check` and `add` take a sent list only
 when it is exactly a list (`read_sent`). `tests/test_pipeline_share.py` checks the zip,
@@ -775,7 +775,7 @@ record it again, and make a new tour list. The folder's layout stays the same.
 A new row on the Graphics, Audio, Gameplay or Controls tab needs a line in the README's option table too, in the
 menu's order, with its choices and default: `tests/test_readme_menu_rows.py` fails without it.
 
-`longshot_options.ini`, in the game folder, holds the Insert menu's rows as `<key>=<number>`: the row's name in lower
+`timeLink_options.ini`, in the game folder, holds the Insert menu's rows as `<key>=<number>`: the row's name in lower
 case with `_` for spaces (`frame_generation=2`, `invert_camera_x=1`), except Output resolution, which is `output_res`.
 `gpu/vk/vk_menu.cpp` writes the whole file at every change (`save`), with `options_version=5`,
 `microphone_device=<name>` when a microphone is chosen by name, and the controls (`pad_<button>`, `key_<button>` and `toggle_<button>`:
@@ -836,7 +836,7 @@ not accepted; choose `walk_mode` instead. Walk's Toggle selection survives Inser
 resets; a key held across Insert/focus return must be released before it can switch walking again.
 
 `HOS_CONTROL=<socket path>` turns on the control bridge: a local socket a tool or coding agent drives the running game
-through (inputs timed in frames, screenshots, waits, the Insert menu's settings, quit), with `scripts/longshot_ctl.py`
+through (inputs timed in frames, screenshots, waits, the Insert menu's settings, quit), with `scripts/timeLink_ctl.py`
 as its client. `status.game` holds Link's position/facing, the camera's yaw, event/loading/age, life, maximum life,
 rupees, A-button prompt and music. `subscribe` with `events:["oot"]`, `every`, `flags` and `changes` streams those
 samples and optional watched/changed flags. There is no separate state file; off unless `HOS_CONTROL` is set.
@@ -849,12 +849,12 @@ See [control.md](control.md) for the fields, sampling, bounds and examples.
 | `docs/design.md` | why mkw-recomp's pipeline, the architecture, MKW's lessons as rules, stages, testing |
 | `nx2/` | the lift pipeline and its tests (mkw-recomp's, made game-neutral; `kit.py` has the paths), and `make_game.py`, which the launcher and the builders run |
 | `host/` | the standalone Horizon runtime (TOTKPort's `hos/` as adapted by mkw-recomp), with the native NVN2 layer `nvn_native.c`; `host/posix` has the Win32 calls on Linux |
-| `gpu/vk/` | the Vulkan back end (`longshot_vk.dll`, `longshot_vk.so`), with Eden's shader recompiler and sirit |
+| `gpu/vk/` | the Vulkan back end (`timeLink_vk.dll`, `timeLink_vk.so`), with Eden's shader recompiler and sirit |
 | `gpu/render/`, `gpu/third_party/` | the WebGPU renderer the Windows exe falls back to when it was built with wgpu-native, its op stream (`rx_nvn.h`), suyu's decoders |
-| `builder/` | Longshot Builder, command-line only (players use the Longshot Launcher): the Windows `--cli` program (.NET 8), its setup (also a game folder's `longshot.exe`), and the Linux AppImage's `AppRun`, tools and game folder scripts |
+| `builder/` | timeLink Builder, command-line only (players use the timeLink Launcher): the Windows `--cli` program (.NET 8), its setup (also a game folder's `timeLink.exe`), and the Linux AppImage's `AppRun`, tools and game folder scripts |
 | `scripts/` | test runs, the profile and log readers, the save copier (`oot_saves.py`), release tooling, `scripts/linux` (dependencies, AppImage) |
 | `tests/` | the game-free checks, all run by `tests/run_all.py` |
-| `third_party/` | a64-kit (with Hookshot's changes, marked `(hookshot)`, and Longshot's, `(longshot)`: its PROVENANCE.md), libopus, zbic (Atmosphere's zstd with ZBIC, for unpacking only), SDL2's licence, Dear ImGui and its Vulkan backend, zstd's decoder, the Libertinus fonts |
+| `third_party/` | a64-kit (with Hookshot's changes, marked `(hookshot)`, and timeLink's, `(longshot)`: its PROVENANCE.md), libopus, zbic (Atmosphere's zstd with ZBIC, for unpacking only), SDL2's licence, Dear ImGui and its Vulkan backend, zstd's decoder, the Libertinus fonts |
 
 License: GPL-3.0-or-later, as mkw-recomp: a64-kit's translator is suyu's (GPL-2.0-or-later) and Eden's code is
 GPL-3.0.

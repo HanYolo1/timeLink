@@ -2,7 +2,7 @@
 SHA256SUMS and its signature; the channels as the launcher reads them from the release list; the version a tag must reach
 (the bump from the commits since the last stable), in a git repository made here; the nightly's name; and publish and
 prune against a fake Forgejo on 127.0.0.1 (a draft first, every file uploaded and checked, published last; only nightlies
-pruned); the release page (the launcher's download links, Longshot's "download the launcher" notice, per channel); and the
+pruned); the release page (the launcher's download links, timeLink's "download the launcher" notice, per channel); and the
 release a tag's commit already has (released-as: found by its tag's commit, taken only signed and whole).
 Needs git and the openssl command line.
 
@@ -56,19 +56,19 @@ class Keys(unittest.TestCase):
         files = self.dir / "files"
         files.mkdir()
         (files / "LongshotLauncher-v1.0.0-x86_64.AppImage").write_bytes(b"launcher")
-        (files / "Longshot-v3.0.0-x86_64.AppImage").write_bytes(b"builder")
+        (files / "timeLink-v3.0.0-x86_64.AppImage").write_bytes(b"builder")
         run("sums", *files.iterdir(), "--out", files / "SHA256SUMS")
         sums = (files / "SHA256SUMS").read_text()
-        self.assertEqual(sums.splitlines()[0], "%s  Longshot-v3.0.0-x86_64.AppImage" % hashlib.sha256(b"builder").hexdigest())
+        self.assertEqual(sums.splitlines()[0], "%s  timeLink-v3.0.0-x86_64.AppImage" % hashlib.sha256(b"builder").hexdigest())
         run("sign", files / "SHA256SUMS", "--key", self.key, "--out", files / "SHA256SUMS.sig")
         code, out = run("verify", files / "SHA256SUMS", "--pub", self.pub, "--files", files)
         self.assertEqual(code, 0)
         self.assertIn("every file", out)
         # (a file changed, the list changed, another key)
-        (files / "Longshot-v3.0.0-x86_64.AppImage").write_bytes(b"other")
+        (files / "timeLink-v3.0.0-x86_64.AppImage").write_bytes(b"other")
         with self.assertRaises(SystemExit):
             run("verify", files / "SHA256SUMS", "--pub", self.pub, "--files", files)
-        (files / "SHA256SUMS").write_text(sums.replace("Longshot-v3", "Longshot-v4"))
+        (files / "SHA256SUMS").write_text(sums.replace("timeLink-v3", "timeLink-v4"))
         with self.assertRaises(SystemExit):
             run("verify", files / "SHA256SUMS", "--pub", self.pub)
         (files / "SHA256SUMS").write_text(sums)
@@ -157,7 +157,7 @@ class Bump(unittest.TestCase):
         self.git("tag", "v2.9.0")
         self.git("tag", "v3.0.0-rc.1")
         self.assertEqual(self.check("v3.0.0-rc.1"), [])
-        self.assertIn("is not vX.Y.Z", self.check("v2.9.0")[0])   # (Hookshot's numbers are not Longshot's)
+        self.assertIn("is not vX.Y.Z", self.check("v2.9.0")[0])   # (Hookshot's numbers are not timeLink's)
         self.assertEqual(release.next_tag([], 3, root=str(self.dir)), "v3.0.0-rc.1")
 
     def test_the_bump(self):
@@ -256,13 +256,13 @@ class Bump(unittest.TestCase):
         self.assertEqual(args[-2:], ["--strip", "all"])
 
 class ReleasePage(unittest.TestCase):
-    """The release page publish writes: the launcher's starts with big download links to its own files; Longshot's with "to
-    play, get the Longshot Launcher", linking longshot.magicbean.dev's newest launcher of the same channel, and "don't download the
+    """The release page publish writes: the launcher's starts with big download links to its own files; timeLink's with "to
+    play, get the timeLink Launcher", linking longshot.magicbean.dev's newest launcher of the same channel, and "don't download the
     files below" (above the builder files)"""
 
     LAUNCHER = ("LongshotLauncher-%s-windows-x64-setup.exe", "LongshotLauncher-%s-windows-x64-portable.zip",
                 "LongshotLauncher-%s-x86_64.AppImage", "SHA256SUMS", "SHA256SUMS.sig")
-    LONGSHOT = ("LongshotBuilder-%s-windows-x64.zip", "Longshot-%s-x86_64.AppImage", "tools.lock", "SHA256SUMS", "SHA256SUMS.sig")
+    LONGSHOT = ("timeLinkBuilder-%s-windows-x64.zip", "timeLink-%s-x86_64.AppImage", "tools.lock", "SHA256SUMS", "SHA256SUMS.sig")
 
     def page(self, tag, product, files):
         names = [f % tag if "%s" in f else f for f in files]
@@ -275,7 +275,7 @@ class ReleasePage(unittest.TestCase):
                 head, notes = page.split("\n---\n", 1)
                 base = "https://git-cdn.magicbean.dev/MagicBeanDev/LongshotLauncher/releases/download/%s/LongshotLauncher-%s" % (tag, tag)
                 self.assertEqual(head.strip().split("\n\n")[:4], [
-                    "# ⬇️ Download Longshot Launcher",
+                    "# ⬇️ Download timeLink Launcher",
                     "### [🪟 &nbsp;Download for Windows](%s-windows-x64-setup.exe)" % base,
                     "### [🐧 &nbsp;Download for Linux (AppImage)](%s-x86_64.AppImage)" % base,
                     "Windows without installing: [portable zip](%s-windows-x64-portable.zip)" % base])
@@ -296,7 +296,7 @@ class ReleasePage(unittest.TestCase):
                 head, notes = page.split("\n---\n", 1)
                 link = "https://longshot.magicbean.dev/download/launcher/" + channel
                 self.assertEqual(head.strip().split("\n\n")[:5], [
-                    "# 🎮 To play, get the Longshot Launcher",
+                    "# 🎮 To play, get the timeLink Launcher",
                     "### [🪟 &nbsp;Download the launcher for Windows](%s/windows)" % link,
                     "### [🐧 &nbsp;Download the launcher for Linux (AppImage)](%s/linux)" % link,
                     "Windows without installing: [portable zip](%s/windows-portable) · [the launcher's newest %s release](%s)"
@@ -405,12 +405,12 @@ class Publish(unittest.TestCase):
     def test_a_draft_then_the_files_then_published(self):
         notes = self.dir / "notes.md"
         notes.write_text("## v3.0.0-rc.1\n")
-        a, b = self.dir / "Longshot-v3.0.0-rc.1-x86_64.AppImage", self.dir / "SHA256SUMS"
+        a, b = self.dir / "timeLink-v3.0.0-rc.1-x86_64.AppImage", self.dir / "SHA256SUMS"
         a.write_bytes(b"\x7fELF builder")
         b.write_bytes(b"sums\n")
         run("--product", "longshot", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a, b)
         rel = FakeForgejo.releases[0]
-        self.assertEqual((rel["tag_name"], rel["draft"], rel["prerelease"], rel["name"]), ("v3.0.0-rc.1", False, True, "Longshot v3.0.0-rc.1"))
+        self.assertEqual((rel["tag_name"], rel["draft"], rel["prerelease"], rel["name"]), ("v3.0.0-rc.1", False, True, "timeLink v3.0.0-rc.1"))
         self.assertEqual([(n, p) for _, n, p in FakeForgejo.uploads], [(a.name, b"\x7fELF builder"), ("SHA256SUMS", b"sums\n")])
         with self.assertRaises(SystemExit):   # (a published version's files never change)
             run("--product", "longshot", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a)
@@ -420,14 +420,14 @@ class Publish(unittest.TestCase):
             run("--product", "longshot", "publish", "v3.0.1-rc.1", "--target", "abc", "--notes", notes, bad)
 
     def test_the_page_on_the_release(self):
-        # (publish puts the notes under the page's header: Longshot's says to download the launcher of its channel)
+        # (publish puts the notes under the page's header: timeLink's says to download the launcher of its channel)
         notes = self.dir / "notes.md"
         notes.write_text("### Fixes\n\n- a fix\n")
-        f = self.dir / "LongshotBuilder-nightly-34-545618fc-windows-x64.zip"
+        f = self.dir / "timeLinkBuilder-nightly-34-545618fc-windows-x64.zip"
         f.write_bytes(b"PK zip")
         run("--product", "longshot", "publish", "nightly-34-545618fc", "--target", "abc", "--notes", notes, f)
         body = FakeForgejo.releases[0]["body"]
-        self.assertTrue(body.startswith("# 🎮 To play, get the Longshot Launcher\n"))
+        self.assertTrue(body.startswith("# 🎮 To play, get the timeLink Launcher\n"))
         self.assertIn("https://longshot.magicbean.dev/download/launcher/nightly/windows", body)
         self.assertIn("### Fixes\n\n- a fix\n", body)
         # (the launcher's: its own files, on its repository)
@@ -436,7 +436,7 @@ class Publish(unittest.TestCase):
         f.write_bytes(b"MZ setup")
         run("--product", "launcher", "publish", "v1.0.0-rc.1", "--target", "abc", "--notes", notes, f)
         body = FakeForgejo.releases[0]["body"]
-        self.assertTrue(body.startswith("# ⬇️ Download Longshot Launcher\n"))
+        self.assertTrue(body.startswith("# ⬇️ Download timeLink Launcher\n"))
         self.assertIn("### [🪟 &nbsp;Download for Windows](https://git-cdn.magicbean.dev/MagicBeanDev/Test/releases/download/"
                       "v1.0.0-rc.1/LongshotLauncher-v1.0.0-rc.1-windows-x64-setup.exe)", body)
         self.assertIn(release.CHANNEL_SAYS["rc"], body)
@@ -550,7 +550,7 @@ class ReleasedAs(unittest.TestCase):
         return subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.invalid", "-c", "tag.gpgsign=false",
                                *args], cwd=self.repo, check=True, capture_output=True, text=True).stdout.strip()
 
-    def release(self, tag, commit, files=("Longshot-%s-x86_64.AppImage", "LongshotBuilder-%s-windows-x64.zip", "tools.lock"),
+    def release(self, tag, commit, files=("timeLink-%s-x86_64.AppImage", "timeLinkBuilder-%s-windows-x64.zip", "tools.lock"),
                 key="keys", draft=False, sums_of=None, sig=None):
         """A release of commit as CI publishes it: its files, SHA256SUMS over them (or over sums_of), signed with key"""
         self.git("tag", tag, commit)
@@ -600,8 +600,8 @@ class ReleasedAs(unittest.TestCase):
             "corrupt": dict(sig=b"MEUCIQ=="),
             "not base64": dict(sig=b"\x00not base64"),
             "a file more": dict(sums_of=["tools.lock"]),
-            "a file less": dict(sums_of=["tools.lock", "LongshotBuilder.exe", "Longshot-x-x86_64.AppImage",
-                                         "LongshotBuilder-x-windows-x64.zip"]),
+            "a file less": dict(sums_of=["tools.lock", "timeLinkBuilder.exe", "timeLink-x-x86_64.AppImage",
+                                         "timeLinkBuilder-x-windows-x64.zip"]),
         }
         for n, (what, kwargs) in enumerate(cases.items(), 1):
             with self.subTest(what):

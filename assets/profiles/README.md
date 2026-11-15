@@ -1,14 +1,14 @@
 # Play profiles
 
 Profiles the build compiles with, committed so every build of a checkout uses the same ones: the release's builders,
-a player's own build (with DLSS or FSR 4 too), and a developer's. Names of Longshot's own functions, a hash of each
+a player's own build (with DLSS or FSR 4 too), and a developer's. Names of timeLink's own functions, a hash of each
 one's shape and how often its branches ran: no game code or data.
 
-## longshot_vk.profdata.xz: the renderer's
+## timeLink_vk.profdata.xz: the renderer's
 
 The Vulkan back end's play profile (nx2/build.py `RX_VK_PGO`; docs/development.md, "The renderer's play profile"),
 compressed with xz. `nx2/make_game.py` unpacks it into the work folder and builds the renderer with it, unless the
-checkout's `work/longshot_vk.profdata` or `RX_VK_PGO` says otherwise; the Linux AppImage carries it for the player's
+checkout's `work/timeLink_vk.profdata` or `RX_VK_PGO` says otherwise; the Linux AppImage carries it for the player's
 build, which compiles the renderer (the AppImage has no built one). A compiler that can't read it builds the renderer
 without it.
 

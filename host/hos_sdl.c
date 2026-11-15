@@ -16,7 +16,7 @@ static struct {
     void *CreateWindow, *SetWindowPosition, *SetWindowFullscreen, *SetRelativeMouseMode, *GetPrimaryDisplay,
         *GetDesktopDisplayMode, *Vulkan_CreateSurface, *PixelSize, *GetKeyboardState, *GetMouseState, *WaitEventTimeout,
         *PollEvent, *GetWindowSize, *LoadPNG, *SetWindowIcon, *DestroySurface, *GetWindowDisplay, *GetCurrentDisplayMode;
-    void *StartTextInput, *StopTextInput, *GetClipboardText;   /* (longshot: the menu's text fields; optional) */
+    void *StartTextInput, *StopTextInput, *GetClipboardText;   /* (timeLink: the menu's text fields; optional) */
     /* sound */
     void *OpenAudioDevice, *PauseAudioDevice, *OpenAudioDeviceStream, *ResumeAudioStreamDevice, *PutAudioStreamData;
     /* controllers */
@@ -36,7 +36,7 @@ static HMODULE load_one(const char *dll) {   /* beside the executable, else the 
     while (n && path[n - 1] != '\\' && path[n - 1] != '/') n--;
     snprintf(path + n, sizeof path - n, "%s", dll);
     HMODULE m = n ? LoadLibraryA(path) : NULL;   /* (no folder: a bare name would search the current folder and PATH) */
-#ifdef _WIN32   /* (longshot: else the system's, not the current folder's or PATH's) */
+#ifdef _WIN32   /* (timeLink: else the system's, not the current folder's or PATH's) */
     return m ? m : LoadLibraryExA(dll, NULL, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
 #else
     return m ? m : LoadLibraryA(dll);
@@ -81,7 +81,7 @@ static int get_all(HMODULE m, int three) {
     *(FARPROC *)&f.SetHintPriority = GetProcAddress(m, "SDL_SetHintWithPriority");
     *(FARPROC *)&f.JoystickGUID = GetProcAddress(m, three ? "SDL_GetJoystickGUID" : "SDL_JoystickGetGUID");
     *(FARPROC *)&f.PadMapping = GetProcAddress(m, three ? "SDL_GetGamepadMapping" : "SDL_GameControllerMapping");
-    /* (longshot: the Insert menu's text fields; without them a field takes nothing from the keyboard here) */
+    /* (timeLink: the Insert menu's text fields; without them a field takes nothing from the keyboard here) */
     *(FARPROC *)&f.StartTextInput = GetProcAddress(m, "SDL_StartTextInput");
     *(FARPROC *)&f.StopTextInput = GetProcAddress(m, "SDL_StopTextInput");
     *(FARPROC *)&f.GetClipboardText = GetProcAddress(m, "SDL_GetClipboardText");

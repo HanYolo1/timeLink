@@ -33,8 +33,8 @@
        decodes it), and a raw block with a NULL output fails as dstBuffer_null (-1) where the game's says dstSize_tooSmall
        (-2). A zstd compressor makes neither. */
 #include "hos.h"
-#ifndef LONGSHOT_ENV_H   /* (env_on: the switches' one rule) */
-#include "../gpu/vk/compat/longshot_env.h"
+#ifndef TIMELINK_ENV_H   /* (env_on: the switches' one rule) */
+#include "../gpu/vk/compat/timeLink_env.h"
 #endif
 #define ZSTD_STATIC_LINKING_ONLY
 #include "zstd.h"

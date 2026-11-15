@@ -1,6 +1,6 @@
 # Getting started
 
-Longshot is built on your PC, from your own copy of the game, by the Longshot Launcher. It takes three steps.
+timeLink is built on your PC, from your own copy of the game, by the timeLink Launcher. It takes three steps.
 **We do not host, store, or distribute game files, ROMs, game dumps, or decryption keys.**
 
 ## 1. Check your PC

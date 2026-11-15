@@ -35,7 +35,7 @@
     OOT_ITEM("Fairy Ocarina", "Item_Ocarina_Fairy", 0) \
     OOT_ITEM("Ocarina of Time", "Item_Ocarina_Time", 0) \
     OOT_ITEM("Hookshot", "Item_Hookshot", 0) \
-    OOT_ITEM("Longshot", "Item_Longshot", 0) \
+    OOT_ITEM("timeLink", "Item_Longshot", 0) \
     OOT_ITEM("Boomerang", "Item_Boomerang", 0) \
     OOT_ITEM("Lens of Truth", "Item_GlassTruth", 0) \
     OOT_ITEM("Magic Beans", "Item_MagicBean", 1) \

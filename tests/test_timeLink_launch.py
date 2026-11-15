@@ -1,6 +1,6 @@
-"""longshot-launch (the AppImage's --play) starts the built game in bin/ and does not keep the builder's libraries on the path.
+"""timeLink-launch (the AppImage's --play) starts the built game in bin/ and does not keep the builder's libraries on the path.
 
-python -I -B tests/test_longshot_launch.py
+python -I -B tests/test_timeLink_launch.py
 """
 import os
 from pathlib import Path
@@ -13,7 +13,7 @@ import unittest
 RUN_ALL_SKIP = {"windows": "the Linux launcher, a POSIX shell script"}
 
 ROOT = Path(__file__).resolve().parents[1]
-LAUNCH = ROOT / "builder" / "linux" / "longshot-launch"
+LAUNCH = ROOT / "builder" / "linux" / "timeLink-launch"
 
 
 def game(folder):
@@ -27,9 +27,9 @@ def game(folder):
         "pwd\n"
         "printf 'APPDIR=%s\\n' \"${APPDIR-UNSET}\"\n"
         "printf 'LD_LIBRARY_PATH=%s\\n' \"${LD_LIBRARY_PATH-UNSET}\"\n"
-        "printf 'LONGSHOT_TOOLS=%s\\n' \"${LONGSHOT_TOOLS-UNSET}\"\n"
+        "printf 'TIMELINK_TOOLS=%s\\n' \"${TIMELINK_TOOLS-UNSET}\"\n"
         "printf 'PYTHONPATH=%s\\n' \"${PYTHONPATH-UNSET}\"\n"
-        "printf 'CHECK=%s\\n' \"${LONGSHOT_NO_UPDATE_CHECK-UNSET}\"\n",
+        "printf 'CHECK=%s\\n' \"${TIMELINK_NO_UPDATE_CHECK-UNSET}\"\n",
         encoding="utf-8",
     )
     exe.chmod(exe.stat().st_mode | stat.S_IEXEC)
@@ -43,32 +43,32 @@ class LaunchTests(unittest.TestCase):
         e = os.environ.copy()
         e.pop("DISPLAY", None)
         e.pop("WAYLAND_DISPLAY", None)
-        e.update(HOME=str(home), APPDIR="/from/the/appimage", APPIMAGE="/tmp/Longshot.AppImage", ARGV0="Longshot", OWD="/old",
-                 LD_LIBRARY_PATH="/builder/lib", LONGSHOT_TOOLS="/builder/tools", PYTHONPATH="/builder/python")
+        e.update(HOME=str(home), APPDIR="/from/the/appimage", APPIMAGE="/tmp/timeLink.AppImage", ARGV0="timeLink", OWD="/old",
+                 LD_LIBRARY_PATH="/builder/lib", TIMELINK_TOOLS="/builder/tools", PYTHONPATH="/builder/python")
         return subprocess.run([str(LAUNCH), *args], env=e, cwd=cwd, text=True, capture_output=True, check=False)
 
     def test_the_folder_starts_bin_longshot_without_the_builders_libraries(self):
-        with tempfile.TemporaryDirectory(prefix="longshot-launch-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="timeLink-launch-") as tmp:
             folder = Path(tmp) / "100% Games"
             game(folder)
             ran = self.run_launch(str(folder), home=tmp)
         self.assertEqual(ran.returncode, 0, ran.stderr)
         lines = ran.stdout.splitlines()
         self.assertEqual(lines[0], str(folder))
-        for line in ("APPDIR=UNSET", "LD_LIBRARY_PATH=UNSET", "LONGSHOT_TOOLS=UNSET", "PYTHONPATH=UNSET", "CHECK=1"):
+        for line in ("APPDIR=UNSET", "LD_LIBRARY_PATH=UNSET", "TIMELINK_TOOLS=UNSET", "PYTHONPATH=UNSET", "CHECK=1"):
             self.assertIn(line, lines)
         self.assertNotIn("launcher", lines)
 
     def test_no_folder_is_games_longshot(self):
-        with tempfile.TemporaryDirectory(prefix="longshot-launch-") as tmp:
-            folder = Path(tmp) / "Games" / "Longshot"
+        with tempfile.TemporaryDirectory(prefix="timeLink-launch-") as tmp:
+            folder = Path(tmp) / "Games" / "timeLink"
             game(folder)
             ran = self.run_launch(home=tmp)
         self.assertEqual(ran.returncode, 0, ran.stderr)
         self.assertEqual(ran.stdout.splitlines()[0], str(folder))
 
     def test_a_relative_folder(self):
-        with tempfile.TemporaryDirectory(prefix="longshot-launch-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="timeLink-launch-") as tmp:
             folder = Path(tmp) / "100% Games"
             game(folder)
             for relative in ("100% Games", "./100% Games"):
@@ -77,8 +77,8 @@ class LaunchTests(unittest.TestCase):
                 self.assertEqual(ran.stdout.splitlines()[0], str(folder))
 
     def test_no_game_is_an_error(self):
-        with tempfile.TemporaryDirectory(prefix="longshot-launch-") as tmp:
-            # (a folder with only its launcher, longshot, and no bin/longshot: never started, it would start this again)
+        with tempfile.TemporaryDirectory(prefix="timeLink-launch-") as tmp:
+            # (a folder with only its launcher, timeLink, and no bin/timeLink: never started, it would start this again)
             folder = Path(tmp) / "game"
             game(folder)
             (folder / "bin" / "longshot").unlink()
@@ -90,10 +90,10 @@ class LaunchTests(unittest.TestCase):
 
     def test_play_is_the_builder_appimage(self):
         script = (ROOT / "scripts" / "linux" / "appimage.sh").read_text(encoding="utf-8")
-        self.assertNotIn("Longshot-launcher-", script)
+        self.assertNotIn("timeLink-launcher-", script)
         apprun = (ROOT / "builder" / "linux" / "AppRun").read_text(encoding="utf-8")
-        self.assertIn("longshot-launch", apprun)
-        desktop = (ROOT / "builder" / "linux" / "longshot-builder.desktop").read_text(encoding="utf-8")
+        self.assertIn("timeLink-launch", apprun)
+        desktop = (ROOT / "builder" / "linux" / "timeLink-builder.desktop").read_text(encoding="utf-8")
         self.assertIn("Actions=Play;", desktop)
         self.assertIn("Exec=AppRun --play\n", desktop)
 

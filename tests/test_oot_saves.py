@@ -19,7 +19,7 @@ from unittest import mock
 # (Linux only)
 RUN_ALL_SKIP = {
     "windows": "the save script's folder discovery is the Linux one"
-               " (on Windows Longshot's saves are in the game folder: --longshot)",
+               " (on Windows timeLink's saves are in the game folder: --timeLink)",
 }
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -93,7 +93,7 @@ class Discovery(Case):
         for program in oot.EMULATORS:
             folder, found = oot.locate(program, None, "--from")
             self.assertEqual(list(found.values()), [str(expect[program.name])], program.name)
-        self.assertEqual(oot.locate(oot.LONGSHOT, None, "--longshot")[1], {UID: str(self.hs)})
+        self.assertEqual(oot.locate(oot.LONGSHOT, None, "--timeLink")[1], {UID: str(self.hs)})
 
     def test_every_entry_on_windows(self):
         win_li = eden_save(self.appdata / "eden")
@@ -107,16 +107,16 @@ class Discovery(Case):
             for program in oot.EMULATORS:
                 self.assertEqual(list(oot.locate(program, None, "--from")[1].values()), [str(expect[program.name])])
             with self.assertRaises(oot.Fail) as e:
-                oot.locate(oot.LONGSHOT, None, "--longshot")
-            self.assertIn("--longshot", str(e.exception))
-            self.assertIn(str(self.home / "Games" / "Longshot"), str(e.exception))
-            game = self.tmp / "Longshot"
+                oot.locate(oot.LONGSHOT, None, "--timeLink")
+            self.assertIn("--timeLink", str(e.exception))
+            self.assertIn(str(self.home / "Games" / "timeLink"), str(e.exception))
+            game = self.tmp / "timeLink"
             make_save(game / "user" / "save" / UID, b"W")
-            self.assertEqual(oot.locate(oot.LONGSHOT, str(game), "--longshot")[1], {UID: str(game / "user" / "save" / UID)})
+            self.assertEqual(oot.locate(oot.LONGSHOT, str(game), "--timeLink")[1], {UID: str(game / "user" / "save" / UID)})
             # (the builder's default game folder, when nothing is passed)
-            default = self.home / "Games" / "Longshot" / "user" / "save" / UID
+            default = self.home / "Games" / "timeLink" / "user" / "save" / UID
             make_save(default, b"D")
-            self.assertEqual(oot.locate(oot.LONGSHOT, None, "--longshot")[1], {UID: str(default)})
+            self.assertEqual(oot.locate(oot.LONGSHOT, None, "--timeLink")[1], {UID: str(default)})
 
     def test_lichii_s_own_folder_first(self):
         # (Lichii from its build 150 on keeps %APPDATA%\\lichii, ~/.local/share/lichii; the others stay in Eden's)
@@ -243,7 +243,7 @@ class Discovery(Case):
             (self.hs / s).rmdir()
         code, out, err = self.run_main("list")
         self.assertEqual(code, 0, err)
-        self.assertIn("Longshot: no Longshot save found", out)
+        self.assertIn("timeLink: no timeLink save found", out)
         self.assertIn(PROFILE, out)
 
 
@@ -268,14 +268,14 @@ class Copy(Case):
         self.assertEqual(tree(backup), before)
 
     def test_old_names_are_gone(self):
-        # (to-lichii, to-longshot and --lichii were Hookshot-era spellings of export lichii, import lichii and --from/--to)
-        for argv in (["to-lichii"], ["to-longshot"], ["import", "--lichii", str(self.data / "eden")]):
+        # (to-lichii, to-timeLink and --lichii were Hookshot-era spellings of export lichii, import lichii and --from/--to)
+        for argv in (["to-lichii"], ["to-timeLink"], ["import", "--lichii", str(self.data / "eden")]):
             with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
                 oot.main(argv)
         self.assertEqual(self.backup_dirs(), [])
 
     def test_import_into_a_longshot_without_a_save(self):
-        # (Longshot never started: the save goes where it will look, save/<its one user id>, and there is nothing to back up)
+        # (timeLink never started: the save goes where it will look, save/<its one user id>, and there is nothing to back up)
         shutil.rmtree(self.data / "longshot")
         code, out, err = self.run_main("import", "lichii")
         self.assertEqual(code, 0, err)
@@ -372,7 +372,7 @@ class Copy(Case):
             with self.subTest(extra=extra), mock.patch.object(
                 oot.shutil, "copytree", side_effect=AssertionError("recursive backup copy started")
             ):
-                code, _, err = self.run_main("import", "--from", str(self.li), "--longshot", str(self.hs), *extra)
+                code, _, err = self.run_main("import", "--from", str(self.li), "--timeLink", str(self.hs), *extra)
                 self.assertEqual(code, 1)
                 self.assertIn("--backup-dir outside the target save folder", err)
                 self.assertFalse(self.backups.exists())
@@ -472,7 +472,7 @@ class Copy(Case):
                 real.parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(self.hs), real)
                 self.hs.symlink_to(real, target_is_directory=True)
-                code, out, err = self.run_main("import", "--from", str(self.li), "--longshot", str(self.hs))
+                code, out, err = self.run_main("import", "--from", str(self.li), "--timeLink", str(self.hs))
                 self.assertEqual(code, 0, err)
                 self.assertTrue(self.hs.is_symlink())
                 self.assertEqual(tree(real), tree(self.li))
@@ -501,7 +501,7 @@ class Copy(Case):
 
         before = tree(self.hs)
         with mock.patch.object(oot.os, "replace", side_effect=replace):
-            code, out, err = self.run_main("import", "--from", str(self.li), "--longshot", str(self.hs))
+            code, out, err = self.run_main("import", "--from", str(self.li), "--timeLink", str(self.hs))
         self.assertEqual(code, 1)
         (aside,) = [p for p in self.hs.iterdir() if p.name.startswith(".")]
         (backup,) = self.backup_dirs()
@@ -538,7 +538,7 @@ class Copy(Case):
     def test_read_only_file_in_the_old_save(self):
         # (on Windows a read-only file can't be deleted as it is: the old entries' folder was left in the target)
         (self.hs / "slot_01" / "progress.sav").chmod(stat.S_IREAD)
-        code, out, err = self.run_main("import", "--from", str(self.li), "--longshot", str(self.hs))
+        code, out, err = self.run_main("import", "--from", str(self.li), "--timeLink", str(self.hs))
         self.assertEqual(code, 0, err)
         self.assertNotIn("could not delete", out)
         self.assertEqual(tree(self.hs), tree(self.li))
@@ -562,7 +562,7 @@ class Copy(Case):
                 self.fresh_saves()
                 refusals.clear()
                 with mock.patch.object(oot.os, "unlink", side_effect=unlink):
-                    code, out, err = self.run_main("import", "--from", str(self.li), "--longshot", str(self.hs))
+                    code, out, err = self.run_main("import", "--from", str(self.li), "--timeLink", str(self.hs))
                 self.assertEqual(code, 0, err)
                 self.assertEqual(tree(self.hs) if not left else {k: v for k, v in tree(self.hs).items() if not k.startswith(".")},
                                  tree(self.li))
@@ -609,11 +609,11 @@ class NX2navi(Case):
 
 class Guard(Case):
     def test_refuses_while_running(self):
-        self.running.return_value = ["Longshot"]
+        self.running.return_value = ["timeLink"]
         before = (tree(self.hs), tree(self.li))
         code, out, err = self.run_main("export", "lichii")
         self.assertEqual(code, 1)
-        self.assertIn("Longshot", err)
+        self.assertIn("timeLink", err)
         self.assertEqual((tree(self.hs), tree(self.li)), before)
         self.assertEqual(self.backup_dirs(), [])
 
@@ -661,7 +661,7 @@ class Guard(Case):
 
 
 class Hookshot(Case):
-    """Hookshot, the project Longshot was forked from: the same files in the same layout under its own folders"""
+    """Hookshot, the project timeLink was forked from: the same files in the same layout under its own folders"""
 
     def setUp(self):
         super().setUp()
@@ -740,11 +740,11 @@ class Hookshot(Case):
     def test_windows_import_into_the_game_folder(self):
         hk = self.home / "Games" / "Hookshot" / "user" / "save" / oot.USER_ID
         make_save(hk, b"W")
-        game = self.home / "Games" / "Longshot"
+        game = self.home / "Games" / "timeLink"
         with mock.patch.object(oot, "WINDOWS", True):
-            code, out, err = self.run_main("import", "hookshot")   # (no Longshot game folder: nowhere to put it)
+            code, out, err = self.run_main("import", "hookshot")   # (no timeLink game folder: nowhere to put it)
             self.assertEqual(code, 1)
-            self.assertIn("--longshot", err)
+            self.assertIn("--timeLink", err)
             game.mkdir(parents=True)
             code, out, err = self.run_main("import", "hookshot")
             self.assertEqual(code, 0, err)

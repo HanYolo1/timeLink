@@ -33,8 +33,8 @@ static_assert(mkwvk::kQueueGraphics == VK_QUEUE_GRAPHICS_BIT && mkwvk::kQueueCom
 #include "vk_progress.h"
 #include "vk_programs.h"
 #include "mesh_mode.h"
-#ifndef LONGSHOT_ENV_H   // (env_on: the switches' one rule)
-#include "longshot_env.h"
+#ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
+#include "timeLink_env.h"
 #endif
 
 namespace vkx {
@@ -49,7 +49,7 @@ VKX_DEVICE3(VKX_DEFINE)
 static PFN_vkGetInstanceProcAddr get_instance_proc;
 
 bool load_global() {
-#ifdef _WIN32   // (longshot: the loader from System32 only, not from the current folder or PATH)
+#ifdef _WIN32   // (timeLink: the loader from System32 only, not from the current folder or PATH)
     HMODULE m = LoadLibraryExA("vulkan-1.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
 #else
     HMODULE m = LoadLibraryA("vulkan-1.dll");   // (linux: libvulkan.so.1, host/posix/win32_posix.c)
@@ -260,7 +260,7 @@ bool pick_device() {
 }
 
 /// (longshot) Whether the shaders' float adds to storage buffers are asked to be the GPU's own atomic (create_device):
-/// RX_VK_NATIVE_FADD by the switches' rule (longshot_env.h env_value_off: 0, false, off, no or empty is off, any other
+/// RX_VK_NATIVE_FADD by the switches' rule (timeLink_env.h env_value_off: 0, false, off, no or empty is off, any other
 /// value on); unset, with NVIDIA's driver (an RTX 4090 in Kakariko and on Death Mountain Trail) and with Intel's Windows
 /// driver on the GPU families it was run on: the Xe-LPG iGPUs of Meteor Lake and Arrow Lake (PCI device 0x7Dxx; run on a
 /// 0x7D55 in Kokiri Forest, Kakariko and on Death Mountain Trail), from that driver, 101.9175, on (Intel's Windows
@@ -290,19 +290,19 @@ bool create_device() {
     // (#1001: how task and mesh programs run, mesh_mode.h: RX_VK_MESH_SHADERS=native or compute, a launch switch; unset,
     // Automatic. RX_VK_FORCE_MESH_FALLBACK=1, a test, is Compute over it: mesh shaders not used where they are, so the no-mesh
     // fallback the GTX 10xx and RX 5000 cards run (issue 640) can be tried on any GPU. The Graphics tab's row it was, and its
-    // mesh_shaders= in longshot_options.ini, no longer choose: the line is only told of in the log)
+    // mesh_shaders= in timeLink_options.ini, no longer choose: the line is only told of in the log)
     static const mesh_rule::Choice mesh_choice = [] {
         char exe[MAX_PATH];
         const DWORD len = game_module_path(exe, MAX_PATH);   // (the game folder, not bin beside the launcher: vk_paths.h)
         std::string ini(exe, len);
-        ini = ini.substr(0, ini.find_last_of("\\/") + 1) + "longshot_options.ini";
+        ini = ini.substr(0, ini.find_last_of("\\/") + 1) + "timeLink_options.ini";
         if (FILE* fl = fopen(ini.c_str(), "r")) {
             char line[80];
             int old = 0;
             while (fgets(line, sizeof line, fl))
                 if (mesh_rule::old_ini_choice(line, &old)) {
-                    logf("vk: mesh_shaders=%d in longshot_options.ini is no longer read (the Mesh shaders row left the menu): "
-                         "set RX_VK_MESH_SHADERS=native or compute in longshot_env.txt to choose", old);
+                    logf("vk: mesh_shaders=%d in timeLink_options.ini is no longer read (the Mesh shaders row left the menu): "
+                         "set RX_VK_MESH_SHADERS=native or compute in timeLink_env.txt to choose", old);
                     break;
                 }
             fclose(fl);
@@ -310,7 +310,7 @@ bool create_device() {
         return mesh_rule::choose(getenv("RX_VK_MESH_SHADERS"), getenv("RX_VK_FORCE_MESH_FALLBACK"));
     }();
     const int mesh_mode = mesh_choice.mode;
-    // (longshot, issue 2245) RADV's native task/mesh path deadlocks the GPU: the gfx ring and RADV's gang compute ring
+    // (timeLink, issue 2245) RADV's native task/mesh path deadlocks the GPU: the gfx ring and RADV's gang compute ring
     // end up waiting on each other, and a mesh-only draw hangs with the compute queue empty (devcoredumps on an
     // RX 6800: no VM fault; waves stuck on gfx in the second). Task + mesh draws alone on the fallback still crash, so
     // only full Compute is stable there, and the reports span Navi 2x (RX 6800, RX 6600 XT) and the RDNA3 APUs (Steam
@@ -375,13 +375,13 @@ bool create_device() {
     const bool fadd_wanted = native_fadd_wanted(fadd_env, fadd_driver.driverID, dev.props.deviceID, dev.props.driverVersion);
     bool atomic_float = false;
     if (fadd_wanted) optional(VK_EXT_SHADER_ATOMIC_FLOAT_EXTENSION_NAME, atomic_float);
-    optional(VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME, dev.swap_mutable);   // (longshot: the overlays, vk_imgui.cpp)
-    dlss_device_extensions(want, exts);   // (longshot: NVIDIA DLSS's, vk_dlss.cpp)
-    dlss_fg_device_extensions(want, exts);   // (longshot: NVIDIA DLSS Frame Generation's through NGX, asked of NGX)
-    bool fsr_descriptor_buffer = false;   // (longshot, linux: only with a Vulkan FSR 4 library beside the game, vk_fsr4.cpp)
+    optional(VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME, dev.swap_mutable);   // (timeLink: the overlays, vk_imgui.cpp)
+    dlss_device_extensions(want, exts);   // (timeLink: NVIDIA DLSS's, vk_dlss.cpp)
+    dlss_fg_device_extensions(want, exts);   // (timeLink: NVIDIA DLSS Frame Generation's through NGX, asked of NGX)
+    bool fsr_descriptor_buffer = false;   // (timeLink, linux: only with a Vulkan FSR 4 library beside the game, vk_fsr4.cpp)
     if (fsr4_wants_descriptor_buffer()) optional(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME, fsr_descriptor_buffer);
-    reflex_device_extensions(want, exts);   // (longshot: NVIDIA Reflex's, vk_reflex.cpp)
-    antilag_device_extensions(want, exts);   // (longshot: AMD Anti-Lag 2's, vk_antilag.cpp)
+    reflex_device_extensions(want, exts);   // (timeLink: NVIDIA Reflex's, vk_reflex.cpp)
+    antilag_device_extensions(want, exts);   // (timeLink: AMD Anti-Lag 2's, vk_antilag.cpp)
 
     // the queue: one family for graphics, compute and transfer
     vkGetPhysicalDeviceQueueFamilyProperties(dev.physical, &n, nullptr);
@@ -474,7 +474,7 @@ bool create_device() {
     VkPhysicalDeviceProvokingVertexFeaturesEXT pv{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT};
     VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT gpl{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT};
     void** tail = &f13.pNext;
-    // (longshot: the load at a program's create call makes a pipeline from the caches by its module's identifier, without the
+    // (timeLink: the load at a program's create call makes a pipeline from the caches by its module's identifier, without the
     // program's code: vk_programs.h. Nothing else uses it)
     VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT module_idf{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MODULE_IDENTIFIER_FEATURES_EXT};
     if (module_id) *tail = &module_idf, tail = &module_idf.pNext;
@@ -534,14 +534,14 @@ bool create_device() {
     // (bounds-checked buffer access: an out-of-range access dropped instead of faulting the device. On by default: the GPU
     // culling pass 53caac5f faulted the device while a save loaded, about one start in three, and the scene's lighting read garbage
     // for single frames (the black flashes); with it, neither in A/B runs at the same GPU time. Lichii's OoT branch keeps it on too.
-    // The 'Robust buffers' row of longshot_options.ini chooses (0 Auto: on, on every vendor; 1 Off; 2 On); RX_VK_ROBUST=0 or 1
+    // The 'Robust buffers' row of timeLink_options.ini chooses (0 Auto: on, on every vendor; 1 Off; 2 On); RX_VK_ROBUST=0 or 1
     // over it. Off is null descriptors only: some NVIDIA cards ran slower with it on, issues 394, 418, 419)
     static const bool robust = []() -> bool {
         if (const char* e = getenv("RX_VK_ROBUST")) return atoi(e) != 0;
         char exe[MAX_PATH];
         const DWORD n = game_module_path(exe, MAX_PATH);   // (the game folder, not bin beside the launcher: vk_paths.h)
         std::string ini(exe, n);
-        ini = ini.substr(0, ini.find_last_of("\\/") + 1) + "longshot_options.ini";
+        ini = ini.substr(0, ini.find_last_of("\\/") + 1) + "timeLink_options.ini";
         int v = 0;   // (Auto)
         if (FILE* f = fopen(ini.c_str(), "r")) {
             char line[80];
@@ -597,9 +597,9 @@ bool create_device() {
     dev.eds3_a2c = dev.dynamic_state3 && eds3.extendedDynamicState3AlphaToCoverageEnable;
     dev.vk12 = f12;
     dev.vk13 = f13;
-    {   // (longshot, after TotK Recomp's vk_caps.c) NVN's programs are written for 32 lanes: the translator is told 32, and the lane
+    {   // (timeLink, after TotK Recomp's vk_caps.c) NVN's programs are written for 32 lanes: the translator is told 32, and the lane
         // shuffles of OoT's networks and the lane masks of its mesh programs depend on it. NVIDIA's GPUs have no other size; AMD's
-        // default to 64 where they like, and the networks' output came out as coloured noise (Longshot issues 10 and 14)
+        // default to 64 where they like, and the networks' output came out as coloured noise (timeLink issues 10 and 14)
         VkPhysicalDeviceDriverProperties drv{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES};
         VkPhysicalDeviceSubgroupSizeControlProperties sc{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES};
         sc.pNext = &drv;
@@ -628,7 +628,7 @@ bool create_device() {
     // (task and mesh shader counts in pipeline statistics, a feature of their own: RADV has it off on RDNA2, and a query
     // pool made with those counts all the same can hang the GPU)
     dev.mesh_queries = dev.mesh_shader && mesh.meshShaderQueries;
-    // (longshot, issue 640) RDNA1 and older GPUs: no mesh shaders, but task and mesh programs run as compute shaders
+    // (timeLink, issue 640) RDNA1 and older GPUs: no mesh shaders, but task and mesh programs run as compute shaders
     // that write their vertices to buffers, drawn through an ordinary graphics pipeline. It needs buffer device addresses.
     dev.mesh_fallback = !dev.mesh_shader && f12.bufferDeviceAddress && !env_on("RX_VK_NO_MESH_FALLBACK");
     if (dev.mesh_fallback) logf("vk: no mesh shaders: task and mesh programs run as compute shaders (issue 640 fallback)");
@@ -664,7 +664,7 @@ bool create_device() {
 
 
     load_device(dev.device);
-    // (longshot: when programs are loaded, vk_programs.h. Without mesh shaders, or with the task + mesh draws through the
+    // (timeLink: when programs are loaded, vk_programs.h. Without mesh shaders, or with the task + mesh draws through the
     // fallback, a start keeps the fallback's programs ready, and loads at create have not been shown to be as good there)
     programs_load_decide(dev.mesh_shader && !dev.mesh_fallback && !dev.task_mesh_fallback);
     vkGetDeviceQueue(dev.device, dev.queue_family, 0, &dev.queue);
@@ -895,7 +895,7 @@ bool create_swapchain(uint32_t width, uint32_t height) {
     }
     VkSwapchainCreateInfoKHR ci{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
     ci.surface = dev.surface;
-    ci.minImageCount = std::max(caps.minImageCount, 4u);   // (longshot: mailbox with frame interpolation: an image always free)
+    ci.minImageCount = std::max(caps.minImageCount, 4u);   // (timeLink: mailbox with frame interpolation: an image always free)
     // (longshot) A fixed frame generation multiplier's set is presented ahead (vk_framegen.cpp present_ahead_wanted): each
     // of its frames holds an image from the copy to its present, so the set needs as many spare images as it has frames. 3x
     // and 4x ask for that many over the surface's least (an NVIDIA surface: 5 and 6 images); a set the chain cannot hold is
@@ -999,11 +999,11 @@ bool create_swapchain(uint32_t width, uint32_t height) {
 namespace {
 
 HWND main_window = nullptr;
-// (longshot) longshot --prepare-shaders (a builder, after a build): the same work with no game, its progress as
-// "@@progress" lines on stdout. A skip there leaves longshot_prepare_skipped beside the game: its own starts then
+// (longshot) timeLink --prepare-shaders (a builder, after a build): the same work with no game, its progress as
+// "@@progress" lines on stdout. A skip there leaves timeLink_prepare_skipped beside the game: its own starts then
 // leave the work out too (what was not prepared is built when first drawn), until a --prepare-shaders run ends it
-bool prepare_only() { return env_on("LONGSHOT_PREPARE_ONLY"); }
-std::string skipped_path() { return cache_path("longshot_prepare_skipped"); }
+bool prepare_only() { return env_on("TIMELINK_PREPARE_ONLY"); }
+std::string skipped_path() { return cache_path("timeLink_prepare_skipped"); }
 // (longshot) The --prepare-shaders run's watchdog, for any GPU and any part of it.
 // - What it waits on, in the log the builder shows: every 30 s that nothing has moved, the part, its count, and whether the
 //   GPU driver faulted; a driver fault as soon as it is caught. (The pipeline steps log their own progress every 10 s,
@@ -1015,7 +1015,7 @@ std::string skipped_path() { return cache_path("longshot_prepare_skipped"); }
 //   the cause, a part that needs the stuck driver cannot go on. So when nothing has moved for RX_VK_PREPARE_STALL_S seconds
 //   (300; 0: never stopped. Long: some steps read the caches or
 //   decide the predictions for a while with no count, on a slow disk or CPU too), the run says where it stopped and why, leaves
-//   longshot_prepare_skipped so the game's own starts do not stop in the same place (what was not prepared is built when first
+//   timeLink_prepare_skipped so the game's own starts do not stop in the same place (what was not prepared is built when first
 //   drawn), and ends at once with exit status 4 (make_game.py: "the GPU driver stopped responding"). Not through exit(): that
 //   unloads the driver, which can wait on the same lock. Before, it waited until make_game.py stopped it after 15 minutes with no
 //   line, and the game's first start then stopped in the same place
@@ -1368,7 +1368,7 @@ bool started_up() {
                         CloseHandle(input);
                     }
 #endif
-                    SetConsoleTitleA("Longshot");
+                    SetConsoleTitleA("timeLink");
                     console = CreateFileA("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
                     if (console == INVALID_HANDLE_VALUE) console = nullptr;
                 }
@@ -1630,7 +1630,7 @@ const MkwVkRenderer* mkwvk_init(const MkwVkHost* h) {
                 "uses for foliage, grass and many effects, so parts of the picture will be missing or broken.\n\nLongshot needs a GPU "
                 "with mesh shaders: NVIDIA GeForce RTX 20 series or newer, AMD Radeon RX 6000 series or newer, or Intel Arc. If your "
                 "card is one of those, update its driver.";
-            MessageBoxA(nullptr, text.c_str(), "Longshot: graphics card", MB_OK | MB_ICONWARNING | MB_TOPMOST);
+            MessageBoxA(nullptr, text.c_str(), "timeLink: graphics card", MB_OK | MB_ICONWARNING | MB_TOPMOST);
         }).detach();
 #endif
     }
@@ -1643,7 +1643,7 @@ const MkwVkRenderer* mkwvk_init(const MkwVkHost* h) {
 }
 
 namespace mkwvk {
-HWND app_window() { return main_window; }   // (longshot: the Insert menu's Fullscreen row)
+HWND app_window() { return main_window; }   // (timeLink: the Insert menu's Fullscreen row)
 
 /// (longshot) The refresh rate of the display the window is on, in mHz; 0 when not known (frame generation's Auto). Asked
 /// again once a second at most: the window may move to another display, and Windows' answer costs a few system calls

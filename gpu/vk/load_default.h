@@ -22,7 +22,7 @@ inline Choice choose(const char* env, bool native_mesh, bool marker, bool compre
     if (env && !std::strcmp(env, "create")) return {true, "RX_VK_LOAD=create"};
     if (env && !std::strcmp(env, "start")) return {false, "RX_VK_LOAD=start"};
     if (!native_mesh) return {false, "this GPU draws mesh programs through the compute fallback"};
-    if (marker) return {false, "in an earlier session first uses waited too long for loads (longshot_load_start.txt)"};
+    if (marker) return {false, "in an earlier session first uses waited too long for loads (timeLink_load_start.txt)"};
     return {true, "the default where the GPU has mesh shaders"};
 }
 

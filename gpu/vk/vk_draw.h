@@ -11,7 +11,7 @@ namespace mkwvk {
 /// Something other than the draw path pushed or bound descriptors in the recording (its next push is whole)
 void descriptors_disturbed();
 
-/// A graphics pipeline as longshot_pipelines.bin keeps it (the precompile's notes): what built it
+/// A graphics pipeline as timeLink_pipelines.bin keeps it (the precompile's notes): what built it
 struct PipeNote {
     uint64_t key, prog, variant;
     uint32_t topo, n, samples, depth_format, has_depth;
@@ -51,7 +51,7 @@ struct DrawArgs {
     // mesh shading (NVN2 task / mesh programs): workgroups, or indirect as above
     bool mesh = false;
     int groups[3] = {0, 1, 1};
-    uint32_t first_task = 0;   // (longshot: a direct mesh draw's first task workgroup, NVN's DrawMeshTasks(first, count))
+    uint32_t first_task = 0;   // (timeLink: a direct mesh draw's first task workgroup, NVN's DrawMeshTasks(first, count))
     // (longshot) an occlusion query around the draw, inside its pass (vk_replay.cpp, RX_VK_OCC_QUERIES); none when null
     VkQueryPool occ_pool = VK_NULL_HANDLE;
     uint32_t occ_query = 0;
@@ -76,7 +76,7 @@ void clear_depth_stencil(VkCommandBuffer cmd, NvnState& s, float depth, bool dep
 void clear_stats(int64_t* clears, int64_t* masked);
 /// indirect: the workgroup counts' GPU address (x, y, z unused)
 void dispatch(VkCommandBuffer cmd, NvnState& s, uint32_t x, uint32_t y, uint32_t z, uint64_t indirect);
-void dry_mark_written(NvnState& s, bool compute, bool first);   // (longshot: the parallel replay's dry pass)
+void dry_mark_written(NvnState& s, bool compute, bool first);   // (timeLink: the parallel replay's dry pass)
 void dry_marks_begin();   // (at the start of each dry pass: the last targets it skipped by are forgotten)
 void draw_stats(int64_t* draws, int64_t* skipped, int64_t* dispatches, int64_t* pipelines);
 void draw_stats2(int64_t* passes, int64_t* mesh, double* pipeline_ms);
@@ -106,7 +106,7 @@ void pipeline_cache_save_play();   // what play made since the last save, into a
 // (the window closed: what play made since the last save, a few ms; the start's cache is not written there, as before)
 void pipeline_cache_close();
 void pipeline_cache_play();   // (the start-up done: what play makes goes into play files of its own)
-/// (longshot) longshot_pipeline_states.bin's bytes now, no record half written (the menu's Save my pipeline list); *present: it is there
+/// (longshot) timeLink_pipeline_states.bin's bytes now, no record half written (the menu's Save my pipeline list); *present: it is there
 std::string state_list_snapshot(bool* present);
 
 /// The stream's uniform updates (UPDATE_UB, vk_replay.cpp) that overlap [addr, addr + n) and may not be in guest

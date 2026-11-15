@@ -38,7 +38,7 @@ def production_code(path):
 
 class ShaderStampCacheTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="longshot-shader-stamp-")
+        self.temp = tempfile.TemporaryDirectory(prefix="timeLink-shader-stamp-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.files = {
@@ -93,7 +93,7 @@ class ShaderStampCacheTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(text.encode())
         self.code = production_code(BUILD_SCRIPT)
-        # (the stamp's own module beside the build script, nx2/translator_files.py: the branch calls it for LONGSHOT_SHADER_STAMP)
+        # (the stamp's own module beside the build script, nx2/translator_files.py: the branch calls it for TIMELINK_SHADER_STAMP)
         stamp_module = BUILD_SCRIPT.parent / "translator_files.py"
         self.translator_files = None
         if stamp_module.exists():
@@ -114,14 +114,14 @@ class ShaderStampCacheTests(unittest.TestCase):
             "vk_headers": str(self.root / "deps/vulkanheaders"),
             "vma_headers": str(self.root / "deps/vulkanmemoryallocator"),
             "obj_dir": str(self.root / "obj"), "cc": "clang", "jobs": [], "ZSTD": str(self.root / "third_party/zstd/lib"),
-            "stamp_def": '-DLONGSHOT_VERSION="%s"' % version, "logo_text": b"", "gen_dir": str(self.root / "gen"),
+            "stamp_def": '-DTIMELINK_VERSION="%s"' % version, "logo_text": b"", "gen_dir": str(self.root / "gen"),
             "fonts_cpp": str(self.root / "gen/ui_fonts.cpp"),
             # (the back end's branch makes its logo header and fonts file itself since #1567: no files written here)
             "logo_rgba": SimpleNamespace(write=lambda path: ""),
             "ui_fonts": SimpleNamespace(write=lambda path: None),
             "NGX_SDK": ngx,   # ("": no NVIDIA NGX SDK, vk_dlss.cpp built without DLSS, as by default)
             "NGX_MSVC_RT": "vk_ngx_msvc_rt.cpp",
-            "FSR": fsr,   # (LONGSHOT_FSR=1: vk_fsr4.cpp built with AMD FSR 4)
+            "FSR": fsr,   # (TIMELINK_FSR=1: vk_fsr4.cpp built with AMD FSR 4)
             "translator_files": self.translator_files,
         }
         environ = dict({"RX_RELEASE": "1"} if release else {}, **({"RX_VK_PGO": pgo} if pgo else {}))   # (pgo: gen, or a profile)
@@ -192,12 +192,12 @@ class ShaderStampCacheTests(unittest.TestCase):
             with self.subTest(linux=linux):
                 before = self.jobs(linux, release=True)
                 for name, job in before.items():
-                    shader = [f for f in job["flags"] if f.startswith("-DLONGSHOT_SHADER_STAMP=")]
-                    version = [f for f in job["flags"] if f.startswith("-DLONGSHOT_VERSION=")]
+                    shader = [f for f in job["flags"] if f.startswith("-DTIMELINK_SHADER_STAMP=")]
+                    version = [f for f in job["flags"] if f.startswith("-DTIMELINK_VERSION=")]
                     self.assertEqual(len(shader), int(name == "gpu/vk/vk_shader.cpp"))
                     self.assertEqual(len(version), int(name == "gpu/vk/vk_menu.cpp"))
                     if not name.startswith(("host/posix/", "third_party/zstd/", "third_party/zbic/", "gen/")):   # (plain C libraries, the fonts' bytes)
-                        self.assertIn("-DLONGSHOT_RELEASE", job["flags"])
+                        self.assertIn("-DTIMELINK_RELEASE", job["flags"])
                 self.assertEqual(self.changed(before, self.jobs(linux, version="new", release=True)),
                                  {"gpu/vk/vk_menu.cpp"})
 
@@ -208,13 +208,13 @@ class ShaderStampCacheTests(unittest.TestCase):
                 plain = self.jobs(linux, mingw=mingw)
                 self.assertNotIn("gpu/vk/vk_ngx_msvc_rt.cpp", plain)   # (never without the SDK)
                 self.assertNotIn("host/mingw_msvc_shims.c", plain)
-                self.assertFalse([n for n, j in plain.items() if "-DLONGSHOT_NGX" in j["flags"]])
+                self.assertFalse([n for n, j in plain.items() if "-DTIMELINK_NGX" in j["flags"]])
                 with mock.patch("builtins.print"):
                     ngx = self.jobs(linux, ngx=sdk, mingw=mingw)
                 shims = {"gpu/vk/vk_ngx_msvc_rt.cpp", "host/mingw_msvc_shims.c"}
-                # (the shims only for llvm-mingw: the MSVC build (LONGSHOT_MSVC=1) and Linux have their own runtime)
+                # (the shims only for llvm-mingw: the MSVC build (TIMELINK_MSVC=1) and Linux have their own runtime)
                 self.assertEqual(set(ngx) - set(plain), shims if mingw and not linux else set())
-                self.assertEqual({n for n, j in ngx.items() if "-DLONGSHOT_NGX" in j["flags"]},
+                self.assertEqual({n for n, j in ngx.items() if "-DTIMELINK_NGX" in j["flags"]},
                                  {"gpu/vk/vk_dlss.cpp"} | ({"gpu/vk/vk_ngx_msvc_rt.cpp"} if mingw and not linux else set()))
                 self.assertEqual(self.changed(plain, {n: ngx[n] for n in plain}), {"gpu/vk/vk_dlss.cpp"})
 
@@ -222,11 +222,11 @@ class ShaderStampCacheTests(unittest.TestCase):
         for linux in (False, True):
             with self.subTest(linux=linux):
                 plain = self.jobs(linux)
-                self.assertFalse([n for n, j in plain.items() if "-DLONGSHOT_FSR" in j["flags"]])
+                self.assertFalse([n for n, j in plain.items() if "-DTIMELINK_FSR" in j["flags"]])
                 with mock.patch("builtins.print"):
                     fsr = self.jobs(linux, fsr=True)
                 self.assertEqual(set(fsr), set(plain))   # (no other files: AMD's headers alone, nothing linked)
-                self.assertEqual({n for n, j in fsr.items() if "-DLONGSHOT_FSR" in j["flags"]}, {"gpu/vk/vk_fsr4.cpp"})
+                self.assertEqual({n for n, j in fsr.items() if "-DTIMELINK_FSR" in j["flags"]}, {"gpu/vk/vk_fsr4.cpp"})
                 self.assertEqual(self.changed(plain, fsr), {"gpu/vk/vk_fsr4.cpp"})
 
     # (RX_VK_PGO, after ProjectReLink: the back end's own files, not Eden's recompiler, sirit, Dear ImGui, the fonts, zstd or the
@@ -239,7 +239,7 @@ class ShaderStampCacheTests(unittest.TestCase):
             with self.subTest(linux=linux):
                 plain = self.jobs(linux)
                 self.assertNotIn("host/pgo_rt.c", plain)
-                self.assertFalse([n for n, j in plain.items() if any(f.startswith(("-fprofile", "-DPGO_ENV", "-DLONGSHOT_VK_PROFILE")) for f in j["flags"])])
+                self.assertFalse([n for n, j in plain.items() if any(f.startswith(("-fprofile", "-DPGO_ENV", "-DTIMELINK_VK_PROFILE")) for f in j["flags"])])
 
     def test_counting_reaches_only_the_back_ends_own_files_and_adds_the_writer(self):
         for linux in (False, True):
@@ -260,7 +260,7 @@ class ShaderStampCacheTests(unittest.TestCase):
                 self.assertEqual("-I" + str(self.root / "host/posix") in writer, linux)   # (its windows.h on Linux)
 
     def test_a_profile_reaches_only_the_back_ends_own_files_by_its_contents(self):
-        profile = self.root / "work/longshot_vk.profdata"
+        profile = self.root / "work/timeLink_vk.profdata"
         profile.parent.mkdir()
         for linux in (False, True):
             with self.subTest(linux=linux):
@@ -281,7 +281,7 @@ class ShaderStampCacheTests(unittest.TestCase):
 
 
 class NgxSdkTests(unittest.TestCase):
-    """nx2/build.py's LONGSHOT_NGX_SDK: which library each platform needs, and what the Windows link adds"""
+    """nx2/build.py's TIMELINK_NGX_SDK: which library each platform needs, and what the Windows link adds"""
     def setUp(self):
         tree = ast.parse(BUILD_SCRIPT.read_text(encoding="utf-8"), filename=str(BUILD_SCRIPT))
         names = {"ngx_library", "ngx_sdk", "ngx_link"}
@@ -289,7 +289,7 @@ class NgxSdkTests(unittest.TestCase):
         self.assertEqual({n.name for n in functions}, names)
         self.ns = {"os": os}
         exec(compile(ast.Module(body=functions, type_ignores=[]), str(BUILD_SCRIPT), "exec"), self.ns)
-        self.temp = tempfile.TemporaryDirectory(prefix="longshot-ngx-")
+        self.temp = tempfile.TemporaryDirectory(prefix="timeLink-ngx-")
         self.addCleanup(self.temp.cleanup)
         self.sdk = Path(self.temp.name)
         (self.sdk / "lib").mkdir()

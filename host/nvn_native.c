@@ -25,8 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
-#ifndef LONGSHOT_ENV_H   /* (env_on: the switches' one rule) */
-#include "../gpu/vk/compat/longshot_env.h"
+#ifndef TIMELINK_ENV_H   /* (env_on: the switches' one rule) */
+#include "../gpu/vk/compat/timeLink_env.h"
 #endif
 uint64_t hos_hostcall(const char *name, void (*fn)(Ctx *, void *), void *user);   /* hos_hostcall.c */
 void hos_gpu_track(uint64_t guest, uint64_t size, int on);                          /* nvdrv.c */
@@ -134,7 +134,7 @@ uint8_t *nvn_gpu_host(uint64_t gpu) {
     return g ? (uint8_t *)GP(g) : NULL;
 }
 uint64_t nvn_gpu_contiguous(uint64_t gpu, uint64_t n) {
-    if (gpu < VBASE) {   /* (longshot: up to the guest window's end, not past it) */
+    if (gpu < VBASE) {   /* (timeLink: up to the guest window's end, not past it) */
         if (gpu < HOS_SYSTEM_BASE || gpu >= HOS_SPACE_END) return 0;
         return n < HOS_SPACE_END - gpu ? n : HOS_SPACE_END - gpu;
     }
@@ -172,7 +172,7 @@ int nvn_gpu_write(uint64_t gpu, const void *src, uint64_t n) {
 /* ---- device ---- */
 static volatile LONG depth_minus_w = 1;   /* (OoT's mode from the start: the shaders prepared before the game made its device were
                                             translated without the depth conversion, and the menu's text and logo fell outside the depth range
-                                            on a first start. d3zessete, Longshot PR 54) */
+                                            on a first start. d3zessete, timeLink PR 54) */
 int nvn_depth_minus_w(void) { return depth_minus_w != 0; }
 uint64_t nvn_native_proc(const char *name);
 
@@ -306,12 +306,12 @@ NV(nvnMemoryPoolInitialize) {
         return;
     }
     if (!b->mem) die("memory pool without storage (flags %#x size %#llx)", o->flags, (unsigned long long)o->size);
-    gw(b->mem, o->size);   /* (longshot: the storage lies in guest memory) */
+    gw(b->mem, o->size);   /* (timeLink: the storage lies in guest memory) */
     o->mem = b->mem;
     o->gpu = b->mem;
     hos_gpu_track(o->gpu, o->size, 1);   /* (the CPU's writes to it reach the renderer through write watch) */
     rx_nvn_pool_created(o->gpu, o->size);
-    void hos_prompts_pool(uint64_t mem, uint64_t size);   /* (longshot, prompts.c: the button prompts' textures, changed in place) */
+    void hos_prompts_pool(uint64_t mem, uint64_t size);   /* (timeLink, prompts.c: the button prompts' textures, changed in place) */
     hos_prompts_pool(o->mem, o->size);
     OLOG("pool %#llx size %#llx flags %#x", (unsigned long long)o->gpu, (unsigned long long)o->size, o->flags);
     RET(1);
@@ -350,7 +350,7 @@ NV(nvnMemoryPoolFinalize) {
         ReleaseSRWLockExclusive(&vmap_lock);
     } else if (o->mem) {
         hos_gpu_track(o->gpu, o->size, 0);
-        void hos_prompts_pool_gone(uint64_t mem);   /* (longshot, prompts.c: the prompts' textures no longer written there) */
+        void hos_prompts_pool_gone(uint64_t mem);   /* (timeLink, prompts.c: the prompts' textures no longer written there) */
         hos_prompts_pool_gone(o->mem);
     }
     o->magic = 0;
@@ -401,7 +401,7 @@ NV(nvnMemoryPoolMapVirtual) {
             die("MapVirtual request %d: virtual %#llx physical %#llx size %#llx", i, (unsigned long long)voff,
                 (unsigned long long)poff, (unsigned long long)size);
         const nvn_pool *p = pool ? (const nvn_pool *)gw(pool, sizeof(nvn_pool)) : NULL;
-        /* (longshot: the physical pages must lie in guest memory; the pool object is guest memory) */
+        /* (timeLink: the physical pages must lie in guest memory; the pool object is guest memory) */
         if (p && (!p->mem || p->gpu != p->mem || size > p->size || (uint64_t)poff > p->size - size ||
                   !hos_guest_range(p->gpu + (uint64_t)poff, size)))
             die("MapVirtual request %d: physical pool", i);
@@ -471,7 +471,7 @@ NV(nvnBufferInitialize) {
     RET(1);
 }
 NV(nvnBufferFinalize) { memset(P(0), 0, sizeof(nvn_buffer)); }
-/* (longshot, issue 287) A buffer with no memory pool, mapped: the game filled 0x3d0 bytes at what it got back, 0, and crashed
+/* (timeLink, issue 287) A buffer with no memory pool, mapped: the game filled 0x3d0 bytes at what it got back, 0, and crashed
    on a scene change (Hyrule Castle / Castle Town / Hyrule Field, Kakariko day to night; thread OptimizeChangeBanc, right after
    "flags of no memory pool"). Zeroed scratch memory in the game's address space instead, as large as the biggest asked for
    (never freed: it comes rarely), and who asked, once. */
@@ -610,7 +610,7 @@ NV(nvnTextureBuilderGetPackagedTextureData) { RET(CTB(P(0))->pkg_data); }
 static int storage_class(const nvn_texdesc *d) { return d->target == NVN_TEXTURE_TARGET_BUFFER ? 0 : 1; }
 NV(nvnTextureBuilderGetStorageClass) { RET(storage_class(&CTB(P(0))->d)); }
 NV(nvnTextureBuilderGetFlags) { RET((uint32_t)CTB(P(0))->d.flags); }
-/* (longshot, issues 284 and 287) A size or alignment asked of no builder: the game passed 0 here while a scene loaded (thread
+/* (timeLink, issues 284 and 287) A size or alignment asked of no builder: the game passed 0 here while a scene loaded (thread
    OptimizeChangeBanc, entering Castle Town), and the format read at +4 of it crashed the game. Size 0 then, and who asked, once */
 static int no_builder(Ctx *c, const char *what) {
     if (c->x[0]) return 0;
@@ -1140,7 +1140,7 @@ int hos_nvn_event_value(uint64_t guest_event, uint32_t *v) {
     return 1;
 }
 NV(nvnEventGetValue) {
-    {   /* (longshot, experiment) HOS_PRESENT_NOWAIT=1: OoT's present poll (hos_thread.c present_poll) sees its frame's
+    {   /* (timeLink, experiment) HOS_PRESENT_NOWAIT=1: OoT's present poll (hos_thread.c present_poll) sees its frame's
            event signalled at once: the replay reads memory as submitted, so the game may go on to the next frame
            while this one is replayed, as far as the window's textures and the replay's queue let it */
         /* (longshot) RX_VK_ASYNC=1 (any value but 0), the render thread (gpu/vk/vk_replay.cpp async_on): the same, as its
@@ -2180,7 +2180,7 @@ NV(nvnCommandBufferCopyBufferToTexture) {
     set_view(&r->view, &r->has_view, U64(3));
     r->r = *(const NVNcopyRegion *)P(4);
     r->flags = I(5);
-    {   /* (longshot, RX_VK_LOG_B2T=1) who records the big copies: the caller's chain, each new source once */
+    {   /* (timeLink, RX_VK_LOG_B2T=1) who records the big copies: the caller's chain, each new source once */
         static int on = -1;
         if (on < 0) on = env_on("RX_VK_LOG_B2T");
         static uint64_t seen[16];

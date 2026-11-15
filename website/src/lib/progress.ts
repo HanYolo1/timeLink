@@ -98,7 +98,7 @@ export function validateFeed(feed) {
         (i.mergedAt !== null && !validDate(i.mergedAt)) ||
         (i.impact !== null && !IMPACTS.includes(i.impact)) || !i.report ||
         (i.report.version !== null && typeof i.report.version !== 'string') ||
-        (i.report.versionSource !== null && !['Longshot version field', 'Builder version field', 'Installation version field'].includes(i.report.versionSource)) ||
+        (i.report.versionSource !== null && !['timeLink version field', 'Builder version field', 'Installation version field'].includes(i.report.versionSource)) ||
         typeof i.report.reportedArea !== 'string') throw new Error('Invalid progress feed item.');
     const prefix = i.kind === 'release' ? `${ROOT}/releases/tag/` : `${ROOT}/${i.kind === 'pull' ? 'pulls' : 'issues'}/`;
     if (typeof i.url !== 'string' || !isSource(i.url) || !i.url.startsWith(prefix) ||

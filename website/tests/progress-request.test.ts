@@ -43,7 +43,7 @@ test('persistent transient failures stop after three attempts with endpoint diag
   await assert.rejects(progressRequest(url, { wait: async () => {}, fetcher: async () => {
     calls++;
     return new Response('not logged', { status: 503 });
-  } }), /\/Longshot\/issues, HTTP 503 \(attempt 3\/3\)/);
+  } }), /\/timeLink\/issues, HTTP 503 \(attempt 3\/3\)/);
   assert.equal(calls, 3);
 });
 

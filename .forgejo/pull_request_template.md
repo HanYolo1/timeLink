@@ -52,7 +52,7 @@
 
 Hardware: <OS, GPU, driver, CPU, RAM>
 Scene: <the area, time of day; resolution, upscaler, frame generation, frame rate cap>
-Method: <what exactly was measured, from where (FPS counter's Dev level, longshot_log.txt, RX_VK_DRAW_STATS, a test), how long, how many runs, the median>
+Method: <what exactly was measured, from where (FPS counter's Dev level, timeLink_log.txt, RX_VK_DRAW_STATS, a test), how long, how many runs, the median>
 How to reproduce: <the save or spot, the settings and switches, the commands>
 
 | | Before: main @ <commit> | After: this PR @ <commit> |
@@ -65,7 +65,7 @@ How to reproduce: <the save or spot, the settings and switches, the commands>
 
 ### Flags and settings
 
-<!-- One line first: does this PR add or change a switch (RX_*, HOS_*, LONGSHOT_*), a menu row, an ini key or a build
+<!-- One line first: does this PR add or change a switch (RX_*, HOS_*, TIMELINK_*), a menu row, an ini key or a build
      flag? If not, "None" is the whole subsection. Otherwise a row for each: its value before this PR and after it
      (the default as it ships), what it does to the game, where it helps, doesn't, or wasn't tried, and what you
      recommend ("on for everyone", "off: only for testing"). A switch ships at its recommended value:
@@ -101,7 +101,7 @@ How to reproduce: <the save or spot, the settings and switches, the commands>
 ## Risks
 
 <!-- What could break, and where; how to turn it off (a switch) or that reverting is enough.
-     Compatibility: what a player notices after updating: saves, longshot_options.ini, the shader and pipeline caches
+     Compatibility: what a player notices after updating: saves, timeLink_options.ini, the shader and pipeline caches
      (translated again, rebuilt?), the vk ABI (MKWVK_API_VERSION), the builder's tools; or "Nothing changes". -->
 
 **What could break:** <what, and where>

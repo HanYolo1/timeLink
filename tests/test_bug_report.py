@@ -17,7 +17,7 @@ Checked:
   listed; the link carries the switches' names and never a value;
 - a log over 10 MB keeps its start and its end, and what is in its middle still counts; a log with NUL bytes (in a line,
   or a run of them at its end, as a power cut leaves) is copied byte for byte, and what follows a NUL still counts;
-- started from a terminal (no log file), the run before's log is the game folder's longshot_log.txt, and without a frame
+- started from a terminal (no log file), the run before's log is the game folder's timeLink_log.txt, and without a frame
   the report says it has no picture; a picture that comes after the report went without it is removed again; a second
   report in the same second gets a folder of its own; a folder that cannot be made is reported with the system's reason;
 - the wiring: the Gameplay tab's row and its help, the press, the picture asked of shot_ask (its own image, copied from the
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
               "RX_VK_SHOT_EVERY=60", "RX_VK_X_MODE=off", "HOS_OUTPUT_RES=3840x2160", "RX_VK_NEG=-1", "RX_VK_SCALE=1.5",
               "HOS_COOP_ROOM=93127", "RX_API_KEY=58213", "HOS_COOP_SERVER=47731", "HOS_COOP_USER=1", "HOS_COOP_PASSWORD=hunter2",
               "HOS_RELAY=192.168.1.5", "HOS_RELAY_HOST=relay.example.org:47732", "RX_VK_LONG=1234567890123"};
-    if (mode == "many")   // (a long longshot_env.txt: more switches than a link takes)
+    if (mode == "many")   // (a long timeLink_env.txt: more switches than a link takes)
         for (int i = 0; i < 80; i++) in.env.push_back("RX_TEST_SWITCH_" + std::to_string(i) + "=" + std::string(20, 'v'));
     if (mode == "context" || mode == "context-count") {
         in.options.clear();
@@ -215,15 +215,15 @@ def wiring():
     refresh = refresh[:refresh.index("\n}\n")]
     check('hos_log("map: %s", line)' in refresh and "0x1d6189dau" in refresh,
           "the host does not log the map (Sequence_CurrentBanc) the report's place comes from")
-    # (the switches the report lists are the names longshot_env.txt takes: env_line_allowed's prefixes)
+    # (the switches the report lists are the names timeLink_env.txt takes: env_line_allowed's prefixes)
     allowed = re.search(r"prefixes\[\] = \{([^}]*)\}", host[host.index("static int env_line_allowed("):]).group(1)
     report = (ROOT / "gpu" / "vk" / "vk_bug_report.cpp").read_text(encoding="utf-8")
     listed = re.search(r"prefixes\[\] = \{([^}]*)\}", report[report.index("std::string switches("):]).group(1)
-    check(listed == allowed, "the report lists switches by %s, longshot_env.txt takes %s" % (listed, allowed))
+    check(listed == allowed, "the report lists switches by %s, timeLink_env.txt takes %s" % (listed, allowed))
     form = (ROOT / ".forgejo" / "ISSUE_TEMPLATE" / "1-game-problem.yml").read_text(encoding="utf-8")
     check(not (ROOT / ".github" / "ISSUE_TEMPLATE").exists(), "the GitHub issue forms are back beside Forgejo's")
-    for label in ("Longshot version", "Where in the game", "Graphics card and driver version", "CPU, RAM and operating system",
-                  "Changes from the defaults", "longshot_log.txt", "Screenshots or video"):
+    for label in ("timeLink version", "Where in the game", "Graphics card and driver version", "CPU, RAM and operating system",
+                  "Changes from the defaults", "timeLink_log.txt", "Screenshots or video"):
         check("label: " + label + "\n" in form, "the issue form has no field " + label)
     # (every field the link fills is one of the form's, by the name Forgejo reads: field:<id>)
     filled = re.findall(r'"&field:([a-z]+)="', report)
@@ -253,45 +253,45 @@ def main():
                         str(ROOT / "gpu" / "vk" / "vk_bug_report.cpp"), "-o", str(exe)], check=True)
         user = "alice"
         home = str(tmp / "home" / user)
-        game_path = Path(home) / "Games" / "Longshot"
+        game_path = Path(home) / "Games" / "timeLink"
         game_path.mkdir(parents=True)
         game = str(game_path) + os.sep
         sep = "\\" if windows else "/"
         home_as = "%USERPROFILE%" if windows else "~"
         (game_path / "logs").mkdir()   # (the game folder's logs/: host/game_layout.c)
-        now_log = game_path / "logs" / "longshot_log.txt"
+        now_log = game_path / "logs" / "timeLink_log.txt"
         now_log.write_text(
-            "[hos host] longshot " + VERSION + "\n"
-            "[hos sead::MainThread] fs: mounted content: -> " + home + sep + "Games" + sep + "Longshot" + sep + "romfs\n"
-            "[hos sead::MainThread] fs: mounted save: -> " + home + "/Games/Longshot/user\\save\\5a3c\n"
-            "[hos MainThread] vk: pipeline cache /run/media/" + user + "/SD/Longshot/mkw_vk_pipelines.bin (1 KB)\n"
+            "[hos host] timeLink " + VERSION + "\n"
+            "[hos sead::MainThread] fs: mounted content: -> " + home + sep + "Games" + sep + "timeLink" + sep + "romfs\n"
+            "[hos sead::MainThread] fs: mounted save: -> " + home + "/Games/timeLink/user\\save\\5a3c\n"
+            "[hos MainThread] vk: pipeline cache /run/media/" + user + "/SD/timeLink/mkw_vk_pipelines.bin (1 KB)\n"
             "[hos Main] map: KokiriForest_Child (child)\n"
             "[hos host] Malice and alice123 stay, as /x/alice123/ does\n"
             "[hos Main] map: HyruleField_Child (child)\n", encoding="utf-8")
-        (game_path / "logs" / "longshot_log.1.txt").write_text(
-            "[hos host] longshot v2.0.14\n"
-            "[hos sead::MainThread] fs: mounted content: -> " + home + sep + "Games" + sep + "Longshot" + sep + "romfs\n"
+        (game_path / "logs" / "timeLink_log.1.txt").write_text(
+            "[hos host] timeLink v2.0.14\n"
+            "[hos sead::MainThread] fs: mounted content: -> " + home + sep + "Games" + sep + "timeLink" + sep + "romfs\n"
             "[hos Main] map: Market_Child (child)\n"
-            "[hos host] CRASH: exception 0xc0000005 (read 0x0, guest 0x0) at longshot+0x1234\n"
+            "[hos host] CRASH: exception 0xc0000005 (read 0x0, guest 0x0) at timeLink+0x1234\n"
             "[hos host] CRASH: thread Main, sp 0x1000\n", encoding="utf-8")
 
-        # 1. started from its icon: this run logs to longshot_log.txt, the one before is longshot_log.1.txt; a picture comes
+        # 1. started from its icon: this run logs to timeLink_log.txt, the one before is timeLink_log.1.txt; a picture comes
         folders, out = run(exe, "picture", game, str(now_log), home, user, windows)
         check(len(folders) == 1 and folders[0].startswith("bug-reports" + sep), "no report folder: %s" % out)
         folder = game_path / folders[0]
         files = files_of(folder)
-        check(set(files) == {"report.txt", "longshot_log.txt", "longshot_log.1.txt", "picture.png"},
+        check(set(files) == {"report.txt", "timeLink_log.txt", "timeLink_log.1.txt", "picture.png"},
               "the folder holds %s" % sorted(files))
         check(set(p.name for p in (game_path / "bug-reports").iterdir()) == {folder.name}, "more than the report's folder")
         no_private(files, home, user, game)
-        copy = files["longshot_log.txt"]
-        for kept in (home_as + sep + "Games" + sep + "Longshot" + sep + "romfs", home_as + "/Games/Longshot/user\\save",
-                     "/run/media/<user>/SD/Longshot", "Malice and alice123 stay, as /x/alice123/ does"):
+        copy = files["timeLink_log.txt"]
+        for kept in (home_as + sep + "Games" + sep + "timeLink" + sep + "romfs", home_as + "/Games/timeLink/user\\save",
+                     "/run/media/<user>/SD/timeLink", "Malice and alice123 stay, as /x/alice123/ does"):
             check(kept in copy, "the copy of this run's log does not read " + kept)
         check(len(copy.splitlines()) == len(now_log.read_text(encoding="utf-8").splitlines()), "lines lost in the copy")
         report = files["report.txt"]
         section = lambda name: hw.section(report, name)
-        check(section("Longshot version") == VERSION, "the version: " + section("Longshot version"))
+        check(section("timeLink version") == VERSION, "the version: " + section("timeLink version"))
         gpu = section("Graphics card")
         check(gpu == "NVIDIA GeForce RTX 4090, NVIDIA 580.95.05" and hw.classify(gpu) == ("NVIDIA", "RTX 40"),
               "hardware_report.py reads the GPU as %s from %r" % (hw.classify(gpu), gpu))
@@ -309,8 +309,8 @@ def main():
         for unwanted in ("PATH=", "SECRET_TOKEN", "=C:", "93127", "58213", "47731", "hunter2", "192.168", "relay.example", "47732",
                          "1234567890123", "1:INS"):
             check(unwanted not in report, "report.txt holds " + unwanted)
-        logs = section("longshot_log.txt")
-        check("longshot v2.0.14" in logs and "CRASH: exception 0xc0000005" in logs, "the logs' section: " + logs)
+        logs = section("timeLink_log.txt")
+        check("timeLink v2.0.14" in logs and "CRASH: exception 0xc0000005" in logs, "the logs' section: " + logs)
         check("picture.png" in section("Screenshots or video"), "the picture is not named")
         link = report[report.index("https://git.magicbean.dev/MagicBeanDev/Longshot/issues/new?template=.forgejo/ISSUE_TEMPLATE/1-game-problem.yml"):].split()[0]
         for part in ("&field:version=v2.1.0-rc.3-39-gbdfe09c%20%28source%20763271ad%29", "&field:gpu=NVIDIA%20GeForce%20RTX%204090",
@@ -334,21 +334,21 @@ def main():
         check("LATE removed (asked for the report's own picture.png)" in out and "picture.png" not in files and
               "No picture" in hw.section(files["report.txt"], "Screenshots or video"), "a late picture: %s %s" % (out, sorted(files)))
 
-        # 3. started from a terminal: no log file this run; the run before's is the game folder's longshot_log.txt
+        # 3. started from a terminal: no log file this run; the run before's is the game folder's timeLink_log.txt
         folders, out = run(exe, "terminal", game, "", home, user, windows)
         check(len(folders) == 2 and folders[0] != folders[1] and all(folders), "two reports in a second: %s" % folders)
         files = files_of(game_path / folders[0])
-        check(set(files) == {"report.txt", "longshot_log.1.txt"}, "from a terminal the folder holds %s" % sorted(files))
-        check("HyruleField_Child" in files["longshot_log.1.txt"], "the run before's log is not the game folder's last one")
+        check(set(files) == {"report.txt", "timeLink_log.1.txt"}, "from a terminal the folder holds %s" % sorted(files))
+        check("HyruleField_Child" in files["timeLink_log.1.txt"], "the run before's log is not the game folder's last one")
         report = files["report.txt"]
-        check("terminal" in hw.section(report, "Where in the game") and "terminal" in hw.section(report, "longshot_log.txt"),
+        check("terminal" in hw.section(report, "Where in the game") and "terminal" in hw.section(report, "timeLink_log.txt"),
               "the report does not say where this run's log is")
         no_private(files, home, user, game)
 
         # 4. a log over 10 MB: its first MB and its last 9 MB, and the map in its middle still counts
         big = tmp / "big.log"
         with open(big, "w", encoding="utf-8", newline="\n") as f:
-            f.write("[hos host] longshot " + VERSION + "\n")
+            f.write("[hos host] timeLink " + VERSION + "\n")
             filler = "[hos host] vk: status: " + "x" * 100 + " " + home + "/Games\n"
             for _ in range(60000):
                 f.write(filler)
@@ -357,10 +357,10 @@ def main():
                 f.write(filler)
             f.write("[hos host] the last line\n")
         folders, out = run(exe, "big", game, str(big), home, user, windows)
-        copy_path = game_path / folders[0] / "longshot_log.txt"
+        copy_path = game_path / folders[0] / "timeLink_log.txt"
         copy = copy_path.read_text(encoding="utf-8")
         check(copy_path.stat().st_size <= (10 << 20) + 4096, "the long log's copy is %d bytes" % copy_path.stat().st_size)
-        check(copy.startswith("[hos host] longshot " + VERSION) and copy.endswith("[hos host] the last line\n") and
+        check(copy.startswith("[hos host] timeLink " + VERSION) and copy.endswith("[hos host] the last line\n") and
               "of this log's middle left out here" in copy, "the long log's copy lost its start, its end or the note")
         report = (game_path / folders[0] / "report.txt").read_text(encoding="utf-8")
         check(hw.section(report, "Where in the game").startswith("DeathMountainTrail_Child (child)"), "the middle's map")
@@ -390,19 +390,19 @@ def main():
         # Windows NUL with any extension is the null device, so nothing was written and an empty log was read back; the
         # read-back below says so if a name ever does that again)
         nul = tmp / "power-cut.log"
-        nul_text = ("[hos host] longshot " + VERSION + "\n[hos Main] fs: mounted content: -> " + home + "/Games\n"
+        nul_text = ("[hos host] timeLink " + VERSION + "\n[hos Main] fs: mounted content: -> " + home + "/Games\n"
                     "[hos Main] map: KokiriForest_Child (child)\n[hos Main] half a line\0 [hos Main] map: LostWoods_Child (child)\n" +
                     "\0" * 4096)
         nul.write_bytes(nul_text.encode("utf-8"))
         check(nul.read_bytes() == nul_text.encode("utf-8"), "the test's own log with NUL bytes was not written as given")
         folders, out = run(exe, "plain", game, str(nul), home, user, windows)
-        copy = (game_path / folders[0] / "longshot_log.txt").read_bytes()
+        copy = (game_path / folders[0] / "timeLink_log.txt").read_bytes()
         check(copy == nul_text.replace(home, home_as).encode("utf-8"), "the copy of a log with NUL bytes differs: %r" % copy[-200:])
         report = (game_path / folders[0] / "report.txt").read_text(encoding="utf-8")
         check(hw.section(report, "Where in the game").startswith("LostWoods_Child (child)"), "the map after a NUL is lost")
 
         # 7. a report's folder that cannot be made (bug-reports is a file here): the system's reason, GetLastError's on Windows
-        blocked = tmp / "blocked" / "Longshot"
+        blocked = tmp / "blocked" / "timeLink"
         blocked.mkdir(parents=True)
         (blocked / "bug-reports").write_text("a file where the folder would go", encoding="utf-8")
         folders, out = run(exe, "plain", str(blocked) + os.sep, str(now_log), home, user, windows)

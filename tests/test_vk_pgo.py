@@ -1,4 +1,4 @@
-"""The renderer's play profile (RX_VK_PGO, after ProjectReLink) is opt-in at every step: with no work/longshot_vk.profdata the
+"""The renderer's play profile (RX_VK_PGO, after ProjectReLink) is opt-in at every step: with no work/timeLink_vk.profdata the
 renderer is built as it always was, a developer's own RX_VK_PGO (gen, or another profile) is never replaced, a profile this
 compiler cannot read is left out rather than stopping the build, and the game module's counters keep their own variable.
 
@@ -32,7 +32,7 @@ def check_make_game():
         return True
 
     import lzma
-    with tempfile.TemporaryDirectory(prefix="longshot-vk-pgo-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="timeLink-vk-pgo-") as tmp:
         root, work = os.path.join(tmp, "checkout"), os.path.join(tmp, "work")
         os.makedirs(os.path.join(root, "work"))
         os.makedirs(os.path.join(root, "assets", "profiles"))
@@ -54,7 +54,7 @@ def check_make_game():
         with lzma.open(os.path.join(root, make_game.VK_PROFILE_SHIPPED), "wb") as f:
             f.write(b"a newer one")
         check("a new committed profile replaces the unpacked one", pick() == unpacked and open(unpacked, "rb").read() == b"a newer one")
-        # (a developer's work/longshot_vk.profdata: main copies it into the work folder, and it is used in place of the committed one)
+        # (a developer's work/timeLink_vk.profdata: main copies it into the work folder, and it is used in place of the committed one)
         own = os.path.join(work, make_game.VK_PROFILE)
         for path in (own, os.path.join(root, "work", make_game.VK_PROFILE)):
             with open(path, "wb") as f:
@@ -66,7 +66,7 @@ def check_make_game():
         check("a developer's own profile is not replaced", pick({"RX_VK_PGO": "/else.profdata"}) is None)
         check("a profile this compiler cannot read is left out, the renderer built without it", pick(can_read=lambda p: False) is None)
     shipped = ROOT / make_game.VK_PROFILE_SHIPPED
-    check("the renderer's profile is committed (assets/profiles/longshot_vk.profdata.xz)", shipped.is_file())
+    check("the renderer's profile is committed (assets/profiles/timeLink_vk.profdata.xz)", shipped.is_file())
     with lzma.open(shipped) as f:
         check("it is an indexed LLVM profile", f.read(8) == b"\xfflprofi\x81")
     check("its note says where it was recorded", "Recorded:" in (ROOT / "assets" / "profiles" / "README.md").read_text(encoding="utf-8"))
@@ -75,7 +75,7 @@ def check_make_game():
           "profile_readable(p, any_os=True)" in text)
     check("the lift key leaves the renderer's profile switches out (a profile made or taken away translates nothing again)",
           {"RX_VK_PGO", "RX_VK_PGO_FILE"} <= set(make_game.COMPILE_ONLY_ENV))
-    check("make_game.py copies the profile from the checkout's work/ with the game's", '"longshot_pieces.prof", VK_PROFILE,' in text)
+    check("make_game.py copies the profile from the checkout's work/ with the game's", '"timeLink_pieces.prof", VK_PROFILE,' in text)
     check("make_game.py passes it to the compile", 'env["RX_VK_PGO"] = vk_profile' in text)
 
 
@@ -83,7 +83,7 @@ def check_dev_packs():
     spec = importlib.util.spec_from_file_location("dev_packs_under_test", ROOT / "scripts" / "dev_packs.py")
     packs = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(packs)
-    with tempfile.TemporaryDirectory(prefix="longshot-vk-pgo-base-") as work:
+    with tempfile.TemporaryDirectory(prefix="timeLink-vk-pgo-base-") as work:
         prof = os.path.join(work, make_game.VK_PROFILE)
         check("a base with no profile: a renderer pack is built with none", packs.renderer_profile(work, {}) == {})
         with open(prof, "wb") as f:
@@ -113,13 +113,13 @@ def check_release():
     check("the AppImage carries assets/ (the committed profile, for every player's own renderer)",
           "cp -a nx2 host scripts LICENSE README.md assets tools.lock" in appimage)
     flow = (ROOT / ".forgejo" / "workflows" / "build-linux.yml").read_text(encoding="utf-8")
-    step = flow[flow.index("- name: longshot_vk.so (build check)"):flow.index("- name: longshot_vk.so with AMD FSR 4")]
+    step = flow[flow.index("- name: timeLink_vk.so (build check)"):flow.index("- name: timeLink_vk.so with AMD FSR 4")]
     check("CI's renderer build check takes the profile as a player's build does: the checkout's, else the committed one",
           'RX_VK_PGO="$VK_PGO" ' in step and "\n          VK_PGO=\n" in step and
-          'if [ -f work/longshot_vk.profdata ]; then VK_PGO="$PWD/work/longshot_vk.profdata"' in step and
-          'xz -dc assets/profiles/longshot_vk.profdata.xz > "$VKW/longshot_vk.shipped.profdata"' in step)
+          'if [ -f work/timeLink_vk.profdata ]; then VK_PGO="$PWD/work/timeLink_vk.profdata"' in step and
+          'xz -dc assets/profiles/timeLink_vk.profdata.xz > "$VKW/timeLink_vk.shipped.profdata"' in step)
     check("and a developer's own profile when the checkout has one",
-          "for f in hot_funcs.txt hot_order.txt longshot_pieces.prof longshot_vk.profdata; do" in appimage)
+          "for f in hot_funcs.txt hot_order.txt timeLink_pieces.prof timeLink_vk.profdata; do" in appimage)
     docs = (ROOT / "docs" / "development.md").read_text(encoding="utf-8")
     for switch in ("RX_VK_PGO=gen", "RX_VK_PGO_FILE=<file>"):
         check("%s is in docs/development.md's switch tables" % switch, switch in docs)

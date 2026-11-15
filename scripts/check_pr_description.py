@@ -21,7 +21,7 @@
   - the checklist: every box of "Everyone" there and ticked. "When it applies" keeps only the boxes that apply (or is
     left out when none does), and every box kept is ticked.
 
-Warnings, which do not fail it: an RX_*, HOS_* or LONGSHOT_* name the diff adds that Flags and settings doesn't list,
+Warnings, which do not fail it: an RX_*, HOS_* or TIMELINK_* name the diff adds that Flags and settings doesn't list,
 a change to the menu's code while it says None, a PR rebased onto a newer main than the one measured, a box marked n/a
 (delete it instead), a box the diff suggests that isn't there, the status line's type other than the title's, its
 Needs disagreeing with Must be tested, and Not tested or Must be tested naming something the Measurements say was
@@ -257,7 +257,7 @@ def reproduce_problems(text):
 def risks_problems(text):
     found = parts(text, RISK_PARTS)
     if "Compatibility" not in found:
-        return ["## Risks has no 'Compatibility:': what a player notices after updating (saves, longshot_options.ini, "
+        return ["## Risks has no 'Compatibility:': what a player notices after updating (saves, timeLink_options.ini, "
                 "the shader and pipeline caches, the vk ABI, the builder's tools), or 'Nothing changes'"]
     if not found["Compatibility"].strip():
         return ["## Risks' 'Compatibility:' is empty: write what changes for a player after updating, or 'Nothing "
@@ -686,7 +686,7 @@ def is_draft(title, api_draft=False):
 
 def fetch(server, repo, number, suffix=""):
     req = urllib.request.Request("%s/api/v1/repos/%s/pulls/%d%s" % (server.rstrip("/"), repo, number, suffix),
-                                 headers={"Accept": "application/json", "User-Agent": "longshot-pr-check/1"})
+                                 headers={"Accept": "application/json", "User-Agent": "timeLink-pr-check/1"})
     token = os.environ.get("FORGEJO_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if token:
         req.add_header("Authorization", "token " + token)

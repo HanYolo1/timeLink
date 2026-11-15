@@ -21,8 +21,8 @@ void hos_input_clear_toggles(void);
 void rx_close_asked(void);   /* host/rx_backend.c */
 #include "../gpu/vk/vk_api.h"
 #include "display_pointer.h"
-#ifndef LONGSHOT_ENV_H   /* (env_on: the switches' one rule) */
-#include "../gpu/vk/compat/longshot_env.h"
+#ifndef TIMELINK_ENV_H   /* (env_on: the switches' one rule) */
+#include "../gpu/vk/compat/timeLink_env.h"
 #endif
 
 void hos_relaunch_ask(void);        /* (host/hos_relaunch.c) */
@@ -353,7 +353,7 @@ static LRESULT CALLBACK wndproc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
         return 0;
     case WM_TIMER: {
         pointer_update(w, 0, 0);
-        /* (longshot, #1532) a controller is not input to Windows: playing with one, the display went off at the power
+        /* (timeLink, #1532) a controller is not input to Windows: playing with one, the display went off at the power
            plan's timeout. While the game's window is in front and not minimized, the display's idle timer is reset every
            30 s (ES_DISPLAY_REQUIRED without ES_CONTINUOUS: nothing is held when the game is left or closed).
            HOS_KEEP_DISPLAY=0: Windows' timeout as before */
@@ -439,7 +439,7 @@ static LRESULT CALLBACK wndproc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
     case WM_APP + 7:   /* (the Insert menu's row) */
         set_fullscreen(w, (int)wp);
         return 0;
-    case WM_APP + 12:   /* (longshot: the Insert menu's Paste, MkwVkHost.take_text) */
+    case WM_APP + 12:   /* (timeLink: the Insert menu's Paste, MkwVkHost.take_text) */
         paste_clipboard(w);
         return 0;
     case WM_DPICHANGED:
@@ -508,7 +508,7 @@ static DWORD WINAPI display_main(void *p) {
     (void)p;
     {   /* (nothing is typed here. Windows' text services, set up under DefWindowProc as the window was sized, ended the process: a
            fail-fast in CoreMessaging, called from textinputframework) */
-        HMODULE imm = LoadLibraryExA("imm32.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);   /* (longshot: System32's only) */
+        HMODULE imm = LoadLibraryExA("imm32.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);   /* (timeLink: System32's only) */
         BOOL (WINAPI *ime_off)(DWORD) = imm ? (BOOL (WINAPI *)(DWORD))GetProcAddress(imm, "ImmDisableIME") : NULL;
         if (ime_off) ime_off((DWORD)-1);
     }
@@ -519,7 +519,7 @@ static DWORD WINAPI display_main(void *p) {
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hIcon = LoadIconA(wc.hInstance, MAKEINTRESOURCEA(1));   /* (nx2/make_icon.py; none in a build without the picture) */
     wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-    wc.lpszClassName = "Longshot";
+    wc.lpszClassName = "timeLink";
     RegisterClassA(&wc);
     dpi_aware_thread();
     extern float hos_aspect_ratio;
@@ -532,7 +532,7 @@ static DWORD WINAPI display_main(void *p) {
     RECT r = {0, 0, win_w, win_h};
     AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
     const int noactivate = env_on("HOS_WINDOW_NOACTIVATE");
-    hwnd = CreateWindowA("Longshot", HOS_GAME_TITLE, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+    hwnd = CreateWindowA("timeLink", HOS_GAME_TITLE, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
                          CW_USEDEFAULT, r.right - r.left, r.bottom - r.top, NULL, NULL, wc.hInstance, NULL);
     if (!hwnd) display_start_failed("CreateWindowA");
     if (window_dpi(hwnd) != 96) {
