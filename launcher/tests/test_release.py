@@ -284,8 +284,8 @@ class Bump(unittest.TestCase):
 
 class ReleasePage(unittest.TestCase):
     """The release page publish writes: the launcher's starts with big download links to its own files; timeLink's with "to
-    play, get the timeLink Launcher", linking timeLink.magicbean.dev's newest launcher of the same channel, and "don't download the
-    files below" (above the builder files)"""
+    play, get the timeLink Launcher", linking the fork's release list, and "don't download the files below" (above the builder
+    files). Nothing on either page points at a domain this fork does not own"""
 
     LAUNCHER = ("timeLinkLauncher-%s-windows-x64-setup.exe", "timeLinkLauncher-%s-windows-x64-portable.zip",
                 "timeLinkLauncher-%s-x86_64.AppImage", "SHA256SUMS", "SHA256SUMS.sig")
@@ -293,14 +293,14 @@ class ReleasePage(unittest.TestCase):
 
     def page(self, tag, product, files):
         names = [f % tag if "%s" in f else f for f in files]
-        return release.release_page(tag, product, "## %s\n\n### Fixes\n\n- a fix\n" % tag, names, "HanYolo1/TimeLinkLauncher")
+        return release.release_page(tag, product, "## %s\n\n### Fixes\n\n- a fix\n" % tag, names, "HanYolo1/timeLink")
 
     def test_the_launcher_page_links_its_own_files(self):
         for tag, channel in (("v1.0.0", "stable"), ("v1.1.0-rc.2", "rc"), ("nightly-10-968b7963", "nightly")):
             with self.subTest(tag):
                 page = self.page(tag, "launcher", self.LAUNCHER)
                 head, notes = page.split("\n---\n", 1)
-                base = "https://git-cdn.magicbean.dev/HanYolo1/TimeLinkLauncher/releases/download/%s/timeLinkLauncher-%s" % (tag, tag)
+                base = "https://github.com/HanYolo1/timeLink/releases/download/%s/timeLinkLauncher-%s" % (tag, tag)
                 self.assertEqual(head.strip().split("\n\n")[:4], [
                     "# ⬇️ Download timeLink Launcher",
                     "### [🪟 &nbsp;Download for Windows](%s-windows-x64-setup.exe)" % base,
@@ -316,23 +316,26 @@ class ReleasePage(unittest.TestCase):
         self.assertNotIn("Download for Windows", page)
         self.assertNotIn("portable zip", page)
 
-    def test_the_timeLink_page_sends_players_to_the_launcher_of_its_channel(self):
+    def test_the_timeLink_page_sends_players_to_the_release_list(self):
         for tag, channel in (("v3.0.0", "stable"), ("v3.0.0-rc.1", "rc"), ("nightly-34-545618fc", "nightly")):
             with self.subTest(tag):
                 page = self.page(tag, "timelink", self.TIMELINK)
                 head, notes = page.split("\n---\n", 1)
-                link = "https://timeLink.magicbean.dev/download/launcher/" + channel
                 self.assertEqual(head.strip().split("\n\n")[:5], [
                     "# 🎮 To play, get the timeLink Launcher",
-                    "### [🪟 &nbsp;Download the launcher for Windows](%s/windows)" % link,
-                    "### [🐧 &nbsp;Download the launcher for Linux (AppImage)](%s/linux)" % link,
-                    "Windows without installing: [portable zip](%s/windows-portable) · [the launcher's newest %s release](%s)"
-                    % (link, channel, link),
+                    "### [🪟 &nbsp;Download the launcher for Windows](%s)" % release.SITE,
+                    "### [🐧 &nbsp;Download the launcher for Linux (AppImage)](%s)" % release.SITE,
+                    "The launcher's newest release is at the top of that list; its %s release is this channel's. "
+                    "Its Windows file is the one ending `-windows-x64-setup.exe`, its Linux file the `.AppImage`." % channel,
                     "**Don't download the files below:** they're the builder the launcher installs for you."])
-                for other in {"stable", "rc", "nightly"} - {channel}:
-                    self.assertNotIn("/download/launcher/" + other, page)
                 self.assertNotIn("releases/download", page)   # (no link to a builder file)
                 self.assertTrue(notes.strip().startswith("## " + tag))
+
+    def test_no_page_names_a_domain_this_fork_does_not_own(self):
+        for tag, product, files in (("v1.0.0", "launcher", self.LAUNCHER), ("v3.0.0", "timelink", self.TIMELINK)):
+            page = self.page(tag, product, files)
+            for host in ("magicbean.dev", "git-cdn", "timeLink.magicbean"):
+                self.assertNotIn(host, page)
 
 
 NIGHTLY_OF = lambda tag: release.NIGHTLY.match(tag)
@@ -455,7 +458,7 @@ class Publish(unittest.TestCase):
         run("--product", "timelink", "publish", "nightly-34-545618fc", "--target", "abc", "--notes", notes, f)
         body = FakeForgejo.releases[0]["body"]
         self.assertTrue(body.startswith("# 🎮 To play, get the timeLink Launcher\n"))
-        self.assertIn("https://timeLink.magicbean.dev/download/launcher/nightly/windows", body)
+        self.assertIn(release.SITE, body)
         self.assertIn("### Fixes\n\n- a fix\n", body)
         # (the launcher's: its own files, on its repository)
         FakeForgejo.releases, FakeForgejo.uploads = [], []
@@ -464,7 +467,7 @@ class Publish(unittest.TestCase):
         run("--product", "launcher", "publish", "v1.0.0-rc.1", "--target", "abc", "--notes", notes, f)
         body = FakeForgejo.releases[0]["body"]
         self.assertTrue(body.startswith("# ⬇️ Download timeLink Launcher\n"))
-        self.assertIn("### [🪟 &nbsp;Download for Windows](https://git-cdn.magicbean.dev/HanYolo1/Test/releases/download/"
+        self.assertIn("### [🪟 &nbsp;Download for Windows](https://github.com/HanYolo1/Test/releases/download/"
                       "v1.0.0-rc.1/timeLinkLauncher-v1.0.0-rc.1-windows-x64-setup.exe)", body)
         self.assertIn(release.CHANNEL_SAYS["rc"], body)
 

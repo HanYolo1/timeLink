@@ -1,14 +1,14 @@
 # Contributing to the timeLink Launcher
 
-The launcher installs [timeLink](https://git.magicbean.dev/HanYolo1/timeLink)'s builder, builds the game on the
+The launcher installs [timeLink](https://github.com/HanYolo1/timeLink)'s builder, builds the game on the
 player's PC from their own copy, starts it, keeps it and itself up to date, and moves saves. The game, its builder and
-their releases live in timeLink's repository; this one holds the launcher, its tests and its own releases. It lives on the
-team's Forgejo, [git.magicbean.dev/HanYolo1/TimeLinkLauncher](https://git.magicbean.dev/HanYolo1/TimeLinkLauncher).
+their releases live in timeLink's repository; the launcher is a directory of it, `launcher/`
+([VENDORED.md](VENDORED.md): it was a project of its own, vendored here).
 
 ## The rule with no exceptions
 
 **No game files, keys, or anything made from them leave your PC**, as in timeLink (its
-[CONTRIBUTING.md](https://git.magicbean.dev/HanYolo1/timeLink/src/branch/main/CONTRIBUTING.md)): no `.nup`, `romfs`,
+[CONTRIBUTING.md](https://github.com/HanYolo1/timeLink/blob/main/CONTRIBUTING.md)): no `.nup`, `romfs`,
 `exefs`, `.nso`, `.nca`, `.nsp`, `.xci`, `.nsz`/`.xcz`, no title keys, no build of the game, and **no saves**. The save
 tests use fake save folders made of text files (`tests/fixtures/hookshot-saves`, [docs/saves.md](docs/saves.md)); keep it that way. A screenshot of the
 launcher is fine. timeLink's one exception, its scrubbed saves in `assets/saves/` (one slot each, picture grey, date reset,
@@ -17,8 +17,8 @@ added through a reviewed pull request), lives in timeLink's repository, never he
 ## Get started
 
 ```
-git clone --depth 1 https://git.magicbean.dev/HanYolo1/TimeLinkLauncher.git   (jj: jj git clone --colocate --depth 1 ...)
-cd TimeLinkLauncher
+git clone --depth 1 https://github.com/HanYolo1/timeLink.git   (jj: jj git clone --colocate --depth 1 ...)
+cd timeLink/launcher
 dotnet build TimeLinkLauncher.slnx                     (the .NET 10 SDK, Windows or Linux)
 dotnet run --project App
 python -I tests/test_launcher_core.py                  (the core's tests: no game, no network, no window)
@@ -28,8 +28,9 @@ python -I tests/test_release.py                        (scripts/release.py; need
 `--depth 1` fetches the newest commit only. Pulling, branches and pull requests work as usual; `git log` past it, and cutting a
 release (`scripts/release.py` counts and checks commits), need the history: `git fetch --unshallow --tags` once.
 
-Sign in to git.magicbean.dev as for timeLink
-(`python -I scripts/forge.py login` in a timeLink checkout: one sign-in covers both).
+Commits go to [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink) on GitHub. A change to the launcher is a change to
+`launcher/` there, so timeLink's [CONTRIBUTING.md](https://github.com/HanYolo1/timeLink/blob/main/CONTRIBUTING.md) applies
+to it too.
 
 ## Changes and tests
 
@@ -48,9 +49,7 @@ Sign in to git.magicbean.dev as for timeLink
 ## Commits and pull requests
 
 `main` takes reviewed pull requests only: push a branch to your fork and open the pull request from there
-(`jj git push --remote forge-fork -b <branch>`, then the pull request on git.magicbean.dev, or
-`fj pr create`; timeLink's [docs/forge.md](https://git.magicbean.dev/HanYolo1/timeLink/src/branch/main/docs/forge.md)
-has the set-up).
+(`gh pr create` with GitHub's CLI, or the button the repository shows after a push).
 
 1. One topic per pull request, on a branch named for it (`fix/...`, `feat/...`, `docs/...`).
 2. The title is a [Conventional Commit](https://www.conventionalcommits.org/) (`feat(saves): ...`, `fix: ...`): it becomes

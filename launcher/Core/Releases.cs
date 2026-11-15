@@ -2,7 +2,7 @@ using System.Text;
 
 namespace TimeLinkLauncher.Core;
 
-/// What git.magicbean.dev says is released, for one product (Product.TimeLink: the builders; Product.Launcher: this program),
+/// What GitHub says is released, for one product (Product.TimeLink: the builders; Product.Launcher: this program),
 /// from the repository's Forgejo releases (docs/releases.md):
 ///   a channel's newest   from the list of published releases (ReleaseManifest.Newest): no file to sign, nothing to replay;
 ///                        an update is only ever to a newer version (UpdatePolicy, SelfUpdate), so a list that offers an older

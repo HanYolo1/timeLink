@@ -200,23 +200,17 @@ public sealed class Toolchains
 
     // ---- download and unpack ----
 
-    /// The part from its link, else from each of its mirrors in turn: the first whose bytes are the ones the list names
+    /// The part from its link, else from each of its mirrors in turn: the first whose bytes are the ones the list names. A
+    /// link listed twice is tried once, at its first place
     async Task Download(Part part, string zip, Action<long> progress, CancellationToken cancel)
     {
         Exception? last = null;
-        IReadOnlyList<string> urls = new[] { part.Url }.Concat(part.Mirrors ?? Array.Empty<string>()).ToList();
-        var through = fetcher;
-        if (part.Mirrors is { Count: > 0 } && fetcher is CdnFetcher cdn)
-        {
-            // (a tool's own links, git-cdn's among them: each tried as it is, in order, so that no link is tried twice)
-            urls = cdn.Expand(urls);
-            through = cdn.Inner;
-        }
+        var urls = new[] { part.Url }.Concat(part.Mirrors ?? Array.Empty<string>()).Distinct(StringComparer.Ordinal).ToList();
         foreach (var url in urls)
         {
             try
             {
-                await DownloadFrom(through, url, part.Sha, part.Size, zip, progress, cancel);
+                await DownloadFrom(fetcher, url, part.Sha, part.Size, zip, progress, cancel);
                 return;
             }
             catch (Exception e) when (e is FetchException or InvalidDataException) { last = e; }
@@ -647,7 +641,7 @@ public sealed class Toolchains
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancel) =>
             WriteAsync(buffer.AsMemory(offset, count), cancel).AsTask();
 
-        // (seekable only back to its start, with what it had counted dropped: a download started again, CdnFetcher's fallback)
+        // (seekable only back to its start, with what it had counted dropped: a download started again from the first byte)
         public override bool CanRead => false;
         public override bool CanSeek => inner.CanSeek;
         public override bool CanWrite => true;

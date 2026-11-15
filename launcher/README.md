@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="https://git.magicbean.dev/HanYolo1/TimeLinkLauncher">
+  <a href="https://github.com/HanYolo1/timeLink/tree/main/launcher">
   <img src="App/Assets/timeLink.png" alt="timeLink Launcher" width="200">
 </a>
 
@@ -9,13 +9,12 @@
   <br>
 </h1>
 
-<h4 align="center">Installs, builds, updates and starts <a href="https://git.magicbean.dev/HanYolo1/timeLink">timeLink</a>, which runs a supported console game natively on Windows & Linux.
+<h4 align="center">Installs, builds, updates and starts <a href="https://github.com/HanYolo1/timeLink">timeLink</a>, which runs a supported console game natively on Windows & Linux.
 </h4>
 
 
 <p align="center">
-  <a href="https://timeLink.magicbean.dev/"><b>Website</b></a> |
-  <a href="https://discord.gg/magicbean"><b>Discord</b></a> |
+  <a href="https://github.com/HanYolo1/timeLink/releases"><b>Releases</b></a> |
   <a href="#what-it-does">What it does</a> |
   <a href="#download">Download</a> |
   <a href="#installing">Installing</a> |
@@ -27,9 +26,9 @@
   <a href="#license">License</a>
 </p>
 
-<p align="center">This website is our Git hosting, similar to GitHub.</p>
+<p align="center">This project is HanYolo1's fork of the timeLink launcher; see <a href="VENDORED.md">VENDORED.md</a>.</p>
 
-The timeLink Launcher is the one program players download to get [timeLink](https://git.magicbean.dev/HanYolo1/timeLink).
+The timeLink Launcher is the one program players download to get [timeLink](https://github.com/HanYolo1/timeLink).
 It installs timeLink's builder, builds the game **on your PC, from your own copy of the game**, starts it, and keeps
 the game and itself up to date. It lives in timeLink's own repository, as `launcher/` (it was a
 separate project; see [VENDORED.md](VENDORED.md)), and its releases are its own.
@@ -42,7 +41,7 @@ separate project; see [VENDORED.md](VENDORED.md)), and its releases are its own.
 > Nothing of the game is in the launcher or downloaded by it. It downloads timeLink's builder, which builds the game from
 > the copy you own. Don't ask where to get the game.
 
-Discord: https://discord.gg/magicbean
+Discord: the timeLink community server.
 
 ## What it does
 
@@ -60,30 +59,22 @@ Discord: https://discord.gg/magicbean
 
 # ⬇️ Download timeLink Launcher
 
-### [🪟 &nbsp;Download for Windows](https://timeLink.magicbean.dev/download/launcher/windows)
+Every release is on [the releases page](https://github.com/HanYolo1/timeLink/releases): the launcher's and the builder's,
+told apart by the version's first number (the launcher's are `v1.Y.Z`, timeLink's `v3.Y.Z` and up). The launcher's files:
 
-### [🐧 &nbsp;Download for Linux (AppImage)](https://timeLink.magicbean.dev/download/launcher/linux)
-
-Windows without installing: [portable zip](https://timeLink.magicbean.dev/download/launcher/windows-portable) · Not sure? [timeLink.magicbean.dev/download](https://timeLink.magicbean.dev/download) picks for your computer.
-
-These links always give the newest launcher: the stable one, or until there is one, the release candidate, then the
-nightly. To pick a channel:
-
-- **Stable** (for playing): [Windows](https://timeLink.magicbean.dev/download/launcher/stable/windows) · [portable zip](https://timeLink.magicbean.dev/download/launcher/stable/windows-portable) · [Linux](https://timeLink.magicbean.dev/download/launcher/stable/linux) · [release page](https://timeLink.magicbean.dev/download/launcher/stable)
-- **Release candidate** (the next version, before it is stable): [Windows](https://timeLink.magicbean.dev/download/launcher/rc/windows) · [portable zip](https://timeLink.magicbean.dev/download/launcher/rc/windows-portable) · [Linux](https://timeLink.magicbean.dev/download/launcher/rc/linux) · [release page](https://timeLink.magicbean.dev/download/launcher/rc)
-- **Nightly** (every change, untested): [Windows](https://timeLink.magicbean.dev/download/launcher/nightly/windows) · [portable zip](https://timeLink.magicbean.dev/download/launcher/nightly/windows-portable) · [Linux](https://timeLink.magicbean.dev/download/launcher/nightly/linux) · [release page](https://timeLink.magicbean.dev/download/launcher/nightly)
-
-Every release is on [the releases page](https://git.magicbean.dev/HanYolo1/TimeLinkLauncher/releases). The files:
-
-- **Windows 10 and 11 (x64):** `TimeLinkLauncher-<version>-windows-x64-setup.exe`. Start it, then choose *Install* or
+- **Windows 10 and 11 (x64):** `timeLinkLauncher-<version>-windows-x64-setup.exe`. Start it, then choose *Install* or
   *Run portable* ([Installing](#installing)).
-- **Windows, portable:** `TimeLinkLauncher-<version>-windows-x64-portable.zip`. Unzip it anywhere (a USB stick) and start
+- **Windows, portable:** `timeLinkLauncher-<version>-windows-x64-portable.zip`. Unzip it anywhere (a USB stick) and start
   `timeLinkLauncher.exe`.
-- **Linux and Steam Deck (x86-64):** `TimeLinkLauncher-<version>-x86_64.AppImage`. Make it executable (`chmod +x`) and
+- **Linux and Steam Deck (x86-64):** `timeLinkLauncher-<version>-x86_64.AppImage`. Make it executable (`chmod +x`) and
   start it.
 
+There is no website in front of these any more: the launcher was vendored from a project whose download links went through
+MagicBeanDev's site, which is not this fork's to use. The releases page is the one place, and the launcher checks it for its
+own updates.
+
 This is the one download: the launcher installs timeLink's builder for you. The builder files on
-[timeLink's releases](https://git.magicbean.dev/HanYolo1/timeLink/releases) are for the launcher, not for you.
+[timeLink's builder releases](https://github.com/HanYolo1/timeLink/releases) are for the launcher, not for you.
 
 All of them are in the release's signed `SHA256SUMS`. After that the launcher updates itself. Its numbers are its own:
 timeLink's start at v3.0.0, the launcher's at v1.0.0.
@@ -174,7 +165,7 @@ compatible Hookshot game settings into the timeLink version you choose, with its
 </p>
 
 All of it, with where every save lives: [docs/saves.md](docs/saves.md). timeLink's own
-[saves guide](https://git.magicbean.dev/HanYolo1/timeLink/src/branch/main/docs/saves.md) has the same from the command
+[saves guide](https://github.com/HanYolo1/timeLink/blob/main/docs/saves.md) has the same from the command
 line (`scripts/timeLink_saves.py import|export`).
 
 ## Updates and channels
@@ -202,8 +193,8 @@ how to make one: [RELEASING.md](RELEASING.md).
 The [.NET 10 SDK](https://dotnet.microsoft.com/download), on Windows or Linux:
 
 ```sh
-git clone --depth 1 https://git.magicbean.dev/HanYolo1/TimeLinkLauncher.git
-cd TimeLinkLauncher
+git clone --depth 1 https://github.com/HanYolo1/timeLink.git
+cd timeLink/launcher
 dotnet build TimeLinkLauncher.slnx
 dotnet run --project App
 ```
@@ -226,11 +217,9 @@ dotnet run --project App
 
 | | |
 |---|---|
-| `TIMELINK_LAUNCHER_DEBUG_SLOW=<ms>` | A Debug build only: waits that long before each answer from git.magicbean.dev and a tenth of it after each MB downloaded, to see the busy states (the launcher's update, the check, the tools' download) |
+| `TIMELINK_LAUNCHER_DEBUG_SLOW=<ms>` | A Debug build only: waits that long before each answer from GitHub and a tenth of it after each MB downloaded, to see the busy states (the launcher's update, the check, the tools' download) |
 | `TIMELINK_LAUNCHER_EXE=<path>` | What the shortcuts and the game folders (`builder=`) start this launcher with, for a package whose own path is only inside it (the Flatpak sets it). A launcher not started from its own file (the Flatpak's, `dotnet run`) is not offered its own updates |
 | `TIMELINK_LAUNCHER_HOME=<folder>` | The launcher's home (`builds.json`, `settings.json`, `toolchains/`) somewhere else, for trying it out |
-| `TIMELINK_LAUNCHER_CDN=1` | Every release list, release file and build tool through `git-cdn.magicbean.dev` first, falling back to the origin: Cloudflare's cache of the same files and lists (a list there may be a minute old, and is still answered while git.magicbean.dev is down; the rest of the API is always the origin's). **Off unless asked**: `git-cdn.magicbean.dev` is MagicBeanDev's own edge, so a launcher of this fork reaches nothing of theirs without it |
-| `TIMELINK_LAUNCHER_NO_CDN=1` | Forces the CDN off even where `TIMELINK_LAUNCHER_CDN=1` asks for it |
 | `TIMELINK_LAUNCHER_OFFLINE=1` | No update check |
 | `TIMELINK_LAUNCHER_TRUST=<public key .pem>` | Trust one more release key, for a release signed with a test key |
 | `--launch <folder>` | Opens on that build |
@@ -329,7 +318,7 @@ Calls made here, most of them the design mockup's; each can be changed:
 
 ## Credits
 
-The timeLink Launcher is for [timeLink](https://git.magicbean.dev/HanYolo1/timeLink), a fork of NotRexed's
+The timeLink Launcher is for [timeLink](https://github.com/HanYolo1/timeLink), a fork of NotRexed's
 [Hookshot](https://github.com/NotRexed/Hookshot).
 
 - **HumanBean** (hckrman101 on GitHub): wrote the launcher as Hookshot's 3.0 launcher, then ported it here and renamed it to

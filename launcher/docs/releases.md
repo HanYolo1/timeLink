@@ -1,7 +1,7 @@
 # Releases and updates
 
-How timeLink and the timeLink Launcher are released on git.magicbean.dev, and how the launcher finds, checks and installs
-them. Both are released from one repository, [HanYolo1/timeLink](https://git.magicbean.dev/HanYolo1/timeLink): the launcher
+How timeLink and the timeLink Launcher are released on GitHub, and how the launcher finds, checks and installs
+them. Both are released from one repository, [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink): the launcher
 is `launcher/` there (vendored, [VENDORED.md](../VENDORED.md)). How to make a release, step by step, is in **RELEASING.md**
 (one file, covering both products).
 
@@ -34,7 +34,7 @@ Each version is one Forgejo release, made by `.forgejo/workflows/release.yml`:
 `SHA256SUMS` is `sha256sum`'s format, one `<64 hex>  <name>` line per file. `SHA256SUMS.sig` is the base64 of the DER ECDSA
 P-256 signature of `SHA256SUMS`'s exact bytes, by the release key. A release's files never change: a fix is the next version.
 
-Release files are Forgejo attachments: `[attachment] MAX_SIZE` (2048 MB on git.magicbean.dev now) caps each file, and
+Release files are release attachments: `[attachment] MAX_SIZE` (2048 MB on MagicBeanDev's Forgejo, whose limits this fork inherits when it uploads to GitHub) caps each file, and
 `[repository.release] ALLOWED_TYPES` must stay empty (every type) for `.AppImage`, `.exe`, `.lock` and `SHA256SUMS`. The
 site is behind Cloudflare, which refuses uploads over 100 MB: CI uploads to the organization variable `RELEASE_UPLOAD_API` (`FORGEJO_UPLOAD_API` to `release.py`), the instance's address
 without Cloudflare in front, when it is set (RELEASING.md, One-time setup). Downloads are not limited.
@@ -110,7 +110,7 @@ They are not in the release: `tools.lock` names them.
 
 ```
 tool <name> <version> <system> <sha256> <size> <dest> <prefix> <url> [<url> ...]
-tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/llvm-mingw llvm-mingw-20261104-ucrt-x86_64 https://git-cdn.magicbean.dev/api/packages/…-llvm-mingw.zip https://git.magicbean.dev/api/packages/…-llvm-mingw.zip https://github.com/mstorsjo/…
+tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/llvm-mingw llvm-mingw-20261104-ucrt-x86_64 https://github.com/mstorsjo/llvm-mingw/releases/download/20261104/llvm-mingw-20261104-ucrt-x86_64.zip
 ```
 
 - **Installing.** The Windows builder's setup (`builder/setup/setup.c`), the Linux AppImage (`builder/linux/linux_tools.py`)
@@ -121,13 +121,21 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
   merged in, file by file; a file both have is refused, never replaced. A tool another installed version has, with the
   same SHA-256 and unpacked the same way, is taken from it and not downloaded again (the Windows setup excepts a merged
   tool: it comes from its archive each time). `scripts/tools.py install` does the same, for CI and developers.
-- **Where the archives are: Packages.** Every tool is downloaded first from timeLink's copy, a file of a **generic
-  package** of the HanYolo1 organization (its *Packages* tab): the package `<name>-<system>` (`emsdk-windows-x64`,
-  `emsdk-linux-x64`: a tool's Windows and Linux builds have versions of their own), its version the tool's, the file
-  `<sha256>-<name>.zip`, at `https://git.magicbean.dev/api/packages/HanYolo1/generic/<name>-<system>/<version>/<file>`.
-  Forgejo keeps packages in Cloudflare R2, and `git-cdn.magicbean.dev` serves the same paths from Cloudflare's edge
-  (cached), so a tool's first URL is its `git-cdn.magicbean.dev` link and its second the same file on git.magicbean.dev
-  (`scripts/tools.py check --require` holds both, in that order). Anyone downloads them with no account. A package version's files never change (Forgejo refuses a second upload of a
+- **Where the archives are: Packages, and the tools.lock blocker.** Every tool is downloaded first from timeLink's copy, a
+  file of a **generic package** of the HanYolo1 organization (its *Packages* tab): the package `<name>-<system>`
+  (`emsdk-windows-x64`, `emsdk-linux-x64`: a tool's Windows and Linux builds have versions of their own), its version the
+  tool's, the file `<sha256>-<name>.zip`, at
+  `https://git.magicbean.dev/api/packages/HanYolo1/generic/<name>-<system>/<version>/<file>`. Forgejo keeps packages in
+  Cloudflare R2, and `git-cdn.magicbean.dev` served the same paths from Cloudflare's edge (cached), so each tool used to
+  have a `git-cdn.magicbean.dev` link first and the same file on git.magicbean.dev second.
+
+  **This fork does not use any of that.** The launcher has no Cloudflare edge in front of it any more (`CdnFetcher` went
+  with MagicBeanDev's Forgejo), and seven of `tools.lock`'s lines still point only at MagicBeanDev's package store with no
+  upstream fallback: `cpm` (win), `third-party` (win), and `emsdk`, `ffmpeg`, `sdl2`, `sysroot`, `cpm` (linux). Until those
+  archives are re-hosted, a build that needs them cannot install: `Core/Toolchains.cs` reads `tools.lock`, so the launcher
+  inherits it. Re-hosting is the one thing standing between this fork and a launcher that installs anything.
+
+  Anyone downloads packages with no account. A package version's files never change (Forgejo refuses a second upload of a
   name), and nothing prunes them, so an older version's tools stay downloadable. Where an archive came from (upstream for
   llvm-mingw, NotRexed/Hookshot's `builder-parts` release for those taken from Hookshot) is its fallback URL, so no install
   depends on a repository we do not control alone. An archive timeLink makes itself (the CPM cache with dav1d, the
@@ -220,7 +228,7 @@ timeLink also keeps `build-linux.yml` and `build-windows.yml` (also run on pull 
 release candidate) is still built again, since every file carries its version (a release never ships a file that names
 another), but `release.py released-as` finds that release, checks its signed `SHA256SUMS` (one that does not check stops
 the run), and the build checks that ship no file and passed in its run are not run again. Every job runs on Linux: timeLink's Windows files are cross-built there,
-and what only Windows can check is a tester's (RELEASING.md, *Needs a Windows tester*). The runners are in timeLink's [docs/forgejo-runners.md](https://git.magicbean.dev/HanYolo1/timeLink/src/branch/main/docs/forgejo-runners.md).
+and what only Windows can check is a tester's (RELEASING.md, *Needs a Windows tester*). The runners are in timeLink's [docs/forgejo-runners.md](https://github.com/HanYolo1/timeLink/blob/main/docs/forgejo-runners.md).
 
 ## The version a tag must have
 
@@ -254,28 +262,27 @@ NotRexed/Hookshot).
 right thing:
 
 - **The launcher's releases** start with big download links to that release's own files: *Download for Windows* (the
-  installer), *Download for Linux* (the AppImage), and a small link to the portable zip, all through git-cdn.magicbean.dev
-  (the same paths as git.magicbean.dev, from Cloudflare's edge).
-- **timeLink's releases** start with "To play, get the timeLink Launcher": the same big links, to the newest launcher of
-  the **same channel** (an rc to the launcher's rc, a nightly to its nightly, a stable to its stable) through the links
-  below, then "Don't download the files below": they are the builders the launcher installs.
+  installer), *Download for Linux* (the AppImage), and a small link to the portable zip, each to the file on GitHub's
+  release itself (`https://github.com/<owner>/<repo>/releases/download/<tag>/<name>`).
+- **timeLink's releases** start with "To play, get the timeLink Launcher", linking the fork's **release list** (both
+  products sit on it, newest first), then "Don't download the files below": they are the builders the launcher installs.
 
 ## Download links
 
-Forgejo's `/releases/latest` covers stable only. timeLink.magicbean.dev (the timeLink website, `website/worker/index.ts` in HanYolo1/timeLink) has permanent links to
-the newest launcher of each channel, read from TimeLinkLauncher's release list by the rules above (cached 60 seconds):
+There is no website in front of the releases. The launcher used to be published by a project whose site
+(`timeLink.magicbean.dev`, a Cloudflare worker) gave a permanent link to the newest build of each channel; this fork does
+not own that domain and `release.py` no longer writes those links, because a release made with them would send players
+somewhere this fork cannot answer for. The one address is the releases list:
 
 | Link | Goes to |
 |---|---|
-| `https://timeLink.magicbean.dev/download` | a page: the launcher for the visitor's system, from the best channel there is, and every channel |
-| `https://timeLink.magicbean.dev/download/launcher/<os>` | that file of the best channel there is: stable, else rc, else nightly |
-| `https://timeLink.magicbean.dev/download/launcher/<channel>` | the channel's newest release page |
-| `https://timeLink.magicbean.dev/download/launcher/<channel>/<os>` | that file of the channel's newest release |
+| `https://github.com/HanYolo1/timeLink/releases` | every release of both products, newest first |
 
-`<channel>` is `stable`, `rc` or `nightly`; `<os>` is `windows` (the setup), `windows-portable` (the zip) or `linux` (the
-AppImage). A channel with no release yet answers with a page that says so and offers the newest there is. The READMEs'
-download buttons and timeLink's release pages use these links; there are none for timeLink's builder files, which only
-the launcher downloads.
+A player picks by the file name: the launcher's are `timeLinkLauncher-*`, the builder's `timeLinkBuilder-*` and
+`timeLink-*`; `-windows-x64-setup.exe` is the Windows installer, `-windows-x64-portable.zip` the portable, `.AppImage`
+the Linux one. `release.py` tells the two products' releases apart the same way (`ships`, and `ReleaseManifest.Ships` at
+runtime), not by the tag, since both share the `v*` namespace. The launcher's own update check reads this list through
+GitHub's API (`https://api.github.com/repos/HanYolo1/timeLink/releases`) and needs no website either.
 
 ## RecompLauncher (timeLink)
 
@@ -303,7 +310,7 @@ updates everything), or **RecompLauncher**, with the same builder files.
 - **Forgejo releases, not a package store and pointer files.** A release is what Forgejo already shows people: a tag, notes
   and files. The channels follow from the list, so there is nothing else to publish, keep in step or replay. Drafts make a
   release appear all at once.
-- **A signature on the checksums.** HTTPS says a file came from git.magicbean.dev. A stolen token, a compromised runner or a
+- **A signature on the checksums.** HTTPS says a file came from GitHub. A stolen token, a compromised runner or a
   mistake on the server would otherwise reach every player's PC, and the launcher runs what it installs. One signature
   over `SHA256SUMS` covers every file, however large.
 - **tools.lock, not the tools in every release.** The tools change rarely and weigh gigabytes. A lock file in the repository

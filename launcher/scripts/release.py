@@ -1,8 +1,8 @@
-"""Releases on git.magicbean.dev (docs/releases.md, RELEASING.md), for both products: timeLink (its builders, released from
-HanYolo1/timeLink) and the timeLink Launcher (HanYolo1/TimeLinkLauncher). The same file is in both repositories; it
-finds out which one it is in. Python's standard library, git, and the openssl command line (for keys and signatures) only.
+"""Releases on GitHub (docs/releases.md, RELEASING.md), for both products: timeLink (its builders) and the timeLink Launcher.
+Both are released from one repository, HanYolo1/timeLink, told apart by the version's first number and by the files a release
+ships. Python's standard library, git, and the openssl command line (for keys and signatures) only.
 
-A release is a Forgejo release of the repository: a tag, a page with the notes, and the product's files, with SHA256SUMS (each
+A release is a GitHub release of the repository: a tag, a page with the notes, and the product's files, with SHA256SUMS (each
 file's SHA-256) and SHA256SUMS.sig (an ECDSA P-256 signature of SHA256SUMS by the release key, base64 DER). The channels are
 read from the list of published releases: stable is the newest vX.Y.Z, rc the newest vX.Y.Z-rc.N or vX.Y.Z, nightly the
 newest nightly-<count>-<commit>.
@@ -37,7 +37,7 @@ this is; $FORGEJO_API, $FORGEJO_UPLOAD_API):
         a draft release (pre-release unless a stable), every file uploaded and checked, then published: until that last step
         no launcher sees it. A draft left by a failed run of the same tag is reused. The page is the notes under a header
         (release_page): the launcher's, big download links to its own files; timeLink's, "to play, get the timeLink
-        Launcher", with timeLink.magicbean.dev's links to the newest launcher of the same channel
+        Launcher", linking the fork's release list (both products are on it)
     python -I scripts/release.py prune [--keep 5]
         the nightly releases and their tags past the newest <keep>; nothing else is ever deleted
     python -I scripts/release.py released-as <commit> [--not <tag>]
@@ -280,11 +280,13 @@ def notes(tag, product, root=ROOT):
 
 # ---- the release page ----
 
-# (timeLink.magicbean.dev's permanent download links, the timeLink website, website/ in HanYolo1/timeLink: /download/launcher/<channel>[/<os>] goes to that channel's
-# newest launcher, by the rules of newest() above)
-SITE = "https://timeLink.magicbean.dev"
-# (the same release files from Cloudflare's edge: git-cdn serves git.magicbean.dev's release paths from its R2 store, cached)
-CDN = "https://git-cdn.magicbean.dev"
+# (the fork's own release list. There is no website in front of it any more: timeLink.magicbean.dev was MagicBeanDev's, and
+# nothing here may point a player at a domain this fork does not own. Both products' files sit on one releases page, told apart
+# by their names, which is why the launcher's links are the list's rather than a per-channel address)
+SITE = "https://github.com/HanYolo1/timeLink/releases"
+# (a release file: GitHub serves it from the release itself, /<owner>/<repo>/releases/download/<tag>/<name>. It used to be
+# Cloudflare's edge in front of git.magicbean.dev; GitHub's own edge needs no such address here)
+DOWNLOADS = "https://github.com"
 LAUNCHER_FILES = {"setup": "-windows-x64-setup.exe", "portable": "-windows-x64-portable.zip", "appimage": "-x86_64.AppImage"}
 CHANNEL_SAYS = {"stable": "This is a stable release: it builds timeLink's stable versions by default.",
                 "rc": "This is a release candidate: it builds timeLink's rc versions by default.",
@@ -293,12 +295,11 @@ CHANNEL_SAYS = {"stable": "This is a stable release: it builds timeLink's stable
 
 def page_header(tag, product, names, repo=None):
     """The top of a release's page, above git-cliff's notes: big heading links that look like buttons, no tables. The
-    launcher's: this release's own files. timeLink's: "to play, get the timeLink Launcher", with timeLink.magicbean.dev's links to
-    the newest launcher of the same channel (rc to rc, nightly to nightly, stable to stable), and "don't download the files
-    below" (above the builder files)"""
+    launcher's: this release's own files. timeLink's: "to play, get the timeLink Launcher", linking the fork's release list
+    (both products are there, newest first) and "don't download the files below" (above the builder files)"""
     channel = channel_of(tag, PRODUCTS[product]["first_major"]) or "nightly"
     if product == "launcher":
-        base = "%s/%s/releases/download/%s/" % (CDN, repo or repo_of(product), urllib.parse.quote(tag))
+        base = "%s/%s/releases/download/%s/" % (DOWNLOADS, repo or repo_of(product), urllib.parse.quote(tag))
         url = {k: base + urllib.parse.quote(n) for k, suffix in LAUNCHER_FILES.items() for n in sorted(names)
                if n.startswith("timeLinkLauncher-") and n.endswith(suffix)}
         lines = ["# ⬇️ Download timeLink Launcher", ""]
@@ -311,13 +312,12 @@ def page_header(tag, product, names, repo=None):
         return "\n".join(lines + [
             "Run it, point it at your own dump of the game (a `.nup`, or its romfs and exefs folders), and press **Build**. "
             "It installs timeLink and keeps it and itself up to date. %s" % CHANNEL_SAYS[channel], "", "---", ""])
-    link = "%s/download/launcher/%s" % (SITE, channel)
     return "\n".join([
         "# 🎮 To play, get the timeLink Launcher", "",
-        "### [🪟 &nbsp;Download the launcher for Windows](%s/windows)" % link, "",
-        "### [🐧 &nbsp;Download the launcher for Linux (AppImage)](%s/linux)" % link, "",
-        "Windows without installing: [portable zip](%s/windows-portable) · [the launcher's newest %s release](%s)"
-        % (link, channel, link), "",
+        "### [🪟 &nbsp;Download the launcher for Windows](%s)" % SITE, "",
+        "### [🐧 &nbsp;Download the launcher for Linux (AppImage)](%s)" % SITE, "",
+        "The launcher's newest release is at the top of that list; its %s release is this channel's. "
+        "Its Windows file is the one ending `-windows-x64-setup.exe`, its Linux file the `.AppImage`." % channel, "",
         "**Don't download the files below:** they're the builder the launcher installs for you.", "", "---", ""])
 
 

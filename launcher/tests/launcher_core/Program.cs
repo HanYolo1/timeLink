@@ -62,7 +62,7 @@ static partial class Program
         await SelfUpdateChecks();
         await InstallChecks();
         await ToolchainChecks();
-        await CdnChecks();
+        await FetchChecks();
         RegistryChecks();
         SettingsChecks();
         ProgressChecks();
@@ -177,7 +177,7 @@ static partial class Program
             var assets = new JsonArray();
             void Asset(string name, byte[] data)
             {
-                var url = $"https://git.magicbean.dev/{product.Repo}/releases/download/{tag}/{name}";
+                var url = $"https://github.com/{product.Repo}/releases/download/{tag}/{name}";
                 Server.Files[url] = data;
                 assets.Add(new JsonObject { ["name"] = name, ["browser_download_url"] = url, ["size"] = data.Length });
             }
@@ -193,7 +193,7 @@ static partial class Program
             var rel = new JsonObject
             {
                 ["tag_name"] = tag, ["draft"] = draft, ["prerelease"] = prerelease ?? !System.Text.RegularExpressions.Regex.IsMatch(tag, @"^v\d+\.\d+\.\d+$"),
-                ["published_at"] = "2026-11-12T10:00:00Z", ["html_url"] = $"https://git.magicbean.dev/{product.Repo}/releases/tag/{tag}",
+                ["published_at"] = "2026-11-12T10:00:00Z", ["html_url"] = $"https://github.com/{product.Repo}/releases/tag/{tag}",
                 ["target_commitish"] = Commit, ["assets"] = assets,
             };
             list.RemoveAll(r => (string?)r["tag_name"] == tag);
@@ -258,7 +258,7 @@ static partial class Program
                 "Each channel's newest: stable, the newest release candidate (not a draft), the nightly by its count; never 2.x or tools.");
         var rc = (await timeLink.ChannelAsync("rc"))!;
         Require(rc.Builder["linux-x64"].Size == image.Length && rc.Builder["linux-x64"].Sha256 == ShaOf(image) && rc.Tools.ContainsKey("windows-x64")
-                && rc.Commit == Commit && rc.Notes == "https://git.magicbean.dev/HanYolo1/timeLink/releases/tag/v3.1.0-rc.1",
+                && rc.Commit == Commit && rc.Notes == "https://github.com/HanYolo1/timeLink/releases/tag/v3.1.0-rc.1",
                 "A release's files, with the SHA-256 its signed SHA256SUMS gives.");
         Require((await timeLink.BuilderAsync("v3.1.0-rc.1")).Url.EndsWith("/timeLink-v3.1.0-rc.1-x86_64.AppImage", StringComparison.Ordinal),
                 "The Linux builder of a version.");
@@ -304,9 +304,9 @@ static partial class Program
         // (and the window says why: the fetch's words, until a check gets an answer)
         var down = new FakeFetcher();
         var answers = false;
-        down.Texts[timeLink.ListUrl(1)] = () => answers ? "[]" : throw new FetchException("This PC could not look up git.magicbean.dev's address.", null);
+        down.Texts[timeLink.ListUrl(1)] = () => answers ? "[]" : throw new FetchException("This PC could not look up api.github.com's address.", null);
         var unreachable = new Releases(down, Platform.Linux, keys, NoWait);
-        Require(await unreachable.ChannelAsync("stable") == null && unreachable.Unreachable == "This PC could not look up git.magicbean.dev's address.",
+        Require(await unreachable.ChannelAsync("stable") == null && unreachable.Unreachable == "This PC could not look up api.github.com's address.",
                 "No answer says why.");
         answers = true;
         Require(await unreachable.ChannelAsync("stable") == null && unreachable.Unreachable == null && unreachable.Problem == null,
@@ -1012,14 +1012,14 @@ static partial class Program
                 && UpdatePolicy.UpdateTo(b, new Dictionary<string, string?> { ["stable"] = "v3.5.0" }) == null, "Each build asks its own channel.");
     }
 
-    /// Why git.magicbean.dev was not reached, in words a player can act on, and .NET's own in brackets
+    /// Why the server was not reached, in words a player can act on, and .NET's own in brackets
     static void NetFailureChecks()
     {
-        const string host = "git.magicbean.dev";
+        const string host = "api.github.com";
         string Why(System.Net.Http.HttpRequestError error, Exception? inner = null) =>
             NetFailure.Why(new HttpRequestException(error, "outer words", inner), host);
         var dns = Why(System.Net.Http.HttpRequestError.NameResolutionError, new System.Net.Sockets.SocketException(11001));
-        Require(dns.Contains("could not look up git.magicbean.dev's address") && dns.EndsWith(")", StringComparison.Ordinal) && !dns.Contains("outer words"),
+        Require(dns.Contains("could not look up api.github.com's address") && dns.EndsWith(")", StringComparison.Ordinal) && !dns.Contains("outer words"),
                 "No address: says so, with the innermost words. (said: " + dns + ")");
         Require(Why(System.Net.Http.HttpRequestError.ConnectionError, new System.Net.Sockets.SocketException((int)System.Net.Sockets.SocketError.ConnectionRefused))
                     .Contains("refused the connection"), "A refused connection");
@@ -1034,15 +1034,15 @@ static partial class Program
                 "An unknown error over a failed TLS handshake is still the secure connection.");
         Require(Why(System.Net.Http.HttpRequestError.ProxyTunnelError).Contains("proxy") && Why(System.Net.Http.HttpRequestError.ProxyTunnelError).EndsWith("(outer words)", StringComparison.Ordinal),
                 "A proxy that did not connect, with the only words there are");
-        Require(Why(System.Net.Http.HttpRequestError.Unknown).Contains("Could not connect to git.magicbean.dev"), "Anything else: no connection, and what to check");
+        Require(Why(System.Net.Http.HttpRequestError.Unknown).Contains("Could not connect to api.github.com"), "Anything else: no connection, and what to check");
         var proxied = NetFailure.Why(new HttpRequestException(System.Net.Http.HttpRequestError.ConnectionError, "x",
                                          new System.Net.Sockets.SocketException((int)System.Net.Sockets.SocketError.ConnectionRefused)), host, new Uri("http://proxy.lan:3128"));
         Require(proxied.Contains("the proxy proxy.lan:3128, which did not answer") && !proxied.Contains("refused the connection"),
                 "Through a proxy, a refused connection is the proxy's, not the server's. (said: " + proxied + ")");
         Require(NetFailure.Status(503, host).Contains("having trouble (HTTP 503 (ServiceUnavailable))") && NetFailure.Status(429, host).Contains("too many requests")
-                && NetFailure.Status(403, host).Contains("refused the request") && NetFailure.Status(418, host) == "git.magicbean.dev answered HTTP 418.",
+                && NetFailure.Status(403, host).Contains("refused the request") && NetFailure.Status(418, host) == "api.github.com answered HTTP 418.",
                 "An HTTP error, by what it means: " + NetFailure.Status(418, host));
-        Require(NetFailure.TimedOut(host).StartsWith("git.magicbean.dev did not answer in time.", StringComparison.Ordinal), "A timeout");
+        Require(NetFailure.TimedOut(host).StartsWith("api.github.com did not answer in time.", StringComparison.Ordinal), "A timeout");
     }
 
     static void CommandLineChecks()

@@ -3,7 +3,7 @@ using TimeLinkLauncher.Core;
 
 namespace TimeLinkLauncher;
 
-/// The launcher's state for the window and the command line: its home, its list of builds, its settings, and what git.magicbean.dev said
+/// The launcher's state for the window and the command line: its home, its list of builds, its settings, and what GitHub said
 /// is newest on each channel
 public sealed class LauncherService
 {
@@ -13,7 +13,7 @@ public sealed class LauncherService
     public LauncherSettings Settings { get; private set; }
     public IReadOnlyDictionary<string, string?> Newest => newest;
     public IFetcher Fetcher { get; }
-    /// timeLink's signed releases on git.magicbean.dev (the builder of each version), checked against the keys this launcher trusts
+    /// timeLink's signed releases on GitHub (the builder of each version), checked against the keys this launcher trusts
     public Releases Releases { get; }
     /// The launcher's own signed releases (HanYolo1/TimeLinkLauncher), checked the same way
     public Releases LauncherReleases { get; }
@@ -39,12 +39,12 @@ public sealed class LauncherService
         Home = home;
         Registry = BuildRegistry.Load(home.Builds);
         Settings = LauncherSettings.Load(home.Settings);
-        // (off unless TIMELINK_LAUNCHER_CDN=1: release lists, release files and packages would go through git-cdn.magicbean.dev first, MagicBeanDev's own edge. CdnFetcher)
-        var cdn = CdnFetcher.EnabledByEnvironment();
-        Fetcher = new CdnFetcher(Slow(new HttpFetcher(TimeSpan.FromSeconds(60))), cdn);
+        // (no CDN in front of the fetches: release lists, release files and packages go to GitHub itself. The launcher was
+        // vendored with a Cloudflare edge in front of MagicBeanDev's Forgejo, which this fork does not use)
+        Fetcher = Slow(new HttpFetcher(TimeSpan.FromSeconds(60)));
         Tools = new Toolchains(home.Toolchains, Fetcher);
         // (its own timeout, shorter: the check at start should not keep the window waiting on a server that does not answer)
-        var check = new CdnFetcher(Slow(new HttpFetcher(TimeSpan.FromSeconds(20))), cdn);
+        var check = Slow(new HttpFetcher(TimeSpan.FromSeconds(20)));
         var keys = ReleaseKeys.Current();
         Releases = new Releases(check, platform, keys, product: Product.TimeLink);
         // (the launcher's own releases: its own versions on its own three channels, chosen apart from the builds' in Settings)

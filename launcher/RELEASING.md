@@ -6,9 +6,10 @@ channels, signing, `tools.lock`, how the launcher reads it) is in [docs/releases
 
 | | timeLink | The launcher |
 |---|---|---|
-| Repository | [HanYolo1/timeLink](https://git.magicbean.dev/HanYolo1/timeLink) | [HanYolo1/TimeLinkLauncher](https://git.magicbean.dev/HanYolo1/TimeLinkLauncher) |
-| First version | `v3.0.0` (rc first: `v3.0.0-rc.1`) | `v1.0.0` (rc first: `v1.0.0-rc.1`) |
-| What a release ships | the Windows and Linux builders, `tools.lock` | the launcher: `TimeLinkLauncher-<v>-windows-x64-setup.exe` (installs itself or runs portable: docs/releases.md, *Installing the launcher*), `TimeLinkLauncher-<v>-windows-x64-portable.zip`, `TimeLinkLauncher-<v>-x86_64.AppImage` |
+| Repository | [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink) | [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink), `launcher/` |
+| Tag | `v3.Y.Z`, from `v3.0.0` (rc first: `v3.0.0-rc.1`) | `v1.Y.Z`, from `v1.0.0` (rc first: `v1.0.0-rc.1`). One `v*` namespace: `release.py` tells them apart by the version's first number, then by the files a release ships |
+| What a release ships | the Windows and Linux builders, `tools.lock` | the launcher: `timeLinkLauncher-<v>-windows-x64-setup.exe` (installs itself or runs portable: docs/releases.md, *Installing the launcher*), `timeLinkLauncher-<v>-windows-x64-portable.zip`, `timeLinkLauncher-<v>-x86_64.AppImage` |
+| Workflow | `.forgejo/workflows/release.yml` | `.forgejo/workflows/launcher-release.yml` |
 | Nightly count | commits since the fork, e2a4d45 | commits since the first commit |
 
 Both have the same three channels: **stable**, **rc** and **nightly**. In the launcher, players pick a channel for their
@@ -41,7 +42,7 @@ python -I scripts/release.py channels      # what stable, rc and nightly offer n
 ```
 
 The remote is called `forge` here (timeLink's `scripts/forge.py login` sets it up; in the launcher's checkout, add
-`https://git.magicbean.dev/HanYolo1/TimeLinkLauncher.git` under that name). Only maintainers can push tags.
+`https://github.com/HanYolo1/timeLink/tree/main/launcher.git` under that name). Only maintainers can push tags.
 
 ## A nightly
 
@@ -98,8 +99,8 @@ Players on the nightly channel keep the last good nightly until then.
    - Download `SHA256SUMS`, `SHA256SUMS.sig` and the files, and run
      `python -I scripts/release.py verify SHA256SUMS --files <folder>`.
    - In a launcher set to the rc channel (Settings), Retry offers it.
-   - For the launcher: within a minute, `https://timeLink.magicbean.dev/download/launcher/rc` goes to it (and, for a stable,
-     `/download/launcher/stable`).
+   - For the launcher: a launcher already installed is offered it on the rc channel, and its release page's download links
+     point at the files on GitHub (there is no website in front of them any more).
 5. Ask testers on the rc channel to try it, and for timeLink one on Windows for what CI can't check
    ([Needs a Windows tester](#needs-a-windows-tester-timeLink)). Fixes go in as pull requests; each round is a new rc tag
    (`-rc.2`).
@@ -261,15 +262,16 @@ None of this is done yet. In order (one repository now, so one secret for both p
    on a pull request from a fork). It needs no fallback. Don't protect `nightly-*` tags (*Settings* > *Tags*): that token
    can't delete a protected tag, so the prune would fail. `tools.py` and `release.py` run by hand (`mirror`, `add`,
    `prune`) take your own token as `RELEASE_TOKEN`.
-3. **The upload address.** Uploads through Cloudflare are cut at 100 MB, and the builders are larger. Set the variable
-   `RELEASE_UPLOAD_API` (organization *Actions* > *Variables*; Forgejo refuses variable names that start with `FORGEJO_`, so the workflow passes it to `release.py` as `FORGEJO_UPLOAD_API`) to the API without Cloudflare, e.g.
-   `http://forgejo:3000/api/v1` as the runners reach it on the server's network. Unset, uploads go to
-   `https://git.magicbean.dev/api/v1`.
+3. **The upload address.** (This step was Forgejo's: uploads went through Cloudflare, which cut them at 100 MB, so they
+   were sent to the API without it, given as `RELEASE_UPLOAD_API` and passed to `release.py` as `FORGEJO_UPLOAD_API`.)
+   GitHub's release uploads are not behind such a proxy, and `release.py` reads `GITHUB_TOKEN` there; the
+   `FORGEJO_UPLOAD_API`/`FORGEJO_API` variable names survive because the upload code is the same, and setting neither
+   leaves every request at `https://api.github.com`.
 4. **The attachment limits** (Forgejo's `app.ini`): `[attachment] MAX_SIZE` in MB, at least the largest file (2048 now;
    check the AppImage's size after the first build), and `[repository.release] ALLOWED_TYPES` empty, so `.AppImage`, `.exe`,
    `.lock` and `SHA256SUMS` are accepted.
 5. **Actions and runners.** Enable Actions on the repository (*Settings* > *Units*), and register the runners in
-   [docs/forgejo-runners.md](https://git.magicbean.dev/HanYolo1/timeLink/src/branch/main/docs/forgejo-runners.md)
+   [docs/forgejo-runners.md](https://github.com/HanYolo1/timeLink/blob/main/docs/forgejo-runners.md)
    (Linux only, for both: timeLink's Windows files are cross-built on Linux).
 6. **The tools' packages and `tools.lock`.** Done (2026-11-13): `cpm` with dav1d and `third-party` assembled and added,
    llvm-mingw, python, emsdk and wgpu-native mirrored, the Linux tools added, each a generic package of the organization

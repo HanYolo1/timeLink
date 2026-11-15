@@ -7,7 +7,7 @@ an emulator is running, since a running game can write its save again and undo t
 
 The save files are the same in timeLink, Hookshot and the emulators and ports that run the game: `account.sav`,
 `option.sav` and one `slot_NN` folder per slot holding `progress.sav` and `caption.sav`. timeLink's own saves guide,
-[docs/saves.md in timeLink](https://git.magicbean.dev/HanYolo1/timeLink/src/branch/main/docs/saves.md), has the format,
+[docs/saves.md in timeLink](https://github.com/HanYolo1/timeLink/blob/main/docs/saves.md), has the format,
 where every emulator keeps its saves, and `scripts/timeLink_saves.py import|export`, the command line that does what this page
 does (for Lichii, Eden, NX2navi and the rest) without the launcher.
 
