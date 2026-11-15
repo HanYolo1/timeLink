@@ -188,6 +188,7 @@ Not every reference is a defect. Swept the tree; the remaining ones fall in four
 |---|---|
 | **Eleven translation catalogs lack one string** | `"Your game settings from your other versions now apply to this one too."` shows in English. Zero translator faults. Present in unmodified upstream |
 | **`RELEASING.md` still describes Forgejo in places** | The repository, upload and runner steps were rewritten for GitHub where they act, but some Forgejo mechanics remain as history. Not user-facing |
+| **13 checks fail on Windows, all older than this fork's release work** | Measured 2026-11-15 with `python -I -B tests/run_all.py`: 494 passed, 14 failed, 70 skipped. The same 13 fail on `b3e24f80`, the commit before any of this work, so none is a regression: `test_cpm_discovery` (6 errors), `test_lift_cleanup_error` (5), `test_make_game_cache` (6), `test_linux_preflight`, `test_appimage_player_build`, `test_tested_configurations`, `test_walk_key`, `test_fpx_sticky`, `test_spawn_emit`, `test_env_on`, `test_readback_late`, `test_vram_budget_row`, `test_oot_state_tap`. Causes seen: the CPython 3.12 `cpm.tool.find` seam this machine lacks, `a64emit` not building here, CRLF in a piped fixture, a check needing a live game socket, several needing a Vulkan device. The fourteenth was introduced by this fork (a builder URL, `test_no_release_lookup`) and is fixed. Re-measure on Linux before blaming any of them on a change |
 
 ## Fixed (kept so it is not re-broken)
 
