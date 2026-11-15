@@ -109,7 +109,7 @@ public sealed class Releases
     {
         if (known.TryGetValue(tag, out var have)) return have;
         var text = await TextAsync(VersionUrl(tag), 2, cancel).ConfigureAwait(false)
-                   ?? throw new FetchException($"git.magicbean.dev has no {Product.Display} release {tag}, or did not answer."
+                   ?? throw new FetchException($"GitHub has no {Product.Display} release {tag}, or did not answer."
                                                + (lastFailure is { } why ? " " + why : ""));
         return await VersionAsync(tag, ReleaseManifest.ParseOne(text), cancel).ConfigureAwait(false);
     }

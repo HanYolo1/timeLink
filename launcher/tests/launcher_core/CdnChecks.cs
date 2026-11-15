@@ -270,10 +270,14 @@ static partial class Program
         }
         server.Files.Remove(list);
 
-        // (TIMELINK_LAUNCHER_NO_CDN=1: everything from git.magicbean.dev, a tool's git-cdn link too)
-        Require(!CdnFetcher.EnabledByEnvironment(k => k == CdnFetcher.DisableVariable ? "1" : null)
-                && CdnFetcher.EnabledByEnvironment(_ => null) && CdnFetcher.EnabledByEnvironment(k => k == CdnFetcher.DisableVariable ? "0" : null)
-                && CdnFetcher.DisableVariable == "TIMELINK_LAUNCHER_NO_CDN", "TIMELINK_LAUNCHER_NO_CDN=1 turns the CDN off.");
+        // (off unless TIMELINK_LAUNCHER_CDN=1: it is MagicBeanDev's own edge, so a fork reaches nothing of theirs unasked;
+        // TIMELINK_LAUNCHER_NO_CDN=1 beats the ask)
+        Require(!CdnFetcher.EnabledByEnvironment(_ => null)
+                && CdnFetcher.EnabledByEnvironment(k => k == CdnFetcher.EnableVariable ? "1" : null)
+                && !CdnFetcher.EnabledByEnvironment(k => k == CdnFetcher.DisableVariable ? "1" : null)
+                && !CdnFetcher.EnabledByEnvironment(k => k == CdnFetcher.EnableVariable ? "1" : k == CdnFetcher.DisableVariable ? "1" : null)
+                && CdnFetcher.EnableVariable == "TIMELINK_LAUNCHER_CDN" && CdnFetcher.DisableVariable == "TIMELINK_LAUNCHER_NO_CDN",
+                "The CDN is off unless TIMELINK_LAUNCHER_CDN=1, and off when TIMELINK_LAUNCHER_NO_CDN=1.");
         var off = new CdnFetcher(server, enabled: false);
         server.Files[cdnRelease] = new Served(other);
         server.Asked.Clear();

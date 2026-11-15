@@ -10,17 +10,24 @@ namespace TimeLinkLauncher.Core;
 /// SHA256SUMS, so an old list only offers the new version a minute later. A file that is not the one its release names (size,
 /// SHA-256) is not a failure of the CDN: it fails as before, the callers' checks unchanged. A download the CDN cut short
 /// starts again from the stream's start, so no half of the CDN's file stays in front of the server's; a stream that cannot go
-/// back (not seekable) keeps the CDN's failure. TIMELINK_LAUNCHER_NO_CDN=1: no CDN, everything from git.magicbean.dev
+/// back (not seekable) keeps the CDN's failure.
+///
+/// It is OFF unless TIMELINK_LAUNCHER_CDN=1 asks for it. It is MagicBeanDev's own edge (git-cdn.magicbean.dev, their
+/// infrastructure), so a fork installs with the origin alone and reaches nothing of theirs; TIMELINK_LAUNCHER_NO_CDN=1 still
+/// forces it off, should the origin's owner turn it on.
 public sealed class CdnFetcher(IFetcher inner, bool enabled = true) : IFetcher
 {
     public const string Origin = "https://git.magicbean.dev", Cdn = "https://git-cdn.magicbean.dev";
-    public const string DisableVariable = "TIMELINK_LAUNCHER_NO_CDN";
+    public const string EnableVariable = "TIMELINK_LAUNCHER_CDN", DisableVariable = "TIMELINK_LAUNCHER_NO_CDN";
 
     public bool Enabled { get; } = enabled;
 
-    /// Whether the CDN is on: TIMELINK_LAUNCHER_NO_CDN=1 turns it off
-    public static bool EnabledByEnvironment(Func<string, string?>? getenv = null) =>
-        (getenv ?? Environment.GetEnvironmentVariable)(DisableVariable) != "1";
+    /// Whether the CDN is on: only when TIMELINK_LAUNCHER_CDN=1, and never when TIMELINK_LAUNCHER_NO_CDN=1
+    public static bool EnabledByEnvironment(Func<string, string?>? getenv = null)
+    {
+        getenv ??= Environment.GetEnvironmentVariable;
+        return getenv(EnableVariable) == "1" && getenv(DisableVariable) != "1";
+    }
 
     /// The CDN's link for a release file or package on git.magicbean.dev; null for any other link
     public static string? CdnOf(string url)

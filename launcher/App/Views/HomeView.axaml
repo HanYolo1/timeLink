@@ -127,7 +127,7 @@
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,16,0,0" IsVisible="{Binding Checking}">
           <c:Spinner VerticalAlignment="Center"/>
-          <TextBlock Classes="note" Text="{c:T 'Asking git.magicbean.dev for the newest version…'}"/>
+          <TextBlock Classes="note" Text="{c:T 'Asking GitHub for the newest version…'}"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,8,0,0" IsVisible="{Binding ShowCheckLine}">
           <c:Spinner VerticalAlignment="Center"/>

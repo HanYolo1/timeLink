@@ -229,7 +229,8 @@ dotnet run --project App
 | `TIMELINK_LAUNCHER_DEBUG_SLOW=<ms>` | A Debug build only: waits that long before each answer from git.magicbean.dev and a tenth of it after each MB downloaded, to see the busy states (the launcher's update, the check, the tools' download) |
 | `TIMELINK_LAUNCHER_EXE=<path>` | What the shortcuts and the game folders (`builder=`) start this launcher with, for a package whose own path is only inside it (the Flatpak sets it). A launcher not started from its own file (the Flatpak's, `dotnet run`) is not offered its own updates |
 | `TIMELINK_LAUNCHER_HOME=<folder>` | The launcher's home (`builds.json`, `settings.json`, `toolchains/`) somewhere else, for trying it out |
-| `TIMELINK_LAUNCHER_NO_CDN=1` | Every release list, release file and build tool from git.magicbean.dev itself, not through `git-cdn.magicbean.dev` (Cloudflare's cache of the same files and lists, tried first otherwise; a list there may be a minute old, and is still answered while git.magicbean.dev is down; the rest of the API is always git.magicbean.dev's) |
+| `TIMELINK_LAUNCHER_CDN=1` | Every release list, release file and build tool through `git-cdn.magicbean.dev` first, falling back to the origin: Cloudflare's cache of the same files and lists (a list there may be a minute old, and is still answered while git.magicbean.dev is down; the rest of the API is always the origin's). **Off unless asked**: `git-cdn.magicbean.dev` is MagicBeanDev's own edge, so a launcher of this fork reaches nothing of theirs without it |
+| `TIMELINK_LAUNCHER_NO_CDN=1` | Forces the CDN off even where `TIMELINK_LAUNCHER_CDN=1` asks for it |
 | `TIMELINK_LAUNCHER_OFFLINE=1` | No update check |
 | `TIMELINK_LAUNCHER_TRUST=<public key .pem>` | Trust one more release key, for a release signed with a test key |
 | `--launch <folder>` | Opens on that build |
@@ -357,5 +358,5 @@ free space, Vulkan 1.3, VRAM (8 GB) and mesh-shader requirements are met. Yellow
 4 GB VRAM or missing mesh shaders); gray means a check is unknown. Red identifies an unsupported OS
 or no Vulkan 1.3 hardware GPU (no CPU feature is checked: timeLink builds and runs without AVX2). A known limitation takes precedence over unknown checks. The status is advisory and never
 prevents a download or build. Use its System requirements link to open
-https://timeLink.magicbean.dev/requirements/ for CPU model guidance and performance estimates. GPU memory comes from
+https://github.com/HanYolo1/timeLink/blob/main/docs/getting-started.md for CPU model guidance and performance estimates. GPU memory comes from
 Vulkan's device-local heaps; shared-memory GPUs can report it differently.

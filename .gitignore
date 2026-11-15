@@ -7,6 +7,13 @@ exefs/
 romfs/
 *.bin
 *.keys
+# (release keys: never in the repository. The launcher's signing key is a *.pem, and it is not a game file, so *.keys above
+# does not cover it. scripts/release.py keygen writes release.pem and release.pub.pem into a folder of its own; this stops one
+# made inside the tree from being added by `git add -A`)
+*.pem
+# (but the launcher's test fixture is a throwaway key its tests sign a fixture release with: it is meant to be public and is
+# already tracked, so this keeps it that way)
+!launcher/tests/fixtures/release/*.pem
 *.nso
 *.nca
 *.nsp

@@ -172,7 +172,7 @@ public sealed class HomeViewModel : ViewModelBase
     public bool ChannelEmpty => CheckFailed && listed && CheckWhy.Length == 0;
     public string CheckFailedText => ChannelEmpty
         ? Tr.F("No version is out on the {0} channel yet.", ChannelPickerViewModel.NameOf(DefaultChannel))
-        : Tr.T("git.magicbean.dev did not answer, so the version to build is not known.");
+        : Tr.T("GitHub did not answer, so the version to build is not known.");
 
     // ---- the default version, on the left ----
 
@@ -444,7 +444,7 @@ public sealed class HomeViewModel : ViewModelBase
                 ? Tr.F("Updates were not checked. {0}", why)
                 : Service.Releases.Problem is { } problem
                 ? Tr.F("Updates were not checked: {0}", problem)
-                : Tr.T("Could not reach git.magicbean.dev: updates were not checked.");
+                : Tr.T("Could not reach GitHub: updates were not checked.");
         }
         catch (Exception e)
         {

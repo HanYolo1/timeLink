@@ -8,7 +8,9 @@ public sealed record RequirementResult(RequirementStatus Status, string Summary,
 /// Local, advisory checks against the published requirements. Never blocks downloading or building.
 public static class SystemRequirements
 {
-    public const string Url = "https://timeLink.magicbean.dev/requirements/";
+    /// (timeLink's own requirements page. It was timeLink.magicbean.dev's, which is not this fork's to send players to;
+    /// docs/getting-started.md in the repository the launcher is released from is)
+    public const string Url = "https://github.com/HanYolo1/timeLink/blob/main/docs/getting-started.md";
     /// (no CPU feature is checked: timeLink builds and runs on a CPU without AVX2, more slowly; its build picks the CPU level)
     public static RequirementResult Evaluate(bool supportedOs, int memoryGb, int threads,
         long? freeBytes, IReadOnlyList<GpuRequirement>? gpus)

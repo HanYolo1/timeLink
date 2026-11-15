@@ -39,7 +39,7 @@ public sealed class LauncherService
         Home = home;
         Registry = BuildRegistry.Load(home.Builds);
         Settings = LauncherSettings.Load(home.Settings);
-        // (release lists, release files and packages through git-cdn.magicbean.dev first: CdnFetcher; TIMELINK_LAUNCHER_NO_CDN=1 turns it off)
+        // (off unless TIMELINK_LAUNCHER_CDN=1: release lists, release files and packages would go through git-cdn.magicbean.dev first, MagicBeanDev's own edge. CdnFetcher)
         var cdn = CdnFetcher.EnabledByEnvironment();
         Fetcher = new CdnFetcher(Slow(new HttpFetcher(TimeSpan.FromSeconds(60))), cdn);
         Tools = new Toolchains(home.Toolchains, Fetcher);

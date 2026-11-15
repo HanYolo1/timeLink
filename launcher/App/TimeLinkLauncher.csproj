@@ -14,8 +14,8 @@
     <Product>timeLink Launcher</Product>
     <AssemblyTitle>timeLink Launcher</AssemblyTitle>
     <Description>Installs, builds, updates and starts timeLink</Description>
-    <!-- (no <Company>: the builder sets none either, and this is HanYolo1's own fork, not a company's product) -->
-    <Copyright>Copyright © the timeLink Launcher contributors. GPL-3.0-or-later</Copyright>
+    <Company>HanYolo</Company>
+    <Copyright>Copyright © the timeLink contributors. GPL-3.0-or-later</Copyright>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia"/>
