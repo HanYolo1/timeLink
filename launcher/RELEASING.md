@@ -253,13 +253,16 @@ anything.
 
 None of this is done yet. In order (one repository now, so one secret for both products):
 
-1. **The key.** On a PC you trust: `python -I scripts/release.py keygen <safe folder>`. Put the printed line in the launcher's
-   `Core/ReleaseTrust.cs` and in timeLink's `scripts/release_keys.json` (a pull request to each). Keep `release.pem` backed
-   up offline. Losing it means a launcher with a new key that every player downloads by hand.
-2. **The secret** (HanYolo1 > *Settings* > *Actions* > *Secrets*): `RELEASE_SIGNING_KEY`, the text of `release.pem`.
-   No token secret and no bot account: `release.yml` makes the release with the job's own token (`forgejo.token`, given
-   to `release.py` as `RELEASE_TOKEN`), which Forgejo gives write access to its own repository on a push or a tag (never
-   on a pull request from a fork). It needs no fallback. Don't protect `nightly-*` tags (*Settings* > *Tags*): that token
+1. **The key.** On a PC you trust: `python -I scripts/release.py keygen <safe folder>`. It makes `release.pem` (private)
+   and `release.pub.pem`, printing the key id and two lines to paste: one into `launcher/Core/ReleaseTrust.cs`
+   (`ReleaseKeys.BuiltIn`) and the same base64 into `scripts/release_keys.json` (`"keys"`) — one pull request, both files.
+   Only those public halves go in the repository; `release.pem` never does (`.gitignore` refuses `*.pem`). Keep `release.pem`
+   backed up offline. Losing it means a launcher with a new key that every player downloads by hand.
+2. **The secret** (GitHub: the repository's *Settings* > *Secrets and variables* > *Actions* > *New repository secret*):
+   `RELEASE_SIGNING_KEY`, the whole text of `release.pem` including the `BEGIN`/`END` lines. No token secret and no bot
+   account: the release workflow makes the release with the job's own `GITHUB_TOKEN`, which GitHub gives write access to
+   its own repository on a push or a tag (never on a pull request from a fork). It needs no fallback. Don't protect
+   `nightly-*` tags (*Settings* > *Tags*): that token
    can't delete a protected tag, so the prune would fail. `tools.py` and `release.py` run by hand (`mirror`, `add`,
    `prune`) take your own token as `RELEASE_TOKEN`.
 3. **The upload address.** (This step was Forgejo's: uploads went through Cloudflare, which cut them at 100 MB, so they
