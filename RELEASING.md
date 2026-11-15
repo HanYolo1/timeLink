@@ -264,7 +264,8 @@ Steps 3 to 5 are done; 1, 2 and 6 are what a maintainer still does. In order:
    **Back `release.pem` up, to two places, before anything else.** The Actions secret is not a backup: a secret is
    write-only, so the file on that PC is the only copy anyone can read back. A USB stick kept offline and a password
    manager's file attachment are enough; a printed base64 in a safe survives a dead drive and ransomware. Never email it,
-   never paste it into a chat or an issue, never commit it.
+   never paste it into a chat or an issue, never commit it. The key's folder holds a `README.md` with its SHA-256 and key
+   id, so a backup can be checked rather than trusted by eye.
 
    Losing it means a launcher with a new key that every player downloads by hand. Leaking it is worse: whoever holds it can
    sign a release every launcher accepts as genuine. If it leaks, rotate at once (below) and say so to players.
