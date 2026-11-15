@@ -10,13 +10,13 @@ memory (8 GB and mesh shaders recommended), 16 GB of memory and about 60 GB free
 
 ## 2. Download the launcher
 
-- [Download for Windows](https://longshot.magicbean.dev/download/launcher/windows)
-- [Download for Linux](https://longshot.magicbean.dev/download/launcher/linux)
-- [Windows, portable zip](https://longshot.magicbean.dev/download/launcher/windows-portable)
+- [Download for Windows](https://github.com/HanYolo1/timeLink/releases)
+- [Download for Linux](https://github.com/HanYolo1/timeLink/releases)
+- [Windows, portable zip](https://github.com/HanYolo1/timeLink/releases)
 
 Then follow [the Windows steps](../README.md#on-windows) or [the Linux steps](../README.md#on-linux) (on Linux and
 SteamOS, the AppImage has to be made runnable first). Every channel, and the file for your system, is on the
-[download page](https://longshot.magicbean.dev/download).
+[releases page](https://github.com/HanYolo1/timeLink/releases).
 
 ## 3. Build and play
 

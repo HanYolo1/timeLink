@@ -1,7 +1,7 @@
 # Portable timeLink Builder on Windows
 
-The Builder has no window: players use the [timeLink Launcher](https://longshot.magicbean.dev/download), whose
-[portable zip](https://longshot.magicbean.dev/download/launcher/windows-portable) keeps its data beside it. This page
+The Builder has no window: players use the [timeLink Launcher](https://github.com/HanYolo1/timeLink/releases), whose
+[portable zip](https://github.com/HanYolo1/timeLink/releases) keeps its data beside it. This page
 is for the Builder's command line (`--cli`, as RecompLauncher runs it) kept on an external SSD.
 
 Unpack the whole release zip into a writable folder on your SSD, then run its `timeLinkBuilder.exe` setup with

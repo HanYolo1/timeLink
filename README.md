@@ -24,7 +24,7 @@
   <a href="#license">License + Credits</a>
 </p>
 
-<p align="center">This website is our Git hosting, similar to GitHub.</p>
+<p align="center">This is a personal fork, hosted on GitHub.</p>
 
 > [!NOTE]
 > **This is a personal fork.** It is a copy of [timeLink](https://github.com/HanYolo1/timeLink), which is
@@ -77,7 +77,7 @@ what does not yet. Open problems are collected in tracking issues, linked below.
 ### [🐧 &nbsp;Download for Linux (AppImage)](https://github.com/HanYolo1/timeLink/releases)
 
 Windows without installing: [portable zip](https://github.com/HanYolo1/timeLink/releases) · Not sure?
-[the releases page](https://github.com/HanYolo1/timeLink/releases/latest) picks for your computer. These links give the
+[the releases page](https://github.com/HanYolo1/timeLink/releases) lists every file. These links give the
 newest launcher (stable, or until there is one, the release candidate); for each channel's own, see
 [release channels](#release-channels).
 
@@ -96,7 +96,7 @@ timeLink doesn't come ready to play: it is built on your PC, from your own copy 
    ([build times](docs/development.md#build-times)).
 4. Press **Play**. From then on the launcher keeps the game, and itself, [up to date](#updating).
 
-timeLink's first version will be **v3.0.0**; the launcher's first will be **v1.0.0** (its numbers are its own).
+timeLink's first version is **v0.1.0**, and so is the launcher's: one tag names both products' releases.
 
 ### What you need
 
@@ -298,9 +298,7 @@ everything it does on the network or with other programs:
   user name taken out of its logs, and **Save my pipeline list** saves a zip in your Downloads folder: you decide whether
   to send them anywhere.
 
-Only download timeLink from [the releases page](https://github.com/HanYolo1/timeLink/releases)
-and [timeLink's](https://github.com/HanYolo1/timeLink/releases), or through
-[the releases page](https://github.com/HanYolo1/timeLink/releases/latest). Each version's files
+Only download timeLink from [the releases page](https://github.com/HanYolo1/timeLink/releases). Each version's files
 are listed with their SHA-256 in its `SHA256SUMS`, signed by the release key, which the launcher checks. A copy from
 anywhere else may not be ours.
 

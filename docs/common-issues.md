@@ -213,9 +213,7 @@ Change the code in `language.txt` in the game folder: the file lists them all, a
 timeLink isn't code-signed yet, so Defender often guesses `Trojan:Win32/Wacatac.H!ml` or `Wacatac.B!ml`: the `!ml`
 means a guess, not a known virus.
 
-1. **Check where it came from.** Only the [launcher's releases](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases)
-   and [timeLink's](https://github.com/HanYolo1/timeLink/releases) are official;
-   [the download page](https://longshot.magicbean.dev/download) sends you there.
+1. **Check where it came from.** Only [timeLink's releases](https://github.com/HanYolo1/timeLink/releases) are official.
 2. **Let it through safely.** The [antivirus guide](https://longshot.magicbean.dev/help/antivirus/) shows how to check
    the file, restore it, and exclude only timeLink's folders.
 

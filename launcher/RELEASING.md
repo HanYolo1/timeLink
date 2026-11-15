@@ -74,15 +74,15 @@ Players on the nightly channel keep the last good nightly until then.
 
    ```sh
    # git
-   git tag -a v3.1.0-rc.1 -m "timeLink v3.1.0-rc.1" forge/main
-   git push forge v3.1.0-rc.1
+   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" forge/main
+   git push forge v0.2.0-rc.1
    # jj: jj does not push tags, so the tag is made and pushed with git (a jj clone is colocated with git)
    jj git fetch --remote forge
-   git tag -a v3.1.0-rc.1 -m "timeLink v3.1.0-rc.1" "$(jj log -r main@forge --no-graph -T commit_id)"
-   git push forge v3.1.0-rc.1
+   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" "$(jj log -r main@forge --no-graph -T commit_id)"
+   git push forge v0.2.0-rc.1
    ```
 
-   Or in the web UI: *Releases* > *New release*. Type the tag (`v3.1.0-rc.1`), choose the target `main`, and press
+   Or in the web UI: *Releases* > *New release*. Type the tag (`v0.2.0-rc.1`), choose the target `main`, and press
    **Create tag** (the tag only). Do not *Publish release* or *Save draft*: CI makes the release itself, and a release
    made by hand would have none of the files.
 3. **What CI does** (`release.yml`): it checks the tag (`check-tag`: its form, on `main`, above every release, as high as the
@@ -110,14 +110,14 @@ Players on the nightly channel keep the last good nightly until then.
 When an rc has been tested and nothing blocks it, tag **the same commit** as stable:
 
 ```sh
-git tag -a v3.1.0 -m "timeLink v3.1.0" v3.1.0-rc.2^{}
-git push forge v3.1.0
+git tag -a v0.2.0 -m "timeLink v0.2.0" v0.2.0-rc.2^{}
+git push forge v0.2.0
 # jj: the commit of the rc tag
-git tag -a v3.1.0 -m "timeLink v3.1.0" "$(jj log -r 'v3.1.0-rc.2' --no-graph -T commit_id)"
-git push forge v3.1.0
+git tag -a v0.2.0 -m "timeLink v0.2.0" "$(jj log -r 'v0.2.0-rc.2' --no-graph -T commit_id)"
+git push forge v0.2.0
 ```
 
-Web UI: *New release*, tag `v3.1.0`, target: the rc's commit, **Create tag**.
+Web UI: *New release*, tag `v0.2.0`, target: the rc's commit, **Create tag**.
 
 CI builds it again from that commit (its files carry the version; for timeLink, the build checks the rc's run passed are
 not run again: `release.py released-as`), signs and publishes it: it appears on **stable** and on **rc**. Its notes cover every
@@ -126,11 +126,11 @@ then it was not what testers tried.
 
 ## A hotfix
 
-A bad bug in the current stable `v3.1.0`:
+A bad bug in the current stable `v0.2.0`:
 
 1. Fix it on `main` in a pull request titled `fix: ...` (nothing else merged since? then this is the whole release).
-2. `python -I scripts/release.py next` says `v3.1.1` (the patch), or the minor when a `feat` is on `main` since `v3.1.0`.
-3. Tag `v3.1.1-rc.1`, check it quickly, then `v3.1.1` on the same commit. For an emergency, `v3.1.1` can be tagged directly.
+2. `python -I scripts/release.py next` says `v0.2.1` (the patch), or the minor when a `feat` is on `main` since `v0.2.0`.
+3. Tag `v0.2.1-rc.1`, check it quickly, then `v0.2.1` on the same commit. For an emergency, `v0.2.1` can be tagged directly.
 
 Releases are only made from `main` (CI refuses a tag elsewhere). If `main` has changes not ready to ship, revert them in a
 pull request first, or ship them: there is no release branch.

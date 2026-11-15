@@ -243,7 +243,7 @@ class AppRun(unittest.TestCase):
             r = self.run_app(*args)
             self.assertEqual(r.returncode, 1, args)
             self.assertIn("timeLink Launcher", r.stderr, args)
-            self.assertIn("https://longshot.magicbean.dev/download", r.stderr, args)
+            self.assertIn("https://github.com/HanYolo1/timeLink/releases", r.stderr, args)
             self.assertEqual(r.stdout, "", args)
         self.assertFalse((self.dir / "data").exists())
 

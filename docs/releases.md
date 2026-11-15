@@ -1,9 +1,9 @@
 # Releases and updates
 
-How timeLink and the timeLink Launcher are released on git.magicbean.dev, and how the launcher finds, checks and installs
-them. This document is the same in both repositories, [MagicBeanDev/timeLink](https://github.com/HanYolo1/timeLink/src/branch/main/docs/releases.md)
-and [MagicBeanDev/timeLink Launcher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/src/branch/main/docs/releases.md).
-How to make a release, step by step, is in each repository's **RELEASING.md**.
+How timeLink and the timeLink Launcher are released on GitHub, and how the launcher finds, checks and installs
+them. Both are released from one repository, [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink): the launcher
+is `launcher/` there (vendored, [VENDORED.md](../VENDORED.md)). How to make a release, step by step, is in **RELEASING.md**
+(one file, covering both products).
 
 timeLink's numbers start at **v0.1.0**, and the launcher's do too: one tag names both products' releases. Nothing here reads or writes
 GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot's history is Hookshot's).
@@ -253,20 +253,10 @@ right thing:
 
 ## Download links
 
-Forgejo's `/releases/latest` covers stable only. longshot.magicbean.dev (the timeLink website, `website/worker/index.ts` in MagicBeanDev/timeLink) has permanent links to
-the newest launcher of each channel, read from timeLink Launcher's release list by the rules above (cached 60 seconds):
-
-| Link | Goes to |
-|---|---|
-| `https://longshot.magicbean.dev/download` | a page: the launcher for the visitor's system, from the best channel there is, and every channel |
-| `https://longshot.magicbean.dev/download/launcher/<os>` | that file of the best channel there is: stable, else rc, else nightly |
-| `https://longshot.magicbean.dev/download/launcher/<channel>` | the channel's newest release page |
-| `https://longshot.magicbean.dev/download/launcher/<channel>/<os>` | that file of the channel's newest release |
-
-`<channel>` is `stable`, `rc` or `nightly`; `<os>` is `windows` (the setup), `windows-portable` (the zip) or `linux` (the
-AppImage). A channel with no release yet answers with a page that says so and offers the newest there is. The READMEs'
-download buttons and timeLink's release pages use these links; there are none for timeLink's builder files, which only
-the launcher downloads.
+Forgejo's `/releases/latest` covers stable only. This fork has no website of its own, so there are no permanent
+per-channel links: the launcher reads the release list itself, by the rules above, and the READMEs link to
+[the releases page](https://github.com/HanYolo1/timeLink/releases). There are no links for timeLink's builder files,
+which only the launcher downloads.
 
 ## RecompLauncher (timeLink)
 

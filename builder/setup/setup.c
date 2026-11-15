@@ -593,7 +593,7 @@ static int builder_ready(const wchar_t *exe) {
     return 1;
 }
 
-#define LAUNCHER_DOWNLOAD L"https://longshot.magicbean.dev/download"
+#define LAUNCHER_DOWNLOAD L"https://github.com/HanYolo1/timeLink/releases"
 
 static DWORD WINAPI work(LPVOID unused) {
     (void)unused;

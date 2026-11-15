@@ -169,7 +169,7 @@ Launcher's license text (MagicBeanDev/timeLink Launcher, `App/ViewModels/Setting
 
 ### timeLink Builder
 
-The Builder has no window: players use the [timeLink Launcher](https://longshot.magicbean.dev/download), which builds
+The Builder has no window: players use the [timeLink Launcher](https://github.com/HanYolo1/timeLink/releases), which builds
 and starts the game. What is left is command-line only: on Windows a small .NET 8 program
 (`builder/timeLinkBuilder`, `dotnet build builder/timeLinkBuilder.sln`) whose `--cli` runs `nx2/make_game.py` with
 the release's own Python, for RecompLauncher through the setup (`builder/setup/setup.c`); on Linux the AppImage's
