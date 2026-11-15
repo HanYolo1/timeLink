@@ -1,0 +1,173 @@
+# The launcher's releases (launcher/docs/releases.md; how to make one: launcher/RELEASING.md). The launcher used to be its own
+# repository with its own release workflow; here it is a directory of timeLink, released from the same repository and the same
+# v* tag namespace as the builder. What tells them apart is the version's first number, not the tag's prefix: the launcher's are
+# v1.Y.Z (Versions.LauncherFirstMajor), the builder's v3.Y.Z and up (Versions.FirstMajor). See .forgejo/workflows/release.yml
+# for the builder's.
+#
+#   a tag v1.Y.Z-rc.N    a release candidate, a pre-release (the rc channel)
+#   a tag v1.Y.Z         a stable (the stable channel, and rc too). The launcher's first is v1.0.0
+#
+# A push to main releases nothing here: the launcher is shipped alongside timeLink, and its nightlies would restate timeLink's
+# from the same commit. It is released by its tags, and by hand (Actions > Launcher release > Run workflow).
+#
+# 1. version: the version's name, checked by launcher/scripts/release.py check-tag: its form, on main, above every launcher
+#    release, and as high as the commits since the last launcher stable call for. A refused tag builds nothing.
+# 2. build: timeLinkLauncher-<v>-windows-x64-setup.exe (the program, which offers to install itself),
+#    timeLinkLauncher-<v>-windows-x64-portable.zip (the same program and its "portable" file) and
+#    timeLinkLauncher-<v>-x86_64.AppImage (launcher/scripts/package.sh, on Linux). Each program is started with --self-check
+#    before it is kept: the AppImage's by package.sh, the Windows program's under Wine (there is no Windows runner): a build of
+#    it that unpacks itself to disk, since Wine cannot load the shipped one, which .NET maps from the uncompressed file.
+#    Whether the shipped file starts is a Windows tester's.
+# 3. publish: SHA256SUMS over them, SHA256SUMS.sig (the release key), the notes (git-cliff, launcher/cliff.toml), then a draft
+#    release with every file, published last: until then no launcher sees it. Nothing is committed back to the repository.
+#
+# The release is made with the job's own token (forgejo.token, passed to launcher/scripts/release.py as RELEASE_TOKEN).
+# Secret (launcher/RELEASING.md, One-time setup): RELEASE_SIGNING_KEY (the release key's private PEM).
+name: Launcher release
+on:
+  push:
+    tags: ['v1.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The tag to release (vX.Y.Z or vX.Y.Z-rc.N, of the launcher's numbers from v1.0.0)"
+        required: true
+      ref:
+        description: "The commit to build (default: the tag's)"
+        required: false
+
+concurrency:
+  group: launcher-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: launcher
+
+jobs:
+  version:
+    name: The version
+    runs-on: quick  # (a quick job: the runner kept free for these takes it, or any runner with room)
+    timeout-minutes: 10
+    outputs:
+      tag: ${{ steps.name.outputs.tag }}
+      ref: ${{ steps.name.outputs.ref }}
+    steps:
+      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: name
+        env:
+          RELEASE_TOKEN: ${{ forgejo.token }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          INPUT_REF: ${{ github.event.inputs.ref }}
+        run: |
+          git fetch -q --tags origin main
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            tag=${GITHUB_REF#refs/tags/}
+            ref=$(git rev-parse HEAD)
+          else
+            tag=$INPUT_TAG
+            ref=${INPUT_REF:-$(git rev-parse "refs/tags/$tag")}
+          fi
+          # (the launcher's numbers only: a v3 tag is the builder's, and .forgejo/workflows/release.yml has it)
+          python3 -I scripts/release.py --product launcher check-tag "$tag" --main origin/main
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "$tag, from $ref"
+
+  build:
+    name: The launcher, both systems
+    needs: version
+    if: needs.version.outputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.version.outputs.ref }}
+          persist-credentials: false
+      - uses: https://github.com/actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.0.x'
+      - name: The Windows setup, the portable zip and the AppImage
+        env:
+          WINE_CHECK_EXE: ${{ runner.temp }}/wine-check/timeLinkLauncher.exe
+        run: scripts/package.sh "${{ needs.version.outputs.tag }}" "$RUNNER_TEMP/dist"
+      # (the same code built to unpack itself to disk: Wine cannot load the shipped program, whose code .NET maps from the
+      # uncompressed file, "Incorrect alignment (0x8007046C)". The shipped file is not started here: launcher/RELEASING.md)
+      - name: The Windows program starts (--self-check, under Wine)
+        env:
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo=; [[ $(id -u) == 0 ]] || sudo=sudo
+          $sudo dpkg --add-architecture i386 || true
+          $sudo apt-get update -qq
+          $sudo apt-get install -y -qq --no-install-recommends wine wine64 >/dev/null
+          wine=$(command -v wine64 || command -v wine)
+          export WINEDEBUG=-all WINEPREFIX="$RUNNER_TEMP/wine"
+          "$wine" wineboot --init >/dev/null 2>&1 || true
+          out=$("$wine" "$RUNNER_TEMP/wine-check/timeLinkLauncher.exe" --self-check | tr -d '\r')
+          echo "$out"
+          grep -qxF "timeLinkLauncher $TAG" <<<"$out" || { echo "::error::the Windows launcher does not answer --self-check with $TAG"; exit 1; }
+      - uses: https://data.forgejo.org/forgejo/upload-artifact@16871d9e8cfcf27ff31822cac382bbb5450f1e1e # v4 (Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
+        with:
+          name: timeLinkLauncher
+          path: ${{ runner.temp }}/dist/timeLinkLauncher-*
+          if-no-files-found: error
+
+  publish:
+    name: Sign and publish
+    needs: [version, build]
+    if: needs.version.outputs.tag != ''
+    runs-on: quick  # (a short job: it starts as the builds end, never behind them; the same machine and secrets)
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ needs.version.outputs.tag }}
+      REF: ${{ needs.version.outputs.ref }}
+      RELEASE_TOKEN: ${{ forgejo.token }}
+    steps:
+      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.version.outputs.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: https://data.forgejo.org/forgejo/download-artifact@d8d0a99033603453ad2255e58720b460a0555e1e # v4
+        with:
+          name: timeLinkLauncher
+          path: files
+      - name: The files
+        run: |
+          git fetch -q --tags origin
+          ls -l files
+          test -f "files/timeLinkLauncher-$TAG-windows-x64-setup.exe" && test -f "files/timeLinkLauncher-$TAG-windows-x64-portable.zip" \
+            && test -f "files/timeLinkLauncher-$TAG-x86_64.AppImage"
+      - name: SHA256SUMS, signed
+        env:
+          KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+        run: |
+          [[ -n $KEY ]] || { echo "::error::no RELEASE_SIGNING_KEY secret (launcher/RELEASING.md, One-time setup)"; exit 1; }
+          python3 -I scripts/release.py sums files/* --out files/SHA256SUMS
+          umask 077
+          printf '%s\n' "$KEY" > "$RUNNER_TEMP/key.pem"
+          python3 -I scripts/release.py sign files/SHA256SUMS --key "$RUNNER_TEMP/key.pem" --out files/SHA256SUMS.sig
+          rm -f "$RUNNER_TEMP/key.pem"
+          # (checked with the key this launcher is built with, not the one just used: a key it does not trust stops here)
+          python3 -I scripts/release.py verify files/SHA256SUMS --files files
+          cat files/SHA256SUMS
+      - name: The notes
+        run: |
+          GIT_CLIFF=$(python3 -I scripts/release.py git-cliff "$RUNNER_TEMP/cliff")
+          export GIT_CLIFF
+          python3 -I scripts/release.py --product launcher notes "$TAG" --out notes.md
+          cat notes.md
+      - name: Publish
+        run: python3 -I scripts/release.py --product launcher publish "$TAG" --target "$REF" --notes notes.md files/*

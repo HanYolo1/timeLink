@@ -1,0 +1,50 @@
+# The launcher's checks (launcher/, vendored: launcher/VENDORED.md). The launcher used to be its own repository, with its
+# own CI; here it is a directory of timeLink, so its checks are scoped to it by path: a pull request or a push that touches
+# launcher/ runs them, and one that does not is not held up by them.
+#
+# What they are (scripts/release.py's tests, tests/test_launcher_core.py): the launcher compiled with warnings as errors from
+# the packages its lock files pin, and its tests. The core tests also compare what the launcher copies from timeLink (make_game.py's
+# languages, the SDK commits the licence texts name, the first-import save's player ID) against this checkout. They find it
+# themselves: launcher/ is inside it.
+name: Launcher
+on:
+  pull_request:
+    paths: ['launcher/**']
+  push:
+    branches: [main]
+    paths: ['launcher/**']
+  workflow_dispatch:
+
+concurrency:
+  group: launcher-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  checks:
+    name: Compile and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: launcher
+    steps:
+      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: https://github.com/actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.0.x'
+      - name: Compile
+        run: dotnet build TimeLinkLauncher.slnx --configuration Release -p:RestoreLockedMode=true
+      # (--strict: a checkout it cannot find, or no dotnet, fails the job instead of skipping it)
+      - name: The core's tests
+        run: python3 -I -B tests/test_launcher_core.py --strict
+      - name: The release script's tests
+        run: python3 -I -B tests/test_release.py

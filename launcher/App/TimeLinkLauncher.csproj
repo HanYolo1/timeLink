@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The timeLink Launcher's window (Avalonia): Windows and Linux. Its logic is Core/ -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>timeLinkLauncher</AssemblyName>
+    <RootNamespace>TimeLinkLauncher</RootNamespace>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- (the Windows program's icon: the timeLink logo, Assets/timeLink.ico, made from Assets/timeLink.png by scripts/make_icon.py) -->
+    <ApplicationIcon>Assets/timeLink.ico</ApplicationIcon>
+    <!-- (the Windows program's details, as Properties > Details and the antivirus programs show them: a program with only its file
+         name there looks more like malware) -->
+    <Product>timeLink Launcher</Product>
+    <AssemblyTitle>timeLink Launcher</AssemblyTitle>
+    <Description>Installs, builds, updates and starts timeLink</Description>
+    <!-- (no <Company>: the builder sets none either, and this is HanYolo1's own fork, not a company's product) -->
+    <Copyright>Copyright © the timeLink Launcher contributors. GPL-3.0-or-later</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia"/>
+    <PackageReference Include="Avalonia.Desktop"/>
+    <PackageReference Include="Avalonia.Themes.Fluent"/>
+    <PackageReference Include="Avalonia.Wayland"/>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- (the release's version, which the launcher compares with its channel's newest: -p:TimeLinkTag=v3.0.0 or nightly-<count>-<commit>,
+         set by the release workflow. Unset, a build from a checkout is "dev" and never updates itself. Core/SelfUpdate.cs) -->
+    <AssemblyMetadata Include="TimeLinkTag" Value="$(TimeLinkTag)" Condition="'$(TimeLinkTag)' != ''"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Core/TimeLinkLauncher.Core.csproj"/>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- (Inter, under its own licence, Assets/Fonts/Inter-LICENSE.txt, and the timeLink logo, and its icon for the Windows window) -->
+    <AvaloniaResource Include="Assets/Fonts/Inter-*.ttf"/>
+    <AvaloniaResource Include="Assets/timeLink.png"/>
+    <AvaloniaResource Include="Assets/timeLink.ico"/>
+  </ItemGroup>
+</Project>

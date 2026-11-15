@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Core/TimeLinkLauncher.Core.csproj" />
+  <Project Path="App/TimeLinkLauncher.csproj" />
+</Solution>

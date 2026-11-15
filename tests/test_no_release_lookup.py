@@ -1,7 +1,10 @@
 """The builders no longer update themselves (docs/releases.md): the timeLink Launcher reads timeLink's signed releases, and
 installs and updates each version's builder. What is left in the builders is command-line only, and none of it asks a server
 for a release: no GitHub link, no release lookup, no game update check (host/hos_update.c is gone), and none of the old
-self-update's hooks. The builders' windows, which had the version buttons, are gone too."""
+self-update's hooks. The builders' windows, which had the version buttons, are gone too.
+
+This is about the builders only. The launcher (launcher/) asks a server for a release by design, because that is what it
+is for: it is not one of the SOURCES below and must not be folded into them to satisfy this check."""
 import os
 from pathlib import Path
 import re

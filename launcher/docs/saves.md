@@ -1,0 +1,183 @@
+# Saves
+
+What the launcher does with your saves: where timeLink keeps them (one place, shared by every build), importing them from
+emulators and from Hookshot, and exporting them. Everything is on the **Saves** page (the *Saves* link on the home, under
+the default version). Every copy backs up the save it replaces first, and every copy is refused while timeLink, Hookshot or
+an emulator is running, since a running game can write its save again and undo the copy.
+
+The save files are the same in timeLink, Hookshot and the emulators and ports that run the game: `account.sav`,
+`option.sav` and one `slot_NN` folder per slot holding `progress.sav` and `caption.sav`. timeLink's own saves guide,
+[docs/saves.md in timeLink](https://git.magicbean.dev/HanYolo1/timeLink/src/branch/main/docs/saves.md), has the format,
+where every emulator keeps its saves, and `scripts/timeLink_saves.py import|export`, the command line that does what this page
+does (for Lichii, Eden, NX2navi and the rest) without the launcher.
+
+## Where timeLink keeps them
+
+| | Where |
+|---|---|
+| Linux and Steam Deck | `$XDG_DATA_HOME/timeLink/save/<user id>/` (default `~/.local/share/timeLink/save/`) |
+| Windows | `%APPDATA%\timeLink\save\<user id>\`; a portable launcher's in `timeLinkLauncher-data\user\save\` beside it |
+
+Every build uses the same saves, on both systems, so a new build or an update starts where you left off, and there is nothing
+to copy between builds. The launcher starts every build with `--user <that folder>` (on Linux, not while the build's folder
+has a `user/` of its own: the game moves an old one into the shared folder by itself, and keeps a link you made). On Linux the
+game also finds that folder by itself; on Windows a build started on its own (`bin\timeLink.exe` double-clicked) still keeps
+its saves in its own folder's `user\`, and the launcher brings them in at its next start (below).
+
+The game settings (`timeLink_options.ini`: the Insert menu's choices and your controls) are in the same folder once a build
+that keeps them there has run. Before Play, a build that has none of its own, such as an update into a new folder, gets the
+newest settings of your other versions, its own Compile shaders choice kept.
+
+Backups go to `%LOCALAPPDATA%\timeLink\oot-save-backups` on Windows and `$XDG_DATA_HOME/timeLink/save-backup` on Linux (default
+`~/.local/share/timeLink/save-backup/`), one folder per copy, named by the time it was made.
+
+## Saves from before (Windows)
+
+Windows builds used to keep their saves each in its own game folder (`<build folder>\user\save\`), and the 2.x Builder's game
+in `%USERPROFILE%\Games\timeLink\user\save\`. When the launcher opens, and before it starts a game, it brings those into the
+shared folder by itself (`Saves.Gather`):
+
+- **Where it looks:** every build in its list, every timeLink game folder in the builds folder (a version an update replaced
+  is no longer listed, but its saves may still be there), and the 2.x Builder's game folder (not for a portable launcher).
+- **The newest one is kept.** Of all of them, the shared one included, the save whose newest file was written last becomes
+  the shared save; on a tie the shared one stays.
+- **Every one is backed up first,** whole, in one folder: `oot-save-backups\gather-<yyyyMMdd-HHmmss>\<game folder name>`
+  (`shared` for the one that was already shared). The home says once which save was kept and where the backup is.
+- **Nothing is deleted.** Each old `save` folder is renamed `save.moved-<yyyyMMdd-HHmmss>` beside it, so the game no longer
+  finds it there.
+- **Never while timeLink runs:** the next start tries again. A failure changes nothing and says why.
+
+## Importing
+
+### From an emulator
+
+**Import from emulator** lists the emulators whose saves were found on this PC (Lichii, Eden, Eglantine, Orchid,
+PokeDinner, Frizti, NX2navi), with their slots and when they were saved, and copies the one you pick into timeLink's. A
+save somewhere else (a portable install, a copy on another drive) is picked with *Choose a folder*. You can import before
+starting timeLink for the first time: the launcher creates the save folder for the player timeLink uses. The destination
+is always that player's folder, the only one the game opens; another profile folder beside it (a stray one, or a copy
+made by hand) is left alone.
+
+The home also offers to import when it finds NX2navi saves. **Import…** opens the emulator picker with NX2navi selected;
+pick a profile if there is more than one, then check the source and destination before confirming. **Not now** or a
+successful import stops this offer; cancelling leaves it available. The Hookshot offer is remembered separately.
+The original saves stay where they are.
+
+NX2navi keeps saves in `<game folder>/profile/save/<account>/`. The launcher looks in
+`%LOCALAPPDATA%\Programs\NX2navi\game` and `C:\Games\Ocarina` on Windows, and `~/Games/Ocarina` on Linux.
+For portable installs, a custom game folder or an installation on another drive, use **Choose a folder**.
+
+NX2navi writes a save to `profile/save-tx` first. A finished one waiting there (`save-tx/ready-<n>`) is the save it loads
+at its next start, so a copy from or to NX2navi is refused until NX2navi has been started and quit once. The rest of
+`save-tx` is not a save in waiting and is ignored: `work` (the working copy NX2navi leaves after a quit), `new` and `old`.
+A completed import from NX2navi's menu waiting in `profile/save-import` also blocks the copy: that is what NX2navi will
+load on its next start. An unfinished `save-import.part` is ignored.
+
+A copy that worked says so: the page that follows names what was copied and where the backup went, and the Saves page
+says it again, briefly, when you go back to it.
+
+### From Hookshot
+
+[Hookshot](https://github.com/NotRexed/Hookshot) is the project timeLink was forked from. Its game writes the same save
+files in the same layout, so a Hookshot save carries on in timeLink. `Core/HookshotSaves.cs` does the save import.
+Compatible game settings have their own import below; the launcher's settings, channels, versions, caches and updates
+are not brought over.
+
+It only happens when you ask. **Saves > Import from Hookshot…** opens it, and the home offers it once when Hookshot saves
+are found (**Import…** or **Not now**; either answer stops the offer).
+
+**Where it looks.** These places come from Hookshot's source (its `host/nn_fs.c` save root, `scripts/oot_saves.py`, the
+2.x Builders' default game folder and its 3.0 launcher's builds folder):
+
+| | Where |
+|---|---|
+| Linux | `$XDG_DATA_HOME/hookshot/save/<user id>/` (default `~/.local/share/hookshot`): every Hookshot build shares it |
+| Windows | `<game folder>\user\save\<user id>\`. The game folder is `%USERPROFILE%\Games\Hookshot` by default, and the version folders Hookshot's launcher made under it are searched too |
+
+For any other place (a portable install, `--user <folder>`, a copy on another drive), use **Choose a folder…** and pick
+either the save folder itself or a folder that holds one, such as a Hookshot game folder.
+
+**What is checked.** Before anything is copied, the folder must hold only save files:
+
+- only `account.sav`, `option.sav` and `slot_NN` folders, with nothing else in them;
+- no links;
+- no empty file, and no file larger than 4 MB;
+- at least one slot, with a `progress.sav` in each.
+
+The window lists each save it found, with its slots and when they were last saved. If a save cannot be imported, it says
+why.
+
+**What the copy does.**
+
+- **It copies; Hookshot keeps its saves as they were.** Nothing in Hookshot's folders is moved, changed or deleted.
+- **Where it goes:** the save folder of timeLink's player (`5a3c9e1f0b7d24680000000000000001`), the only one the game
+  opens, whether it is there yet or not. Another profile folder beside it is left alone.
+  - In the shared folder above: `$XDG_DATA_HOME/timeLink/save/` on Linux, `%APPDATA%\timeLink\save\` on Windows.
+- **It never replaces a timeLink save without asking.** When timeLink already has a save there, the window asks first. If
+  you say yes, timeLink's save is copied whole to the backup folder before anything is replaced, and the message says
+  where the backup is.
+- **Nothing is converted.** The save files name no path, folder or program, and timeLink reads Hookshot's format as it
+  is, so the files are copied byte for byte.
+
+### Hookshot's game settings
+
+The save import already includes `option.sav`: the game's own options, such as camera and text speed. To also bring over
+Hookshot's graphics, controls and game language, choose **Import graphics and controls…** in the Hookshot import window.
+This is a separate copy, with its own confirmation and backup.
+
+Choose Hookshot's **game folder** and an installed timeLink version. These settings go to the file that build reads, while saves
+are shared. If no timeLink build is installed yet, import the saves now and return for these settings after building the
+game. On Linux, Hookshot's shared save folder does not identify its game folder: choose the game folder yourself.
+
+The settings of `hookshot_options.ini` whose format is compatible with timeLink are written into the
+`timeLink_options.ini` the build reads (the user folder's, once a build has kept its settings there; else the build's own):
+each replaces the same setting's line, or is added at the end. Every other line of that file stays
+as it was, such as Compile shaders (`compile_shaders`), V-Sync, the memory budgets, Auto (this PC)'s choices and the
+ocarina note bindings. Keys timeLink does not know, and values outside the range of timeLink's menu, are skipped and
+listed (timeLink would clamp such a value on load anyway); when a key appears more than once, its last line decides, as in
+the game. The file keeps Hookshot's `options_version` (none, when Hookshot's file has none), so timeLink updates Hookshot's
+old settings as it would Hookshot's own file. A few of the build's own lines that timeLink reads by that version (Game
+speed, Descriptor reuse, Menu shortcut, Aspect ratio, and the Y and ZL keys) are removed when the versions differ for them:
+those take timeLink's default. An empty `timeLink_options.ini` is filled without asking. `language.txt` is copied when present and recognized; when the
+launcher has a game language set (Settings), it becomes the imported one too, since each update writes the launcher's
+language into `language.txt`. Existing destination files are backed up whole before they change. The original Hookshot files are never changed. A failed write restores the
+destination files; if restoration also fails, the error gives the backup location or identifies the incomplete new files.
+The copy is refused while a game or emulator is running, or when a settings file itself is a link. A game or backup
+folder reached through a link (a symlinked `~/Games`, a folder in OneDrive) is fine: the paths are compared once resolved.
+
+This does not import shader caches, `env.txt`, launcher or builder preferences, or the legacy `present.txt` and
+`mouse_sens.txt` files. It does not change how other installed timeLink builds are configured.
+
+## Exporting
+
+**Export to emulator** copies the build's save into an emulator's save folder (the same emulators as the import), or into
+any folder you pick with *Choose a folder*. The emulator's save is backed up first, as for every copy. The launcher does
+not export to Hookshot.
+
+To keep a copy of your saves yourself, copy the save folder from the table at the top of this page. Copy it while the game
+is closed.
+
+## Tests
+
+The launcher's tests use no real save and nothing from the game:
+
+- `tests/launcher_core/HookshotChecks.cs` runs on fake save folders in `tests/fixtures/hookshot-saves`, made of one-line
+  text files.
+- The save checks in `tests/launcher_core` follow the cases of timeLink's `tests/test_timeLink_saves.py`.
+- `HookshotSettingsChecks.cs` uses authored INI and language text, including the merge into an existing
+  `timeLink_options.ini`, replacement backups, failed writes, restoration, skipped values and linked paths.
+
+Settings compatibility was compared on 2026-11-13 against Hookshot
+[`363038d8`](https://github.com/brunobaccari/Hookshot/tree/363038d8903009d8ef06a6f6df87c7c5bde370e1)
+(`gpu/vk/vk_menu.cpp`, `upscaler_rows.h`, `host/nn_hid.c`) and timeLink `d9648863`. Hookshot writes `options_version=4`;
+the import preserves that marker, or its absence, so timeLink applies its own migrations, and removes the build's lines
+that those migrations would read differently (`HookshotSettings.Merge`). Earlier markers 0–3 are accepted using
+timeLink's legacy reader, but every historical Hookshot release has not been tested. Later versions are refused until
+their schema is checked; unknown keys and values out of range are listed and skipped.
+
+The first-import destination is `5a3c9e1f0b7d24680000000000000001`. This comes from timeLink's fixed `user_uid` in
+`host/nn_applet.c` and the high-word/low-word folder name in `host/nn_fs.c`, checked against timeLink `d9648863` on 2026-11-13.
+If timeLink adds selectable players, this destination rule must follow that change. Tests use text fixtures with different
+source profile IDs, and a stray timeLink profile folder, to check that an imported save lands in the folder the game
+actually opens. The core test runner's
+`--timeLink` check also compares the destination ID with timeLink's source.
