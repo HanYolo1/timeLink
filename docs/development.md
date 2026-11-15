@@ -450,7 +450,7 @@ A build reads and writes tens of gigabytes. When the game folder or the build fi
 | `RX_VK_PGO=gen` or `RX_VK_PGO=<file>` | The Vulkan back end's own files counting their branches for a profile, or built with one (`make_game.py` passes `work/timeLink_vk.profdata` when it is there, else the committed `assets/profiles/timeLink_vk.profdata.xz`; a compiler that can't read it builds without): [the renderer's play profile](#the-renderers-play-profile) |
 | `RX_HOT_OPT=<level>` | The hot pieces' optimisation level (default `O2`); `O1` for [a faster build for development](#a-faster-build-for-development) |
 | `TIMELINK_SPLIT_GIANTS=<KB>` | Compiles each lifted function of 256 KB of C or more as pieces of about `<KB>` (8 is the measured best) cut at its labels, with a dispatch loop under its own name (`nx2/split_giants.py`). Measured on a Ryzen 5 5600, 16 GB: the 15 giant-function chunks compile 2.6x faster one at a time (their largest compile's peak memory 2,263 -> 586 MB; a single 2-6 MB function's peak falls to about a fifth), and a whole first build's compile (`--jobs 4`) takes ~21% less time, with ~6% less summed compiler memory. The lifted files are not changed (`build.py` compiles a copy). On by default at 8; `0` turns it off |
-| `RX_MARCH=<level>` | The CPU level to build for. Default: `native` (this PC's own CPU) on a CPU with `x86-64-v3`'s features, else `x86-64-v2`, else `x86-64`; `x86-64-v3` if clang can't say what `native` is here. With `native` the CPU clang finds goes into the object keys (`-DTIMELINK_NATIVE_CPU=`, in the build log), so another CPU compiles again ([issue 182](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/182)). `RX_MARCH=x86-64-v3` builds as before. `native` also tunes for this CPU (the Steam Deck's Zen 2 too), so there is no tuning switch |
+| `RX_MARCH=<level>` | The CPU level to build for. Default: `native` (this PC's own CPU) on a CPU with `x86-64-v3`'s features, else `x86-64-v2`, else `x86-64`; `x86-64-v3` if clang can't say what `native` is here. With `native` the CPU clang finds goes into the object keys (`-DTIMELINK_NATIVE_CPU=`, in the build log), so another CPU compiles again ([issue 182](https://github.com/HanYolo1/timeLink/issues/182)). `RX_MARCH=x86-64-v3` builds as before. `native` also tunes for this CPU (the Steam Deck's Zen 2 too), so there is no tuning switch |
 | `RX_VK_ONLY=1` | Only the Vulkan back end, with no lift |
 | `OOT_WORK`, `OOT_DUMP`, `OOT_EXEFS`, `OOT_ROMFS` | The work folder and the dump's folders, over `work/dump.txt` |
 
@@ -680,7 +680,7 @@ shaders"), [getting started](getting-started.md), [common problems](common-issue
 ```sh
 export XDG_DATA_HOME=$PWD/data XDG_CACHE_HOME=$PWD/cache    # no tools, work folder or objects from earlier builds
 export __GL_SHADER_DISK_CACHE_PATH=$PWD/nvcache             # an empty NVIDIA shader cache (mkdir it first)
-B=https://git.magicbean.dev/MagicBeanDev/Longshot/releases/download/<tag>
+B=https://github.com/HanYolo1/timeLink/releases/download/<tag>
 curl -fLO $B/SHA256SUMS -fLO $B/SHA256SUMS.sig -fLO $B/timeLink-<tag>-x86_64.AppImage
 python -I scripts/release.py verify SHA256SUMS              # then sha256sum -c for the AppImage's line
 chmod +x timeLink-<tag>-x86_64.AppImage && ./timeLink-<tag>-x86_64.AppImage --appimage-extract
@@ -854,7 +854,7 @@ See [control.md](control.md) for the fields, sampling, bounds and examples.
 | `builder/` | timeLink Builder, command-line only (players use the timeLink Launcher): the Windows `--cli` program (.NET 8), its setup (also a game folder's `timeLink.exe`), and the Linux AppImage's `AppRun`, tools and game folder scripts |
 | `scripts/` | test runs, the profile and log readers, the save copier (`oot_saves.py`), release tooling, `scripts/linux` (dependencies, AppImage) |
 | `tests/` | the game-free checks, all run by `tests/run_all.py` |
-| `third_party/` | a64-kit (with Hookshot's changes, marked `(hookshot)`, and timeLink's, `(longshot)`: its PROVENANCE.md), libopus, zbic (Atmosphere's zstd with ZBIC, for unpacking only), SDL2's licence, Dear ImGui and its Vulkan backend, zstd's decoder, the Libertinus fonts |
+| `third_party/` | a64-kit (with Hookshot's changes, marked `(hookshot)`, and timeLink's, `(timelink)`: its PROVENANCE.md), libopus, zbic (Atmosphere's zstd with ZBIC, for unpacking only), SDL2's licence, Dear ImGui and its Vulkan backend, zstd's decoder, the Libertinus fonts |
 
 License: GPL-3.0-or-later, as mkw-recomp: a64-kit's translator is suyu's (GPL-2.0-or-later) and Eden's code is
 GPL-3.0.

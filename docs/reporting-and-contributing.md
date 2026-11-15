@@ -3,12 +3,12 @@
 ## Not sure it's a bug?
 
 [Ask on Discord](https://discord.gg/magicbean) first: the team and other players are there, and someone may know the
-fix already. Check [common problems](common-issues.md) and [search the reports](https://git.magicbean.dev/MagicBeanDev/Longshot/issues)
+fix already. Check [common problems](common-issues.md) and [search the reports](https://github.com/HanYolo1/timeLink/issues)
 too.
 
 ## Report a bug
 
-Open a [new report](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/new) and include:
+Open a [new report](https://github.com/HanYolo1/timeLink/issues/new) and include:
 
 - **The version:** the first line of `timeLink_log.txt`, in the game folder's `logs` folder.
 - **Your PC:** the operating system, the graphics card and its driver version.
@@ -22,11 +22,11 @@ your user name taken out. Never attach game files, keys or saves.
 
 Fixes often need checking on hardware the developer doesn't have: another graphics card, Linux, a Steam Deck. The team
 posts test requests on [Discord](https://discord.gg/magicbean); pick one up, play the change, and say what you saw,
-including what didn't work. The [testing guide](https://git.magicbean.dev/MagicBeanDev/Longshot/src/branch/main/docs/test-requests.md)
+including what didn't work. The [testing guide](https://github.com/HanYolo1/timeLink/src/branch/main/docs/test-requests.md)
 explains how.
 
 ## Improve the documentation or the code
 
 Read the [contribution guide](../CONTRIBUTING.md) and the [development guide](development.md), then send a pull request
-on [Forgejo](https://git.magicbean.dev/MagicBeanDev/Longshot). For this site, see the
+on [Forgejo](https://github.com/HanYolo1/timeLink). For this site, see the
 [website instructions](../website/README.md). Questions are welcome on Discord.

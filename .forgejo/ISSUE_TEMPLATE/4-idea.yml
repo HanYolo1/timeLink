@@ -5,7 +5,7 @@ labels: [kind/feature]
 body:
   - type: markdown
     attributes:
-      value: Search the [open issues](https://git.magicbean.dev/MagicBeanDev/Longshot/issues) first; if someone asked already, add to theirs. English, please.
+      value: Search the [open issues](https://github.com/HanYolo1/timeLink/issues) first; if someone asked already, add to theirs. English, please.
   - type: textarea
     id: idea
     attributes:

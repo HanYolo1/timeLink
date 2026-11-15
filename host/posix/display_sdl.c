@@ -117,7 +117,7 @@ static void keys_update(void) {
     for (int i = 0; i < 256; i++) hos_posix_keys[i] = v[i];
 }
 
-/* ---- (longshot) typed text, for the Insert menu's text field that has the keyboard (MkwVkHost.take_text): SDL's text input on
+/* ---- (timelink) typed text, for the Insert menu's text field that has the keyboard (MkwVkHost.take_text): SDL's text input on
    only while one has it (hos_text_focus), so no input method opens over the game; its editing keys, repeats too; paste ---- */
 static volatile int paste_asked;
 void hos_display_paste(void) { __atomic_store_n(&paste_asked, 1, __ATOMIC_RELEASE); }   /* (the menu's Paste: on this thread) */
@@ -193,7 +193,7 @@ static DWORD WINAPI renderer_main(void *p) {
     return 0;
 }
 
-/* (longshot) host/display.c's: the game's first work for the GPU waits for the renderer (nvn_native.c), so nothing it submits while
+/* (timelink) host/display.c's: the game's first work for the GPU waits for the renderer (nvn_native.c), so nothing it submits while
    the shaders are prepared is lost. Without a window the renderer starts on the game's own thread, before this is asked */
 void hos_renderer_wait(void) {
     { const char *e = getenv("HOS_NO_RENDERER_WAIT"); if (e && atoi(e) != 0) return; }

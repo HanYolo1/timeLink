@@ -158,7 +158,7 @@ def main():
         new = {e for e in extra if img.in_code(e)} - img.entries
         img.entries |= new
         print("extra entries: %d of %d listed are new code addresses" % (len(new), len(extra)))
-    if not a.no_adr_entries:   # (longshot) callbacks reached only through a pointer the code builds
+    if not a.no_adr_entries:   # (timelink) callbacks reached only through a pointer the code builds
         spans = adr_entries.fde_spans(img.modules)
         refs = adr_entries.code_address_refs(open(os.path.join(img_dir, "image.bin"), "rb").read(), meta, spans=spans)
         new = {e for e in refs if img.in_code(e)} - img.entries
@@ -166,7 +166,7 @@ def main():
         print("ADR / ADRP+ADD code addresses outside the %d unwind-covered functions: %d, %d of them new entries" % (
             len(spans), len(refs), len(new)))
     L = a64_lift.Lifter(img)
-    if a.standalone:   # (longshot) widescreen and ultrawide: C after a few of the game's instructions
+    if a.standalone:   # (timelink) widescreen and ultrawide: C after a few of the game's instructions
         import oot_wide
         oot_wide.install(L, img)
         import oot_fov   # (the gameplay lens, before projection and culling are built)

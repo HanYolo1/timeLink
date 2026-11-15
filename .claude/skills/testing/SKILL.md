@@ -93,7 +93,7 @@ Result: ... (numbers in a small table when comparing; the log lines that matter;
 Then mark it done with that comment's link (the URL `forge.py pr comment` prints):
 
 ```
-python -I scripts/test_requests.py done T-XXXX --result pass --comment https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/<pr>#issuecomment-<n>
+python -I scripts/test_requests.py done T-XXXX --result pass --comment https://github.com/HanYolo1/timeLink/pulls/<pr>#issuecomment-<n>
 ```
 
 `--result` is `pass`, `fail` or `mixed`. The script checks the link is a comment on the request's PR. Discord then

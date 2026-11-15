@@ -1,8 +1,8 @@
 # Releases and updates
 
 How timeLink and the timeLink Launcher are released on git.magicbean.dev, and how the launcher finds, checks and installs
-them. This document is the same in both repositories, [MagicBeanDev/Longshot](https://git.magicbean.dev/MagicBeanDev/Longshot/src/branch/main/docs/releases.md)
-and [MagicBeanDev/LongshotLauncher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/src/branch/main/docs/releases.md).
+them. This document is the same in both repositories, [MagicBeanDev/timeLink](https://github.com/HanYolo1/timeLink/src/branch/main/docs/releases.md)
+and [MagicBeanDev/timeLink Launcher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/src/branch/main/docs/releases.md).
 How to make a release, step by step, is in each repository's **RELEASING.md**.
 
 timeLink's numbers start at **v3.0.0**; the launcher's are its own and start at **v1.0.0**. Nothing here reads or writes
@@ -24,10 +24,10 @@ GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot
 
 Each version is one Forgejo release, made by `.forgejo/workflows/release.yml`:
 
-| timeLink (MagicBeanDev/Longshot) | The launcher (MagicBeanDev/LongshotLauncher) |
+| timeLink (MagicBeanDev/timeLink) | The launcher (MagicBeanDev/timeLink Launcher) |
 |---|---|
-| `timeLinkBuilder-<v>-windows-x64.zip`: the Windows builder (its setup as `timeLinkBuilder.exe`, the builder and timeLink's sources in `timeLinkBuilder\`, `tools.lock`, `VERSION`, and `recomplauncher.json` at the top) | `LongshotLauncher-<v>-windows-x64-setup.exe`: one self-contained program that installs itself (below); `LongshotLauncher-<v>-windows-x64-portable.zip`: the same program as `LongshotLauncher.exe` with its `portable` file |
-| `timeLink-<v>-x86_64.AppImage`: the Linux builder (the builder, its Python, timeLink's sources, its `tools.lock` and `recomplauncher.json`; the player's build compiles the Vulkan back end); its build tools are not inside | `LongshotLauncher-<v>-x86_64.AppImage` |
+| `timeLinkBuilder-<v>-windows-x64.zip`: the Windows builder (its setup as `timeLinkBuilder.exe`, the builder and timeLink's sources in `timeLinkBuilder\`, `tools.lock`, `VERSION`, and `recomplauncher.json` at the top) | `timeLinkLauncher-<v>-windows-x64-setup.exe`: one self-contained program that installs itself (below); `timeLinkLauncher-<v>-windows-x64-portable.zip`: the same program as `timeLinkLauncher.exe` with its `portable` file |
+| `timeLink-<v>-x86_64.AppImage`: the Linux builder (the builder, its Python, timeLink's sources, its `tools.lock` and `recomplauncher.json`; the player's build compiles the Vulkan back end); its build tools are not inside | `timeLinkLauncher-<v>-x86_64.AppImage` |
 | `tools.lock`: the tools the builders download | |
 | `SHA256SUMS`, `SHA256SUMS.sig` | `SHA256SUMS`, `SHA256SUMS.sig` |
 
@@ -70,7 +70,7 @@ launcher (`Core/ReleaseManifest.cs`, `Newest`) and in `scripts/release.py` (`new
 
 **Each build has its channel, and the launcher has its own.** In the launcher, *Settings > Channel for new builds* picks
 the channel a new build follows (each build keeps its own). *Settings > Launcher updates* picks the channel the launcher
-updates **itself** from: LongshotLauncher's stable, rc or nightly, independent of any build's. It defaults to the channel
+updates **itself** from: timeLink Launcher's stable, rc or nightly, independent of any build's. It defaults to the channel
 of the launcher the player installed (a stable launcher follows stable).
 
 **No downgrades, no replays.** There is no pointer file to replay: the list is what it is. The launcher never updates a
@@ -169,7 +169,7 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
      none.
 3. **Itself.** The launcher's own channel offers a newer launcher, or, after the player picked another channel, that
    channel's newest. *Update the launcher* downloads it beside the current file as `<name>.new` and checks it against
-   `SHA256SUMS`. It starts it with `--self-check` (it must print `LongshotLauncher <version>` and exit 0 within a minute),
+   `SHA256SUMS`. It starts it with `--self-check` (it must print `timeLink Launcher <version>` and exit 0 within a minute),
    then swaps the files:
    - Linux: one `rename()` over the AppImage.
    - Windows: the running exe is renamed aside, then the new one moved in; on failure the old one is put back.
@@ -183,12 +183,12 @@ There is no installer program: the launcher installs itself (the launcher's READ
 `LauncherLayout.cs`).
 
 - **Windows, the setup file.** Its first start asks: **Install** copies it to
-  `%LOCALAPPDATA%\Programs\LongshotLauncher\LongshotLauncher.exe` for the user (no administrator rights), with a Start
-  menu shortcut and an *Apps & features* entry, its data in `%LOCALAPPDATA%\LongshotLauncher`; **Run portable** puts a
-  file named `portable` beside the program and keeps everything in `LongshotLauncher-data` beside it, with no registry
+  `%LOCALAPPDATA%\Programs\timeLink Launcher\timeLinkLauncher.exe` for the user (no administrator rights), with a Start
+  menu shortcut and an *Apps & features* entry, its data in `%LOCALAPPDATA%\timeLink Launcher`; **Run portable** puts a
+  file named `portable` beside the program and keeps everything in `timeLinkLauncher-data` beside it, with no registry
   or shortcut. `--install` installs without asking; `--uninstall` (what *Apps & features* runs) removes the program, its
   shortcuts and its entry, and asks before deleting its data (never a build's game folder or the saves).
-- **Windows, the portable zip.** `LongshotLauncher.exe` with the `portable` marker already beside it, so it never asks.
+- **Windows, the portable zip.** `timeLinkLauncher.exe` with the `portable` marker already beside it, so it never asks.
 - **Linux.** The AppImage needs no installing. *Settings > Applications menu > Add to applications menu* writes a
   `.desktop` entry that starts the AppImage where it is. Portable is the AppImage convention: a folder named
   `<AppImage>.home` beside it holds its data.
@@ -212,7 +212,7 @@ timeLink also keeps `build-linux.yml` and `build-windows.yml` (also run on pull 
 release candidate) is still built again, since every file carries its version (a release never ships a file that names
 another), but `release.py released-as` finds that release, checks its signed `SHA256SUMS` (one that does not check stops
 the run), and the build checks that ship no file and passed in its run are not run again. Every job runs on Linux: timeLink's Windows files are cross-built there,
-and what only Windows can check is a tester's (RELEASING.md, *Needs a Windows tester*). The runners are in timeLink's [docs/forgejo-runners.md](https://git.magicbean.dev/MagicBeanDev/Longshot/src/branch/main/docs/forgejo-runners.md).
+and what only Windows can check is a tester's (RELEASING.md, *Needs a Windows tester*). The runners are in timeLink's [docs/forgejo-runners.md](https://github.com/HanYolo1/timeLink/src/branch/main/docs/forgejo-runners.md).
 
 ## The version a tag must have
 
@@ -254,8 +254,8 @@ right thing:
 
 ## Download links
 
-Forgejo's `/releases/latest` covers stable only. longshot.magicbean.dev (the timeLink website, `website/worker/index.ts` in MagicBeanDev/Longshot) has permanent links to
-the newest launcher of each channel, read from LongshotLauncher's release list by the rules above (cached 60 seconds):
+Forgejo's `/releases/latest` covers stable only. longshot.magicbean.dev (the timeLink website, `website/worker/index.ts` in MagicBeanDev/timeLink) has permanent links to
+the newest launcher of each channel, read from timeLink Launcher's release list by the rules above (cached 60 seconds):
 
 | Link | Goes to |
 |---|---|

@@ -49,7 +49,7 @@ def main():
                                           "VK_T_LAYER=/y\n", encoding="utf-8")
         (tmp / "precedence.txt").write_text("HOS_T_LAUNCH=file\nHOS_T_TWICE=first\nHOS_T_FRESH=1\nHOS_T_TWICE=second\n",
                                             encoding="utf-8")
-        exe = str(game / "longshot").replace("\\", "\\\\")
+        exe = str(game / "timelink").replace("\\", "\\\\")
         fixture = r'''#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

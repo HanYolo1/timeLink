@@ -11,7 +11,7 @@
 // nightly-<count>-<8 hex> by its count. The release list is read from git.magicbean.dev and kept 60 seconds.
 
 const FORGE = "https://git.magicbean.dev";
-const REPO = "MagicBeanDev/LongshotLauncher";
+const REPO = "MagicBeanDev/timeLink Launcher";
 const FIRST_MAJOR = 1;
 const CACHE_SECONDS = 60;
 const CHANNELS = ["stable", "rc", "nightly"];
@@ -66,7 +66,7 @@ export function newest(releases, channel) {
 /** The release asset of a kind (windows, windows-portable, linux), or null */
 export function assetOf(release, kind) {
   const suffix = FILES[kind].suffix;
-  return (release.assets || []).find((a) => a.name.startsWith("LongshotLauncher-") && a.name.endsWith(suffix)) || null;
+  return (release.assets || []).find((a) => a.name.startsWith("timeLinkLauncher-") && a.name.endsWith(suffix)) || null;
 }
 
 /** The best channel there is: stable, else rc, else nightly; [channel, release] or [null, null] */

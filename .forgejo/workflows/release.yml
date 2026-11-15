@@ -1,4 +1,4 @@
-# timeLink's releases (docs/releases.md; how to make one: RELEASING.md). The same workflow as MagicBeanDev/LongshotLauncher's,
+# timeLink's releases (docs/releases.md; how to make one: RELEASING.md). The same workflow as MagicBeanDev/timeLink Launcher's,
 # but for what is built: here the two builders.
 #
 #   a push to main       the nightly: nightly-<commits since the fork>-<commit>, a pre-release

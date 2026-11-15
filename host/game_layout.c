@@ -7,7 +7,7 @@
    Both are made at the start, before anything writes there; the renderer finds them by gpu/vk/vk_paths.h's cache_path and
    log_path. What a build from before left loose beside the game is moved into them once: renames in the same folder, never over
    a file already there (one that cannot move stays, and the log says so). The Vulkan pipeline cache is renamed on the way, from
-   mkw-recomp's mkw_vk_pipelines*.bin to longshot_vk_pipelines*.bin, and what a write of it cut short left (a .tmp) is deleted;
+   mkw-recomp's mkw_vk_pipelines*.bin to timeLink_vk_pipelines*.bin, and what a write of it cut short left (a .tmp) is deleted;
    the button prompts an older build made in prompts/ are deleted, as they are made again in cache/prompts. The build's own files
    stay where the build put them (image.bin, romfs, timeLink_shaders.bin, the shipped pipeline list, prompts/<face>/, language.txt),
    and so do the settings (timeLink_options.ini, timeLink_env.txt) and the saves (user/). */
@@ -39,7 +39,7 @@ static const char *const to_cache[] = {
     "timeLink_load_start.txt.waited",
 };
 /* The Vulkan pipeline cache, mkw_vk_pipelines.bin, its stamp and its play files mkw_vk_pipelines_play_<n>.bin (mkw-recomp's
-   names), renamed longshot_vk_pipelines* as they move into cache/ (gpu/vk/vk_draw.cpp, pcache_stamp.h) */
+   names), renamed timeLink_vk_pipelines* as they move into cache/ (gpu/vk/vk_draw.cpp, pcache_stamp.h) */
 static const char old_pcache[] = "mkw_vk_pipelines", new_pcache[] = "timeLink_vk_pipelines";
 /* The program cache's lock files beside it (gpu/vk/vk_progcache.cpp): the game locks cache/'s now, and nothing holds these: deleted */
 static const char *const old_locks[] = {"timeLink_programs.bin.lock", "timeLink_programs.zst.bin.lock"};

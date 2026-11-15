@@ -952,7 +952,7 @@ HLE(_ZN2nn2os24InitializeLightSemaphoreEPNS0_18LightSemaphoreTypeEii) { sema_ini
 HLE(_ZN2nn2os22FinalizeLightSemaphoreEPNS0_18LightSemaphoreTypeE) { drop(ARG(0)); }
 HLE(_ZN2nn2os21AcquireLightSemaphoreEPNS0_18LightSemaphoreTypeE) { sema_acquire(obj(ARG(0), K_SEMA)); }
 HLE(_ZN2nn2os21ReleaseLightSemaphoreEPNS0_18LightSemaphoreTypeE) { sema_release(obj(ARG(0), K_SEMA), 1); }
-/* (longshot) the count overload, which OoT imports: left to the guest SDK it would bypass the host's state */
+/* (timelink) the count overload, which OoT imports: left to the guest SDK it would bypass the host's state */
 HLE(_ZN2nn2os21ReleaseLightSemaphoreEPNS0_18LightSemaphoreTypeEi) { sema_release(obj(ARG(0), K_SEMA), (int)ARG(1)); }
 
 /* ---- message queues (normal and light): the guest's buffer size is the capacity ------------------------------ */

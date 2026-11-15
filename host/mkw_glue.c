@@ -20,7 +20,7 @@
    The runtime commits what it hands out (image, system region, heap, address regions: hos_commit), because host
    APIs given guest buffers (ReadFile into a game buffer) fail on reserved pages without raising an exception. A
    guest or host access to a page nothing committed is committed on first touch, 64 KB at a time, by the handler. */
-/* (longshot) a commit refused at Windows' commit limit (1455: RAM and page file full) is tried again for up to 5 s: the renderer's
+/* (timelink) a commit refused at Windows' commit limit (1455: RAM and page file full) is tried again for up to 5 s: the renderer's
    textures give commit back below a reserve (vk_texture.cpp's commit rule: every VRAM block is charged to the process's commit).
    Before, the commit failed and the game's next write to those pages crashed it: a 16 GB PC at 33.9 GB of commit, an area loading
    (a 960 KB commit, then a write into it from "ARes Loading 1"). 1: committed after waiting; 0: not */
@@ -226,7 +226,7 @@ static LONG WINAPI report_crash(EXCEPTION_POINTERS *info) {
         hos_log("%s", hb);
     }
 #else
-    {   /* (longshot) Linux: the host stack as module+offset, from glibc (the frames above the signal's included): the
+    {   /* (timelink) Linux: the host stack as module+offset, from glibc (the frames above the signal's included): the
            x64 unwind data is Windows' */
         void *pcs[24];
         const int got = backtrace(pcs, 24);
@@ -546,7 +546,7 @@ static DWORD WINAPI thread_times_thread(void *p) {
     return 0;
 }
 
-/* (longshot) HOS_SAMPLE_ALL=<path> (with HOS_PROFILE): while <path>.go exists, every 2 ms every guest thread and the
+/* (timelink) HOS_SAMPLE_ALL=<path> (with HOS_PROFILE): while <path>.go exists, every 2 ms every guest thread and the
    renderer's threads (descriptions starting "mkw_vk") are sampled at the same instant: one line per thread,
    "<ms> <name>|<frames>", the frames module+offset leaf first (16 at most). What each thread does while another waits:
    the frame's critical path (scripts/crit.py) */
@@ -757,7 +757,7 @@ int hos_blank_cached_icon(const char *guest, const char *host) { (void)guest, (v
 int hos_ultrawide_redirect(const char *guest, char *out, size_t cap) { (void)guest, (void)out, (void)cap; return 0; }
 uint64_t hos_title_input(uint64_t buttons) { return buttons; }   /* (totk_title.c) */
 uint64_t hos_frame_step_buttons(uint64_t buttons) { return buttons; }   /* (nn_vi.c) */
-/* (longshot) hos_sdl_pads, hos_sdl_rumble: host/pad_sdl.c (from TOTKPort; SDL2.dll beside the exe) */
+/* (timelink) hos_sdl_pads, hos_sdl_rumble: host/pad_sdl.c (from TOTKPort; SDL2.dll beside the exe) */
 
 /* TOTK's emulated GPU (gpu.c, its Maxwell command processor), which nvdrv.c and the debug commands call into: MKW
    has none (its NVN2 calls go to nvn_native.c), so a submission is only counted. */

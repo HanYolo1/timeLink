@@ -1,4 +1,4 @@
-// (longshot) RX_VK_RECORDER: the command buffer calls as packets, step 1 of a recorder thread (the "sync" phase).
+// (timelink) RX_VK_RECORDER: the command buffer calls as packets, step 1 of a recorder thread (the "sync" phase).
 //
 // Every vkCmd* call vk_work.h routes here is copied into a packet: its value arguments, and every array and struct it points to (the
 // descriptor writes and the image/buffer/texel infos they point to, push constant bytes, vertex buffer arrays, the rendering info and
@@ -180,7 +180,7 @@ inline bool parallel_configured() {
     const char* p = getenv("RX_VK_PARALLEL");
     return p && atoi(p) >= 2;
 }
-/// (longshot) The Insert menu's Threaded rendering, the recorder's half of it (threaded_rendering.h; vk_menu.cpp
+/// (timelink) The Insert menu's Threaded rendering, the recorder's half of it (threaded_rendering.h; vk_menu.cpp
 /// menu_threaded_rendering, set by vk_replay.cpp before anything runs): true, the recorder thread, as RX_VK_RECORDER=thread.
 /// Asked only with RX_VK_RECORDER unset: the switch, when set, is over the row. Null: no menu (the checks), off
 inline bool (*g_setting_thread)() = nullptr;

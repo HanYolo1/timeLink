@@ -73,7 +73,7 @@ Needs: AMD RX 6000 or newer, Windows                (then the PR link, then the 
 🧪 T-7KQ2 claim: until 2026-11-12 16:40Z
 🧪 T-7KQ2 renew: until 2026-11-12 18:10Z
 🧪 T-7KQ2 release
-🧪 T-7KQ2 done pass: https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/12#issuecomment-123
+🧪 T-7KQ2 done pass: https://github.com/HanYolo1/timeLink/pulls/12#issuecomment-123
 🧪 T-7KQ2 cancel
 ```
 

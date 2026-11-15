@@ -21,7 +21,7 @@ def game(folder):
     beside it that must never be started"""
     (folder / "bin").mkdir(parents=True)
     (folder / "image.bin").write_bytes(b"image")
-    exe = folder / "bin" / "longshot"
+    exe = folder / "bin" / "timelink"
     exe.write_text(
         "#!/bin/sh\n"
         "pwd\n"
@@ -33,7 +33,7 @@ def game(folder):
         encoding="utf-8",
     )
     exe.chmod(exe.stat().st_mode | stat.S_IEXEC)
-    launcher = folder / "longshot"
+    launcher = folder / "timelink"
     launcher.write_text("#!/bin/sh\nprintf 'launcher\\n'\n", encoding="utf-8")
     launcher.chmod(launcher.stat().st_mode | stat.S_IEXEC)
 
@@ -47,7 +47,7 @@ class LaunchTests(unittest.TestCase):
                  LD_LIBRARY_PATH="/builder/lib", TIMELINK_TOOLS="/builder/tools", PYTHONPATH="/builder/python")
         return subprocess.run([str(LAUNCH), *args], env=e, cwd=cwd, text=True, capture_output=True, check=False)
 
-    def test_the_folder_starts_bin_longshot_without_the_builders_libraries(self):
+    def test_the_folder_starts_bin_timelink_without_the_builders_libraries(self):
         with tempfile.TemporaryDirectory(prefix="timeLink-launch-") as tmp:
             folder = Path(tmp) / "100% Games"
             game(folder)
@@ -59,7 +59,7 @@ class LaunchTests(unittest.TestCase):
             self.assertIn(line, lines)
         self.assertNotIn("launcher", lines)
 
-    def test_no_folder_is_games_longshot(self):
+    def test_no_folder_is_games_timelink(self):
         with tempfile.TemporaryDirectory(prefix="timeLink-launch-") as tmp:
             folder = Path(tmp) / "Games" / "timeLink"
             game(folder)
@@ -81,7 +81,7 @@ class LaunchTests(unittest.TestCase):
             # (a folder with only its launcher, timeLink, and no bin/timeLink: never started, it would start this again)
             folder = Path(tmp) / "game"
             game(folder)
-            (folder / "bin" / "longshot").unlink()
+            (folder / "bin" / "timelink").unlink()
             for args in ((), (str(folder),)):
                 ran = self.run_launch(*args, home=tmp)
                 self.assertNotEqual(ran.returncode, 0)

@@ -167,7 +167,7 @@ static float host_aspect_ratio(void) { return hos_aspect_ratio; }
 #ifndef _WIN32
 int hos_sdl_desktop_size(int *width, int *height);   /* hos_sdl.c */
 #endif
-/* (longshot) the main screen's size, as host/hos_main.c takes its shape (MkwVkHost.screen_size) */
+/* (timelink) the main screen's size, as host/hos_main.c takes its shape (MkwVkHost.screen_size) */
 static int host_screen_size(int *width, int *height) {
 #ifdef _WIN32
     const int w = GetSystemMetrics(SM_CXSCREEN), h = GetSystemMetrics(SM_CYSCREEN);
@@ -206,7 +206,7 @@ int hos_vk_take_key_press(int key) {
 #define host_take_key_press NULL
 #endif
 
-/* (longshot) the FPS counter's Breakdown: this thread's sleeps so far (host/hos_thread.c) */
+/* (timelink) the FPS counter's Breakdown: this thread's sleeps so far (host/hos_thread.c) */
 extern _Thread_local int64_t hos_slept_ns[2];
 extern volatile int64_t hos_poll_slept_ns, hos_acquire_slept_ns;
 extern volatile int hos_fps_timing;
@@ -216,7 +216,7 @@ static void host_slept_ns(int64_t out[2]) {
     out[1] = hos_slept_ns[1] + __atomic_load_n(&hos_acquire_slept_ns, __ATOMIC_RELAXED);
 }
 
-/* (longshot) typed text for the Insert menu's text fields (MkwVkHost.take_text): the window's thread puts each character and
+/* (timelink) typed text for the Insert menu's text fields (MkwVkHost.take_text): the window's thread puts each character and
    editing key in (host/display.c WM_CHAR and WM_KEYDOWN, host/posix/display_sdl.c SDL's text input and key events), the menu
    takes them out at its frames, in order. Nothing is kept while no field has the keyboard, and the window then takes no text
    (SDL's text input stopped: no input method's window over the game) */
@@ -395,13 +395,13 @@ int rx_start(void *hwnd) {
     flush_early();
     return ok;
 }
-/* (longshot) timeLink --prepare-shaders: the Vulkan back end started with no window and no game, which prepares
+/* (timelink) timeLink --prepare-shaders: the Vulkan back end started with no window and no game, which prepares
    every shader in its start (gpu/vk/vk_main.cpp started_up) and is then let go. 0 when there is no usable Vulkan */
 int rx_prepare_shaders(void) {
     const MkwVkRenderer *r = load_vulkan("timeLink_vk.dll");
     return r && r->start(NULL);
 }
-/* (longshot) the window is being closed: a back end still preparing its shaders stops and keeps what it made first (a few
+/* (timelink) the window is being closed: a back end still preparing its shaders stops and keeps what it made first (a few
    seconds at most). One without the export (an older one) has nothing to keep */
 void rx_close_asked(void) {
     if (!vk_module) return;
@@ -565,7 +565,7 @@ int rx_guest_imported(uint64_t lo, uint64_t hi) {
 /* (nvn_native.c: the CPU set an event's value) in order with the submits, for the GPU's waits on it */
 int rx_option(int id, int otherwise) { return vk && vk->option ? vk->option(id) : otherwise; }
 void rx_option_set(int id, int value) { if (vk && vk->option_set) vk->option_set(id, value); }
-/* (longshot) the control bridge (host/control.c): the Vulkan back end's, none with WebGPU (0) */
+/* (timelink) the control bridge (host/control.c): the Vulkan back end's, none with WebGPU (0) */
 int rx_control_frame_info(int64_t *presents, int64_t *draws, int *width, int *height) {
     if (!vk || !vk->frame_info) return 0;
     vk->frame_info(presents, draws, width, height);

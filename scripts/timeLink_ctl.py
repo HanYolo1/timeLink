@@ -534,7 +534,7 @@ def copy_save(src, data=None, slot=None, user=None):
         slot = slot_name(slot)
         if slot not in slots:
             raise Failed("--save: %s has no %s (it has %s)" % (src, slot, ", ".join(slots)), 2)
-    root = os.path.abspath(user or os.path.join(data, "longshot"))
+    root = os.path.abspath(user or os.path.join(data, "timelink"))
     dest = os.path.join(root, "save", SAVE_USER)
     plain_save_dirs(root)
     source_real, dest_real = (os.path.normcase(os.path.realpath(p)) for p in (src, dest))
@@ -561,7 +561,7 @@ def game_exe(game, exe=None):
     """A builder folder's root executable is the launcher, not the game; a source build has no bin folder"""
     if exe:
         return os.path.abspath(exe)
-    name = "timeLink.exe" if WINDOWS else "longshot"
+    name = "timeLink.exe" if WINDOWS else "timelink"
     nested = os.path.join(game, "bin", name)
     if os.path.isfile(nested) or os.path.isdir(os.path.join(game, "bin")):
         return nested   # (an incomplete builder folder must not fall back to its launcher)
@@ -1057,7 +1057,7 @@ def start_session(game_dir, *, run=None, root=None, exe=None, image=None, romfs=
     working = os.path.abspath(cwd) if cwd else game
     user_path = user or (os.path.join(working, "user") if WINDOWS or image else
                         os.path.join(changes.get("XDG_DATA_HOME", os.environ.get("XDG_DATA_HOME") or
-                                                os.path.expanduser("~/.local/share")), "longshot"))
+                                                os.path.expanduser("~/.local/share")), "timelink"))
     session = Session(folder)
     info = {"schema_version": MANIFEST_VERSION, "client_version": CLIENT_VERSION, "run": str(folder),
             "game": game, "executable": executable, "command": command, "cwd": working, "environment": changes,

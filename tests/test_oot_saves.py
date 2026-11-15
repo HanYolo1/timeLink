@@ -59,7 +59,7 @@ class Case(unittest.TestCase):
         self.data = self.home / ".local" / "share"
         self.appdata = self.home / "AppData" / "Roaming"
         self.localappdata = self.home / "AppData" / "Local"
-        self.hs = self.data / "longshot" / "save" / UID
+        self.hs = self.data / "timelink" / "save" / UID
         self.li = eden_save(self.data / "eden")
         make_save(self.hs, b"HS")
         make_save(self.li, b"LI", slots=("slot_00",))
@@ -93,7 +93,7 @@ class Discovery(Case):
         for program in oot.EMULATORS:
             folder, found = oot.locate(program, None, "--from")
             self.assertEqual(list(found.values()), [str(expect[program.name])], program.name)
-        self.assertEqual(oot.locate(oot.LONGSHOT, None, "--timeLink")[1], {UID: str(self.hs)})
+        self.assertEqual(oot.locate(oot.TIMELINK, None, "--timeLink")[1], {UID: str(self.hs)})
 
     def test_every_entry_on_windows(self):
         win_li = eden_save(self.appdata / "eden")
@@ -107,16 +107,16 @@ class Discovery(Case):
             for program in oot.EMULATORS:
                 self.assertEqual(list(oot.locate(program, None, "--from")[1].values()), [str(expect[program.name])])
             with self.assertRaises(oot.Fail) as e:
-                oot.locate(oot.LONGSHOT, None, "--timeLink")
+                oot.locate(oot.TIMELINK, None, "--timeLink")
             self.assertIn("--timeLink", str(e.exception))
             self.assertIn(str(self.home / "Games" / "timeLink"), str(e.exception))
             game = self.tmp / "timeLink"
             make_save(game / "user" / "save" / UID, b"W")
-            self.assertEqual(oot.locate(oot.LONGSHOT, str(game), "--timeLink")[1], {UID: str(game / "user" / "save" / UID)})
+            self.assertEqual(oot.locate(oot.TIMELINK, str(game), "--timeLink")[1], {UID: str(game / "user" / "save" / UID)})
             # (the builder's default game folder, when nothing is passed)
             default = self.home / "Games" / "timeLink" / "user" / "save" / UID
             make_save(default, b"D")
-            self.assertEqual(oot.locate(oot.LONGSHOT, None, "--timeLink")[1], {UID: str(default)})
+            self.assertEqual(oot.locate(oot.TIMELINK, None, "--timeLink")[1], {UID: str(default)})
 
     def test_lichii_s_own_folder_first(self):
         # (Lichii from its build 150 on keeps %APPDATA%\\lichii, ~/.local/share/lichii; the others stay in Eden's)
@@ -162,7 +162,7 @@ class Discovery(Case):
         for root in (data, data / "nand", data / "nand" / "user" / "save", self.li.parent.parent, self.li.parent,
                      self.li):
             self.assertEqual(oot.find_saves(str(root)), {PROFILE: str(self.li)}, root)
-        for root in (self.data / "longshot", self.hs.parent, self.hs):
+        for root in (self.data / "timelink", self.hs.parent, self.hs):
             self.assertEqual(oot.find_saves(str(root)), {UID: str(self.hs)}, root)
 
     def test_empty_title_folder_is_a_target(self):
@@ -235,7 +235,7 @@ class Discovery(Case):
         self.assertIn("Lichii: nothing in %s, %s\n" % (self.data / "lichii", self.data / "eden"), out)
         self.assertIn("Frizti (Fritchii) / Orchid / PokeDinner / Eden (one shared folder): nothing in %s\n" % (self.data / "eden"), out)
 
-    def test_list_without_longshot(self):
+    def test_list_without_timelink(self):
         (self.hs / "account.sav").unlink()
         for s in ("slot_00", "slot_01"):
             for f in (self.hs / s).iterdir():
@@ -274,12 +274,12 @@ class Copy(Case):
                 oot.main(argv)
         self.assertEqual(self.backup_dirs(), [])
 
-    def test_import_into_a_longshot_without_a_save(self):
+    def test_import_into_a_timelink_without_a_save(self):
         # (timeLink never started: the save goes where it will look, save/<its one user id>, and there is nothing to back up)
-        shutil.rmtree(self.data / "longshot")
+        shutil.rmtree(self.data / "timelink")
         code, out, err = self.run_main("import", "lichii")
         self.assertEqual(code, 0, err)
-        made = self.data / "longshot" / "save" / oot.USER_ID
+        made = self.data / "timelink" / "save" / oot.USER_ID
         self.assertEqual(tree(made), tree(self.li))
         self.assertEqual(self.backup_dirs(), [])
         self.assertIn("there is no save there yet", out)
@@ -633,7 +633,7 @@ class Guard(Case):
         real = self.real()
         names = real.process_names()
         self.assertEqual(names["hookshot"], "Hookshot")
-        for program in [real.LONGSHOT] + real.OTHERS:
+        for program in [real.TIMELINK] + real.OTHERS:
             self.assertTrue(program.processes, program.name)
             for p in program.processes:
                 self.assertIn(program.display, names[p])
@@ -708,11 +708,11 @@ class Hookshot(Case):
         self.assertTrue(backup.name.startswith("import-hookshot-"))
         self.assertEqual(tree(backup), old)
 
-    def test_import_into_a_longshot_without_a_save(self):
-        shutil.rmtree(self.data / "longshot")
+    def test_import_into_a_timelink_without_a_save(self):
+        shutil.rmtree(self.data / "timelink")
         code, out, err = self.run_main("import", "hookshot")
         self.assertEqual(code, 0, err)
-        self.assertEqual(tree(self.data / "longshot" / "save" / oot.USER_ID), tree(self.hk))
+        self.assertEqual(tree(self.data / "timelink" / "save" / oot.USER_ID), tree(self.hk))
         self.assertEqual(self.backup_dirs(), [])
 
     def test_export(self):

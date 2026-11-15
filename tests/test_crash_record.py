@@ -146,7 +146,7 @@ def records(folder, kind="crash"):
 
 def checked_record(path, kind="crash"):
     text = path.read_text(encoding="utf-8")
-    assert text.startswith("Longshot " + kind + " record 1\n"), text
+    assert text.startswith("timeLink " + kind + " record 1\n"), text
     lines = text.splitlines()[1:]
     assert all(re.fullmatch(r"[a-z_]+: [^\r\n]*", line) for line in lines), text
     values = dict(line.split(": ", 1) for line in lines)

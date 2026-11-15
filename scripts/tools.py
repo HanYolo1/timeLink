@@ -45,7 +45,7 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOCK = os.path.join(ROOT, "tools.lock")
 CACHE = os.path.join(ROOT, "build-tools-cache")
-REPO = "MagicBeanDev/Longshot"
+REPO = "MagicBeanDev/timeLink"
 SERVER = "https://git.magicbean.dev"
 # (the same files from Cloudflare's edge: git-cdn serves git.magicbean.dev's package paths from its R2 store, cached)
 CDN = "https://git-cdn.magicbean.dev"

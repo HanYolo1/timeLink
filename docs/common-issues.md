@@ -30,11 +30,11 @@ Or: "timeLink supports build e0f3ccfa". timeLink builds from one version of the 
 A false alarm on unsigned programs: timeLink isn't code-signed yet.
 
 1. **Get the files back.** Restore them from Windows Security's **Protection history**, and add the launcher's folders
-   to its exclusions: `%LOCALAPPDATA%\LongshotLauncher` (its data: each version's builder and build tools, in
-   `toolchains`, and the build files) and `%LOCALAPPDATA%\Programs\LongshotLauncher` (the launcher itself). The portable
-   launcher keeps its data in `LongshotLauncher-data` beside `LongshotLauncher.exe` instead.
+   to its exclusions: `%LOCALAPPDATA%\timeLink Launcher` (its data: each version's builder and build tools, in
+   `toolchains`, and the build files) and `%LOCALAPPDATA%\Programs\timeLink Launcher` (the launcher itself). The portable
+   launcher keeps its data in `timeLinkLauncher-data` beside `timeLinkLauncher.exe` instead.
 2. **Build again.** If a file is still missing, delete that version's folder in
-   `%LOCALAPPDATA%\LongshotLauncher\toolchains` (it is named after the version, such as `v3.0.0`): the next build
+   `%LOCALAPPDATA%\timeLink Launcher\toolchains` (it is named after the version, such as `v3.0.0`): the next build
    downloads it again and checks it.
 
 The [antivirus guide](https://longshot.magicbean.dev/help/antivirus/) shows each step, and how to check first that the
@@ -54,7 +54,7 @@ download is genuine.
 ### Linux: the launcher or the build won't start
 
 1. **Let the launcher run as a program.** In your file manager, open its **Properties** and turn on "Allow executing
-   file as program", or run `chmod +x LongshotLauncher-*-x86_64.AppImage`.
+   file as program", or run `chmod +x timeLinkLauncher-*-x86_64.AppImage`.
 2. **Check your system.** Linux needs glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or newer). A CPU without AVX2
    builds and plays too: the game and its renderer are built for your processor.
 
@@ -214,7 +214,7 @@ timeLink isn't code-signed yet, so Defender often guesses `Trojan:Win32/Wacatac.
 means a guess, not a known virus.
 
 1. **Check where it came from.** Only the [launcher's releases](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases)
-   and [timeLink's](https://git.magicbean.dev/MagicBeanDev/Longshot/releases) are official;
+   and [timeLink's](https://github.com/HanYolo1/timeLink/releases) are official;
    [the download page](https://longshot.magicbean.dev/download) sends you there.
 2. **Let it through safely.** The [antivirus guide](https://longshot.magicbean.dev/help/antivirus/) shows how to check
    the file, restore it, and exclude only timeLink's folders.
@@ -232,7 +232,7 @@ means a guess, not a known virus.
 3. **Search the reports.** [Someone may have had it already](https://longshot.magicbean.dev/progress/#problem-search),
    with a workaround.
 4. **Ask on [Discord](https://discord.gg/magicbean).** The team and other players are there.
-5. **Report it** with the [report form](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/new): your version,
+5. **Report it** with the [report form](https://github.com/HanYolo1/timeLink/issues/new): your version,
    where you were in the game, your graphics card and driver, the log and a screenshot.
    [What to include](reporting-and-contributing.md) has the details.
 

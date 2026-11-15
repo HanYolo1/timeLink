@@ -16,7 +16,7 @@ export default defineConfig({
     customCss: ['./src/styles/theme.css', './src/styles/content.css'],
     components: {
       Header: './src/components/Header.astro',
-      Hero: './src/components/LongshotHero.astro',
+      Hero: './src/components/timeLinkHero.astro',
       Footer: './src/components/Footer.astro',
     },
     editLink: { baseUrl: editUrl('website/') },

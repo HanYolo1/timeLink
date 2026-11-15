@@ -1,4 +1,4 @@
-"""(longshot) The button prompts of other controllers: the game's button-icon font redrawn per controller face, from the user's RomFS
+"""(timelink) The button prompts of other controllers: the game's button-icon font redrawn per controller face, from the user's RomFS
 and Kenney's Input Prompts (CC0, third_party/kenney_input).
 
     python -I nx2/prompt_assets.py --romfs <dir> --out <game folder>/prompts

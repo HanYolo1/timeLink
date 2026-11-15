@@ -289,7 +289,7 @@ static void menu_press(HWND w, LPARAM lp, LONG bit) {   /* (a click while the me
     SetCapture(w);   /* a drag past the window edge still reaches it */
     pointer_publish_at(w, at, (uint32_t)bit, 0);
 }
-/* (longshot) the clipboard's first line into the Insert menu's text field that has the keyboard (Ctrl+V, Shift+Insert, or the
+/* (timelink) the clipboard's first line into the Insert menu's text field that has the keyboard (Ctrl+V, Shift+Insert, or the
    menu's own Paste: WM_APP + 12), as typed: its characters as code points, a pair of UTF-16 halves as one */
 static void paste_clipboard(HWND w) {
     if (!hos_text_focus() || !OpenClipboard(w)) return;
@@ -417,7 +417,7 @@ static LRESULT CALLBACK wndproc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
         }
         return 0;
     }
-    case WM_CHAR: {   /* (longshot) a character typed, for the Insert menu's text fields (TranslateMessage, by the keyboard's
+    case WM_CHAR: {   /* (timelink) a character typed, for the Insert menu's text fields (TranslateMessage, by the keyboard's
                          layout). The window is an ANSI one: a byte of the code page, ASCII as itself, which is what a field
                          takes; a double-byte character's two (a lead byte, then its trail) are left out together */
         static int trail;
@@ -562,7 +562,7 @@ static DWORD WINAPI display_main(void *p) {
     return 0;
 }
 
-/* (longshot) The game's first work for the GPU waits for the renderer. It ran beside the renderer's start, and what it submitted while the
+/* (timelink) The game's first work for the GPU waits for the renderer. It ran beside the renderer's start, and what it submitted while the
    shaders were being prepared (80 s on a first start) was lost: that run had no ambient light, black foliage and dark characters. The
    game itself goes on starting as it did: held at the start instead, it left holes in the ground */
 void hos_renderer_wait(void) {

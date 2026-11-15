@@ -22,7 +22,7 @@ which is metadata, not an enabled deployment or a claim that this site is hosted
 `npm run build:preview` builds and checks with edit links to this fork's
 `docs/timeLink-website` branch. Normal `npm run build` and `npm run check` also accept
 `DOCS_SOURCE_REPOSITORY` and `DOCS_SOURCE_BRANCH` for another Forgejo fork/branch.
-Project and issue links use https://git.magicbean.dev/MagicBeanDev/Longshot.
+Project and issue links use https://github.com/HanYolo1/timeLink.
 
 ## Design and interaction
 

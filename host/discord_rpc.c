@@ -1,4 +1,4 @@
-/* (longshot) Discord Rich Presence: "Playing timeLink" with the time played in the player's Discord status, through the local
+/* (timelink) Discord Rich Presence: "Playing timeLink" with the time played in the player's Discord status, through the local
    IPC of a Discord client running on this PC. Nothing leaves the machine but the activity itself, and nothing is sent while the
    Insert menu's "Discord status" row is off (on by default; it does nothing without a Discord client running).
 
@@ -36,7 +36,7 @@
 #include "../gpu/vk/vk_api.h"
 
 #define TIMELINK_DISCORD_APP_ID_DEFAULT "1570559772111933578"   /* (the timeLink application's id, digits) */
-#define TIMELINK_DISCORD_IMAGE_DEFAULT "longshot"     /* (its large-image art asset key) */
+#define TIMELINK_DISCORD_IMAGE_DEFAULT "timelink"     /* (its large-image art asset key) */
 
 void hos_log(const char *fmt, ...);
 int rx_option(int id, int otherwise);

@@ -19,7 +19,7 @@ update.
 
 One version covers the game (`timeLink.exe` / `timeLink`), the Vulkan back end, the lift pipeline and its scripts, and the
 builders: they are built from the same commit and released together. The **timeLink Launcher is released apart**, from
-MagicBeanDev/LongshotLauncher, with its own numbers (from v1.0.0) on the same three channels.
+MagicBeanDev/timeLink Launcher, with its own numbers (from v1.0.0) on the same three channels.
 
 The order (the launcher's `Core/Versions.cs`): stables and release candidates in semver order (`v3.1.0-rc.1` <
 `v3.1.0-rc.2` < `v3.1.0`), nightlies by their count. A nightly and a stable are not ordered: the launcher never offers one

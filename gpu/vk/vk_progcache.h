@@ -1,4 +1,4 @@
-// (longshot) The program cache's state and reads, shared by vk_shader.cpp (the translator, which saves what it makes and reads
+// (timelink) The program cache's state and reads, shared by vk_shader.cpp (the translator, which saves what it makes and reads
 // back what it has made) and vk_progcache.cpp (the cache itself, outside the translator stamp: see there)
 #pragma once
 #include <atomic>
@@ -71,7 +71,7 @@ void program_cache_load(uint64_t key, std::vector<std::unique_ptr<Program>>& var
 /// The kept variants of key read from the file (in: a handle on it, used under mu when given) and made ready, to variants
 void program_cache_read(FILE* in, std::mutex* mu, uint64_t key, const std::vector<DiskRecord>& recs,
                         std::vector<std::unique_ptr<Program>>& variants);
-// ---- (longshot) The load when the game makes a program (vk_programs.cpp): the records by position, one at a time ----
+// ---- (timelink) The load when the game makes a program (vk_programs.cpp): the records by position, one at a time ----
 /// Whether a program of that key is kept and not read in yet
 bool program_cache_has(uint64_t key);
 /// Every such key now (the index's own copy: a create call on the game's thread then takes no lock a disk read holds)

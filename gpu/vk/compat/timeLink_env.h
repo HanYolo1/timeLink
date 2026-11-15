@@ -1,4 +1,4 @@
-/* (longshot) One rule for the game's on/off switches, in C (host/) and C++ (gpu/vk, its translator):
+/* (timelink) One rule for the game's on/off switches, in C (host/) and C++ (gpu/vk, its translator):
 
      env_on(name)           unset, empty, 0, false, off or no (any case): off; anything else, 1 or a value: on
      env_int(name, def)     the number it is set to; def when it is unset, empty or not a number

@@ -270,7 +270,7 @@ def main():
     enums = [re.search(r"enum \{ " + first + r"\b.*?\};", api, re.S).group(0)
              for first in ("HOS_SW_A", "HOS_KEY_MOVE_UP", "HOS_OPT_HOLD_TOGGLE")]
     tick = menu[menu.index("void menu_tick() {"):]
-    key_poll = tick[tick.index("    enum { K_N ="):tick.index("    // (longshot) the gamepads")]
+    key_poll = tick[tick.index("    enum { K_N ="):tick.index("    // (timelink) the gamepads")]
     esc_at = tick.index("    const bool esc_opens")
     # (the Esc block ends where the keys' branches begin: the text field's first, as the Insert menu's text fields have it)
     esc_block = tick[esc_at:tick.index("    if (open_now.load() && editing) {", esc_at)]

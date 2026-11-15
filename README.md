@@ -27,7 +27,7 @@
 <p align="center">This website is our Git hosting, similar to GitHub.</p>
 
 > [!NOTE]
-> **This is a personal fork.** It is a copy of [timeLink](https://git.magicbean.dev/MagicBeanDev/Longshot), which is
+> **This is a personal fork.** It is a copy of [timeLink](https://github.com/HanYolo1/timeLink), which is
 > itself a continuation of [Hookshot](https://github.com/NotRexed/Hookshot). It is not the upstream project, and the
 > upstream maintainers do not maintain it. timeLink is free software under the
 > [GNU General Public License, version 3 or later](LICENSE); the license, the copyright notices and every third-party
@@ -64,8 +64,8 @@ what does not yet. Open problems are collected in tracking issues, linked below.
 | Hyrule Field, Castle Town, Kakariko and the dungeons | ⚠️ Players got there, with open bugs: lighting and shadows ([#1004](https://github.com/NotRexed/Hookshot/issues/1004)), crashes and freezes ([#2507](https://github.com/NotRexed/Hookshot/issues/2507)) |
 | Ultrawide and 4:3 | ✅ Works. The Aspect ratio row's default, Monitor's shape, widens the 3D to the screen and keeps the HUD and movies in the middle 16:9 ([#2119](https://github.com/NotRexed/Hookshot/pull/2119)) |
 | NVIDIA cards | ✅ Works. The most tested |
-| AMD cards | ⚠️ Many tested: reports from the RX 6600, RX 6800 XT, RX 7800 XT, RX 7900 XTX and RX 9070 XT. On Windows, the RX 6600 to RX 6950 XT and their mobile and Pro models (Navi 21, 22 and 23) draw task and mesh shaders through the compute fallback by default: the driver lost the GPU on their own mesh shaders on an RX 6700 XT, an RX 6800 XT and, in one report in Mako, an RX 6600 ([#1747](https://github.com/NotRexed/Hookshot/pull/1747), [#1992](https://github.com/NotRexed/Hookshot/pull/1992), [#2215](https://github.com/NotRexed/Hookshot/pull/2215)); another RX 6600 played 15-20 minutes on them ([timeLink #130](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/130)). The RX 6400 and 6500 XT (Navi 24) keep their own mesh shaders, as no report has them losing the GPU; `RX_VK_TASK_MESH_FALLBACK=1` tries the fallback. Driver crashes and device lost are still reported ([#996](https://github.com/NotRexed/Hookshot/issues/996)) |
-| Intel cards | ❓ Few reports, many of them black screens or crashes ([#999](https://github.com/NotRexed/Hookshot/issues/999)). On Windows, Intel's shader compiler is entered by one thread, and a shader it faults on is left out instead of closing the game, on later starts too ([#252](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/252)). Made for an Intel UHD laptop with 4 threads and 16 GB that crashed in `igvk64.dll` (see [Intel laptops](#intel-laptops)): not yet tested on an Intel GPU |
+| AMD cards | ⚠️ Many tested: reports from the RX 6600, RX 6800 XT, RX 7800 XT, RX 7900 XTX and RX 9070 XT. On Windows, the RX 6600 to RX 6950 XT and their mobile and Pro models (Navi 21, 22 and 23) draw task and mesh shaders through the compute fallback by default: the driver lost the GPU on their own mesh shaders on an RX 6700 XT, an RX 6800 XT and, in one report in Mako, an RX 6600 ([#1747](https://github.com/NotRexed/Hookshot/pull/1747), [#1992](https://github.com/NotRexed/Hookshot/pull/1992), [#2215](https://github.com/NotRexed/Hookshot/pull/2215)); another RX 6600 played 15-20 minutes on them ([timeLink #130](https://github.com/HanYolo1/timeLink/issues/130)). The RX 6400 and 6500 XT (Navi 24) keep their own mesh shaders, as no report has them losing the GPU; `RX_VK_TASK_MESH_FALLBACK=1` tries the fallback. Driver crashes and device lost are still reported ([#996](https://github.com/NotRexed/Hookshot/issues/996)) |
+| Intel cards | ❓ Few reports, many of them black screens or crashes ([#999](https://github.com/NotRexed/Hookshot/issues/999)). On Windows, Intel's shader compiler is entered by one thread, and a shader it faults on is left out instead of closing the game, on later starts too ([#252](https://github.com/HanYolo1/timeLink/pulls/252)). Made for an Intel UHD laptop with 4 threads and 16 GB that crashed in `igvk64.dll` (see [Intel laptops](#intel-laptops)): not yet tested on an Intel GPU |
 | Pre-rendered movies on a slow CPU | ⚠️ Shown rather than skipped when the decoder is slower than the movie, so the picture can fall behind the sound. With 4 logical processors or fewer the decoder uses 2 threads, leaving the game its own. The first picture can still be black on some PCs |
 | Cards without mesh shaders (such as NVIDIA GTX 10 and AMD RX 5000) | ⚠️ Run through the compute fallback (since v2.0.6), which runs the mesh programs as compute shaders on cards with buffer device addresses: slower, and it leaves out the mesh draws that take their count from a buffer ([#640](https://github.com/NotRexed/Hookshot/issues/640)) |
 | Linux | ✅ Works with the AppImage. Tested on several distributions (CachyOS, Fedora, Bazzite, SteamOS) and cards, with open problems on some AMD cards ([#1000](https://github.com/NotRexed/Hookshot/issues/1000)) |
@@ -81,7 +81,7 @@ Windows without installing: [portable zip](https://longshot.magicbean.dev/downlo
 newest launcher (stable, or until there is one, the release candidate); for each channel's own, see
 [release channels](#release-channels).
 
-**Download the launcher, not the builder.** The files on [timeLink's releases](https://git.magicbean.dev/MagicBeanDev/Longshot/releases)
+**Download the launcher, not the builder.** The files on [timeLink's releases](https://github.com/HanYolo1/timeLink/releases)
 (`timeLinkBuilder-…-windows-x64.zip`, `timeLink-…-x86_64.AppImage`, `tools.lock`) are what the launcher installs for
 you. Windows may flag the launcher as a Trojan: it isn't, it's just not code-signed yet. See
 [antivirus warnings](https://longshot.magicbean.dev/help/antivirus/).
@@ -120,7 +120,7 @@ frame rate: the game runs on more than this, and performance depends on the reso
 
 **Below the minimum:** a laptop with Intel UHD graphics and a 4-thread CPU is below both minimums. The game has been
 reported to start on one (Intel UHD, 4 threads, 16 GB, Windows), at about 35 fps on the title and with crashes
-in Intel's driver that [#252](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/252) is meant to fix. See
+in Intel's driver that [#252](https://github.com/HanYolo1/timeLink/pulls/252) is meant to fix. See
 [Intel laptops](#intel-laptops) for what to set and what to send.
 
 Memory use depends on the build, driver and scene: recent Linux/NVIDIA runs used roughly
@@ -137,10 +137,10 @@ there is nothing else to install.
 ### On Windows
 
 1. [Download the launcher for Windows](https://longshot.magicbean.dev/download/launcher/windows)
-   (`LongshotLauncher-<version>-windows-x64-setup.exe`) and run it. It asks once: **Install** (for you, no administrator
+   (`timeLinkLauncher-<version>-windows-x64-setup.exe`) and run it. It asks once: **Install** (for you, no administrator
    rights, with a Start menu shortcut) or **Run portable**. To skip the question, take
    [the portable zip](https://longshot.magicbean.dev/download/launcher/windows-portable), unzip it and run
-   `LongshotLauncher.exe`.
+   `timeLinkLauncher.exe`.
 2. Press **Build the game** and choose the **Stable** channel.
 3. Pick your game. The launcher finds `.nup` files in your Downloads, Desktop and Documents folders; if yours isn't
    listed, point it at the file, or at the `romfs` and `exefs` folders. It checks the version while the builder downloads.
@@ -149,7 +149,7 @@ there is nothing else to install.
 
 The build prepares the game's shaders at its end, which takes a while; later starts are faster. To keep everything on an
 external SSD, run [the launcher's portable zip](https://longshot.magicbean.dev/download/launcher/windows-portable) from
-there: its data stays in `LongshotLauncher-data` beside it.
+there: its data stays in `timeLinkLauncher-data` beside it.
 
 #### Compile shaders
 
@@ -171,14 +171,14 @@ building each shader when first drawn, until that file is deleted or a build pre
 ### On Linux
 
 1. [Download the launcher for Linux](https://longshot.magicbean.dev/download/launcher/linux)
-   (`LongshotLauncher-<version>-x86_64.AppImage`).
+   (`timeLinkLauncher-<version>-x86_64.AppImage`).
 2. Let it run as a program: in your file manager, open its **Properties** and turn on "Allow executing file as program"
-   (the wording differs between desktops), or run `chmod +x LongshotLauncher-*-x86_64.AppImage`.
+   (the wording differs between desktops), or run `chmod +x timeLinkLauncher-*-x86_64.AppImage`.
 3. Start it and build the game as [on Windows](#on-windows). The game goes to `~/Games/timeLink` by default, and the
    launcher can add it to your applications menu as "timeLink".
 
 Each version's builder is also released on its own, as `timeLink-<version>-x86_64.AppImage` (about 95 MB) on
-[timeLink's releases](https://git.magicbean.dev/MagicBeanDev/Longshot/releases). It has no window: it is what the
+[timeLink's releases](https://github.com/HanYolo1/timeLink/releases). It has no window: it is what the
 launcher builds with, and it builds and starts the game from the command line, over SSH or from a script (see
 [Linux, the AppImage from the command line](#build-from-source)). Its first `--cli` downloads its build tools (the
 compiler, the C library it links against, FFmpeg and SDL2: about 170 MB) into `~/.local/share/timeLink/builder/toolchains`,
@@ -216,7 +216,7 @@ service: a desktop that stops its children stops the game too.
 The launcher checks for updates when it starts. When a newer version is out on your channel, press **Update**: it
 downloads the new builder (only the parts that changed) and builds the game again from the game files the first build
 kept, so you don't need your `.nup` again. It updates itself the same way. What changed is on
-[timeLink's releases](https://git.magicbean.dev/MagicBeanDev/Longshot/releases).
+[timeLink's releases](https://github.com/HanYolo1/timeLink/releases).
 
 Before updating, copy your saves somewhere safe: the `user` folder in the game folder on Windows,
 `~/.local/share/timeLink` on Linux.
@@ -259,7 +259,7 @@ The build reads your game and never changes it.
 |---|---|---|
 | The game | The folder you chose (`Games\timeLink` by default) | The folder you chose (`~/Games/timeLink` by default) |
 | Your saves | `user` in the game folder | `~/.local/share/timeLink` |
-| The launcher, each version's builder and its tools (`toolchains`), the build files (`work`) | `%LOCALAPPDATA%\LongshotLauncher` (the installed program in `%LOCALAPPDATA%\Programs\LongshotLauncher`; the portable one's data in `LongshotLauncher-data` beside it) | `~/.local/share/timeLink/launcher` (the portable AppImage's in `<AppImage>.home` beside it) |
+| The launcher, each version's builder and its tools (`toolchains`), the build files (`work`) | `%LOCALAPPDATA%\timeLink Launcher` (the installed program in `%LOCALAPPDATA%\Programs\timeLink Launcher`; the portable one's data in `timeLinkLauncher-data` beside it) | `~/.local/share/timeLink/launcher` (the portable AppImage's in `<AppImage>.home` beside it) |
 | A builder without the launcher (`--cli`) and its tools | `%LOCALAPPDATA%\timeLinkBuilder` | `~/.local/share/timeLink/builder` and `~/.cache/timeLink-builder` |
 | The in-game menu's choices | `timeLink_options.ini` in the game folder | `timeLink_options.ini` in the game folder |
 | The shader and pipeline caches, and the logs | `cache` and `logs` in the game folder | `cache` and `logs` in the game folder |
@@ -299,7 +299,7 @@ everything it does on the network or with other programs:
   to send them anywhere.
 
 Only download timeLink from [the launcher's releases](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases)
-and [timeLink's](https://git.magicbean.dev/MagicBeanDev/Longshot/releases) on git.magicbean.dev, or through
+and [timeLink's](https://github.com/HanYolo1/timeLink/releases) on git.magicbean.dev, or through
 [longshot.magicbean.dev/download](https://longshot.magicbean.dev/download), which sends you there. Each version's files
 are listed with their SHA-256 in its `SHA256SUMS`, signed by the release key, which the launcher checks. A copy from
 anywhere else may not be ours.
@@ -315,7 +315,7 @@ line with the video memory in use against what the driver allows, and DLSS's det
 |---|---|
 | **Building** | |
 | "timeLink supports build e0f3ccfa" or "This version isn't supported" | Check that you chose the right game, with its update installed. |
-| "Your antivirus removed part of the build tools" | A false alarm on unsigned programs. Restore the files from Windows Security's Protection history, and add `%LOCALAPPDATA%\LongshotLauncher` and `%LOCALAPPDATA%\Programs\LongshotLauncher` to its exclusions, then build again ([common problems](docs/common-issues.md#your-antivirus-removed-part-of-the-build-tools)). |
+| "Your antivirus removed part of the build tools" | A false alarm on unsigned programs. Restore the files from Windows Security's Protection history, and add `%LOCALAPPDATA%\timeLink Launcher` and `%LOCALAPPDATA%\Programs\timeLink Launcher` to its exclusions, then build again ([common problems](docs/common-issues.md#your-antivirus-removed-part-of-the-build-tools)). |
 | **Starting** | |
 | The game opens and closes, or the log says "device lost" | Update your graphics driver. AMD cards have known crashes ([#708](https://github.com/NotRexed/Hookshot/issues/708), [#614](https://github.com/NotRexed/Hookshot/issues/614)). |
 | Windows, Intel: the game closes in the first scene, and the log names `igvk64.dll` | Keep the Debug tab's **Intel shader compiles** row on **One at a time** (the default) and update the graphics driver. See [Intel laptops](#intel-laptops). |
@@ -335,7 +335,7 @@ line with the video memory in use against what the driver allows, and DLSS's det
 | **Other** | |
 | The game is in the wrong language | Change the code in `language.txt` in the game folder. The file lists them all, and an update keeps the one you set. |
 
-Still stuck? [Report it](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/new) with the version, where you were in
+Still stuck? [Report it](https://github.com/HanYolo1/timeLink/issues/new) with the version, where you were in
 the game, your graphics card, `timeLink_log.txt` and a screenshot or video, and never game files. **Gameplay → Bug
 report** in the [in-game menu](#in-game-menu) gathers all of it in one press.
 
@@ -356,10 +356,10 @@ report** in the [in-game menu](#in-game-menu) gathers all of it in one press.
 
 #### Intel laptops
 
-What [#252](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/252) changes was made from the logs of a laptop with
+What [#252](https://github.com/HanYolo1/timeLink/pulls/252) changes was made from the logs of a laptop with
 Intel UHD Graphics, a 4-thread CPU, 16 GB and Windows. There the game closed in Intel's driver (`igvk64.dll`) in the
 background save of the pipeline cache while other threads built pipelines into the same cache; main now fetches a
-cache's data with no build under way on Intel ([#190](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/190)).
+cache's data with no build under way on Intel ([#190](https://github.com/HanYolo1/timeLink/pulls/190)).
 The build's shader preparation had stopped, so every run built its shaders in play, and the title ran at about 35 fps.
 It has not been tested on an Intel GPU yet. On such a PC:
 
@@ -372,7 +372,7 @@ It has not been tested on an Intel GPU yet. On such a PC:
    them all again sooner.
 4. Leave **ASTC as RGBA8** off: it is the [AMD texture workaround](#amd-texture-workaround), and its larger textures
    come out of the memory that integrated graphics share with the rest of the PC.
-5. If it still crashes or runs slowly, [report it](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/new) with
+5. If it still crashes or runs slowly, [report it](https://github.com/HanYolo1/timeLink/issues/new) with
    `timeLink_log.txt` from a run with `HOS_VIDEO_LOG=1` in `timeLink_env.txt`, the build's details, and the FPS on the
    title and in the first scene.
 
@@ -1203,7 +1203,7 @@ pipelines before the title, and every player's play adds to it. To send yours:
 1. In the game, open the menu (Insert or F1), go to the **Debug** tab and choose **Save my pipeline list** (under Developer). Or,
    from a clone, run `python -I nx2/pipeline_share.py <game folder>`.
 2. It saves `timeLink-pipelines-<date>.zip` in your Downloads folder, copies a filled-in report to the clipboard and
-   opens the [Submit your pipelines](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/14) issue in your browser.
+   opens the [Submit your pipelines](https://github.com/HanYolo1/timeLink/issues/14) issue in your browser.
 3. Attach the zip to a comment there, paste the report and fill in where you played.
 
 The zip holds only `timeLink_pipeline_states.bin` (shader hashes, formats and draw state, and the hashes of the compute

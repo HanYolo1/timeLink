@@ -1,6 +1,6 @@
 # Working on git.magicbean.dev
 
-timeLink lives on the team's Forgejo, [git.magicbean.dev/MagicBeanDev/Longshot](https://git.magicbean.dev/MagicBeanDev/Longshot).
+timeLink lives on the team's Forgejo, [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink).
 Its `main` takes reviewed pull requests only. You work on branches of your own fork and open pull requests from there,
 as on GitHub.
 
@@ -18,7 +18,7 @@ python -I scripts/forge.py login
 
 It prints a link and opens it: click **Sign in with Discord** and approve. Then it:
 
-- adds the remote `forge` (MagicBeanDev/Longshot: fetch `main` from it, never push to it);
+- adds the remote `forge` (MagicBeanDev/timeLink: fetch `main` from it, never push to it);
 - becomes git's credential helper for git.magicbean.dev only, so `git push`, `git fetch` and `jj git push` sign in by
   themselves. The token renews itself when it runs out.
 

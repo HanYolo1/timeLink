@@ -52,13 +52,13 @@ int main(int argc, char **argv) {
     char *slash = strrchr(exe, '\\');
     CHECK(slash != NULL);
     if (!slash) return 1;
-    strcpy(slash + 1, "longshot_log \xf0\x9f\x8e\xae.txt");
+    strcpy(slash + 1, "timeLink_log \xf0\x9f\x8e\xae.txt");
     FILE *f = fopen(exe, "w");
     CHECK(f != NULL);
     if (f) fputs("ok\n", f), fclose(f);
     wchar_t wlog[MAX_PATH];
     wcscpy(wlog, wexe);
-    wcscpy(wcsrchr(wlog, L'\\') + 1, L"longshot_log \xD83C\xDFAE.txt");
+    wcscpy(wcsrchr(wlog, L'\\') + 1, L"timeLink_log \xD83C\xDFAE.txt");
     CHECK(GetFileAttributesW(wlog) != INVALID_FILE_ATTRIBUTES);
     HANDLE h = CreateFileA(exe, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
     CHECK(h != INVALID_HANDLE_VALUE);

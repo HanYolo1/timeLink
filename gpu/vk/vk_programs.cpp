@@ -1,4 +1,4 @@
-// (longshot) The programs' life: the game's create, set-shaders and free calls, each program's first draw or dispatch, and the
+// (timelink) The programs' life: the game's create, set-shaders and free calls, each program's first draw or dispatch, and the
 // census of what play had to make. See vk_programs.h.
 //
 // RX_VK_LOG_PROGRAM_LIFE=1 logs each of those ("vk: program life: ...") and, every 600 presents and when the window closes, one

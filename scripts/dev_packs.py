@@ -80,7 +80,7 @@ SEED = "timeLink_shaders.bin"   # (the shader list the prepare goes through: a n
 # nx2/version.py's describe(), a fingerprint of every source, so those two objects differ in every build of another tree)
 MODULES = ((("timeLink.exe", "timeLink.map", "objs.rsp", "host_hos_main.o"),
             ("timeLink_vk.dll", "timeLink_vk.map", "vk_objs.rsp", "vk_vk_menu.o")) if WINDOWS else
-           (("longshot", None, "objs.rsp", "host_hos_main.o"), ("timeLink_vk.so", None, "vk_objs.rsp", "vk_vk_menu.o")))
+           (("timelink", None, "objs.rsp", "host_hos_main.o"), ("timeLink_vk.so", None, "vk_objs.rsp", "vk_vk_menu.o")))
 GAME, RENDERER = MODULES[0][0], MODULES[1][0]
 STAMPED_SOURCES = ("host/hos_main.c", "gpu/vk/vk_menu.cpp")
 # (nx2/build.py's shader stamp is made of the files the checkout's own nx2/translator_files.py names (translator_changed); a

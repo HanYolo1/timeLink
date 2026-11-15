@@ -8,7 +8,7 @@ body:
       value: |
         **The fastest way:** in the game, press Insert, then **Gameplay → Bug report**. It writes a folder with the answers below, both logs and a picture; open the link at the end of its `report.txt` (it fills in the first fields) and drag the folder's files in.
 
-        Before you start: try the [newest release](https://git.magicbean.dev/MagicBeanDev/Longshot/releases), search the [open issues](https://git.magicbean.dev/MagicBeanDev/Longshot/issues) (add to one that matches), and write in English. **Never attach game files or saves.**
+        Before you start: try the [newest release](https://github.com/HanYolo1/timeLink/releases), search the [open issues](https://github.com/HanYolo1/timeLink/issues) (add to one that matches), and write in English. **Never attach game files or saves.**
   - type: input
     id: version
     attributes:

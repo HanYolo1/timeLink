@@ -376,7 +376,7 @@ struct Info {
     u32 constant_buffer_mask{};
     std::array<u32, MAX_CBUFS> constant_buffer_used_sizes{};
     u32 nvn_buffer_base{};
-    // (longshot) storage buffer tables: NVN descriptors (address, size) at cbuf_offset + 16k of a constant buffer,
+    // (timelink) storage buffer tables: NVN descriptors (address, size) at cbuf_offset + 16k of a constant buffer,
     // which global memory accesses pick at run time (OoT's froxel fog: c4 + 0xe0 + 16 * a loop index). The global
     // memory fallbacks search their kGlobalTableSize entries (AddNVNStorageBuffers adds them as descriptors).
     static constexpr u32 kGlobalTableSize{16};

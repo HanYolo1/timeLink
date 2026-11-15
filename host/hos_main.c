@@ -422,7 +422,7 @@ static const char *saves_dir(const char *beside) {
    before the window, so HOS_HEADLESS and HOS_WINDOW_SIZE are already set when the window is made.
    HOS_ENV_FILE=<path> reads that file instead: a scripted or A/B test run brings its own switches and leaves the
    player's timeLink_env.txt as it is.
-   (longshot) timeLink_env.txt is a file players pass around, so it sets only the game's own switches (RX_, HOS_,
+   (timelink) timeLink_env.txt is a file players pass around, so it sets only the game's own switches (RX_, HOS_,
    TIMELINK_, EDEN_, NVN_ and SDL_ names), never HOS_ENV_FILE or SDL's library override, and no value that is a
    path but RX_VK_DLSS_DIR's: the system's variables (the Vulkan loader's layers, PATH and the like) can load code, and
    the dump switches write files where they name. The file HOS_ENV_FILE names sets anything. */
@@ -431,17 +431,17 @@ static int env_line_allowed(const char *name, const char *value) {
     int ok = 0;
     for (size_t i = 0; i < sizeof prefixes / sizeof *prefixes; i++) ok |= !strncmp(name, prefixes[i], strlen(prefixes[i]));
     if (!ok || !strcmp(name, "HOS_ENV_FILE") || !strcmp(name, "SDL_DYNAMIC_API")) return 0;
-    /* (longshot) nor the libraries SDL loads by name (SDL_VULKAN_LIBRARY, SDL_OPENGL_LIBRARY, SDL_VIDEO_GL_DRIVER,
+    /* (timelink) nor the libraries SDL loads by name (SDL_VULKAN_LIBRARY, SDL_OPENGL_LIBRARY, SDL_VIDEO_GL_DRIVER,
        SDL_VIDEO_EGL_DRIVER...): a bare file name is looked for beside the game and in the current folder on Windows */
     if (!strncmp(name, "SDL_", 4) && (strstr(name, "_LIB") || strstr(name, "GL_DRIVER"))) return 0;
     for (const char *p = name; *p; p++)
         if (!((*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '_')) return 0;
-    /* (longshot) the switches that name a file to write or a folder take no value here, not even a bare name: one
+    /* (timelink) the switches that name a file to write or a folder take no value here, not even a bare name: one
        resolves in the game's folder (HOS_SAMPLE_FILE=timeLink_vk.dll emptied the renderer) */
     const size_t nl = strlen(name);
     int names_file = (nl > 5 && (!strcmp(name + nl - 5, "_FILE") || !strcmp(name + nl - 4, "_DIR"))) ||
                      !strcmp(name, "RX_VK_FRAME_LOG") || !strcmp(name, "HOS_PRESENT_TRACE");
-    /* (longshot) and the test switches whose value is a file or folder under another name (HOS_AUDIO_DUMP=image.bin
+    /* (timelink) and the test switches whose value is a file or folder under another name (HOS_AUDIO_DUMP=image.bin
        overwrote the game's image), or that press buttons and menu keys on a timer (a shared file erased a save from
        the file select) */
     static const char *const by_name[] = {
@@ -1100,7 +1100,7 @@ static void oot_teleport_followup(Ctx *c) {
             events && recomp_load64(c, events + 104) ? 1 : 0);
 }
 
-/* (longshot) the control bridge (host/control.c): the map the game is in (Sequence_CurrentBanc), read on the game's thread
+/* (timelink) the control bridge (host/control.c): the map the game is in (Sequence_CurrentBanc), read on the game's thread
    with the player's update every 250 ms and kept for the bridge's thread; the last one known (it stays through loads and
    menus, where Link is not updated). And the debug teleport by destination, as the Cheats page asks for it: taken at the
    next update of the player, in play, and what came of it (sent, or refused and why) kept for the bridge's reply */
@@ -1709,12 +1709,12 @@ static void memory_notice(void) {
 }
 #endif
 #ifdef _WIN32
-/* (longshot) On laptops with two GPUs, the drivers run a program on the dedicated one when it exports these (NVIDIA Optimus, AMD
+/* (timelink) On laptops with two GPUs, the drivers run a program on the dedicated one when it exports these (NVIDIA Optimus, AMD
    PowerXpress): without them a laptop could put the game on its integrated GPU, 5 fps (issue 176) */
 __declspec(dllexport) unsigned long NvOptimusEnablement = 1;
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 
-/* (longshot) The game's paths are UTF-8 char strings through Windows' A functions and fopen: its manifest (nx2/win_manifest.py)
+/* (timelink) The game's paths are UTF-8 char strings through Windows' A functions and fopen: its manifest (nx2/win_manifest.py)
    makes the process's code page UTF-8, from Windows 10 1903 on. Before that, or with the manifest missing, those take the system's
    ANSI code page, and a folder name it cannot spell (Japanese on a Western Windows, an emoji) comes back as "?": nothing opens and
    the game closed with no window and no log. The exe's own path through GetModuleFileNameA must name the exe (a name past MAX_PATH
@@ -1818,7 +1818,7 @@ static int game_main(int argc, char **argv) {
     void hos_control_start(const char *version);
     hos_control_start(TIMELINK_VERSION);   /* (HOS_CONTROL=<socket>: the control bridge, host/control.c) */
     const char *image = NULL;
-    /* (longshot) --compile-shaders all or most: what a preparation of this run builds (gpu/vk/vk_draw.cpp compile_all), over
+    /* (timelink) --compile-shaders all or most: what a preparation of this run builds (gpu/vk/vk_draw.cpp compile_all), over
        compile_shaders= in timeLink_options.ini; as RX_VK_COMPILE_SHADERS, set before --prepare-shaders runs, wherever it stands */
     for (int i = 1; i + 1 < argc; i++)
         if (!strcmp(argv[i], "--compile-shaders")) {
@@ -1835,7 +1835,7 @@ static int game_main(int argc, char **argv) {
         else if (!strcmp(argv[i], "--compile-shaders") && i + 1 < argc) i++;   /* (taken above) */
         else if (!strcmp(argv[i], "--user") && i + 1 < argc) hos_user_dir = argv[++i];
         else if (!strcmp(argv[i], "--trace")) hos_trace = 1;
-        else if (!strcmp(argv[i], "--prepare-shaders")) {   /* (longshot) a build's last step: no game */
+        else if (!strcmp(argv[i], "--prepare-shaders")) {   /* (timelink) a build's last step: no game */
 #ifdef _WIN32
             _putenv("TIMELINK_PREPARE_ONLY=1");
 #else
@@ -1852,14 +1852,14 @@ static int game_main(int argc, char **argv) {
         else if (!image) image = argv[i];
     }
 #ifdef _WIN32
-    {   /* (longshot) the Discord status (discord_rpc.c), a game run only (a --prepare-shaders run returned above). Linux starts
+    {   /* (timelink) the Discord status (discord_rpc.c), a game run only (a --prepare-shaders run returned above). Linux starts
            it in its own main, below; on Windows it was never started: no status and no "discord:" line in any log */
         void hos_discord_start(void);
         hos_discord_start();
     }
 #endif
     static char beside_image[MAX_PATH], beside_romfs[MAX_PATH], beside_user[MAX_PATH];
-    if (!image) {   /* (longshot) started with nothing, as a game is: everything beside the executable (the builder's folder) */
+    if (!image) {   /* (timelink) started with nothing, as a game is: everything beside the executable (the builder's folder) */
         char dir[MAX_PATH];
         const DWORD len = hos_game_path_a(dir, MAX_PATH);
         char *slash = len ? strrchr(dir, SEP) : NULL;
@@ -1927,7 +1927,7 @@ static int game_main(int argc, char **argv) {
         return 1;
     }
     hos_mem_init(hos_image_end);
-    {   /* (longshot) Widescreen and ultrawide (nx2/oot_wide.py): HOS_ASPECT=<ratio> (2.3889 for 3440x1440), else the Insert menu's
+    {   /* (timelink) Widescreen and ultrawide (nx2/oot_wide.py): HOS_ASPECT=<ratio> (2.3889 for 3440x1440), else the Insert menu's
            Aspect ratio (on unless it says 0) takes the main monitor's shape. The game's picture takes that shape at its own height (the
            world wider at the sides on an ultrawide screen, narrower on a 16:10 or 4:3 one), its 16:9 cameras the picture's ratio.
            An output that is not 16:9 takes precedence over both HOS_ASPECT and the Aspect ratio, matching the menu's picture. Wider
@@ -2106,7 +2106,7 @@ int main(int argc, char **argv) {
         hos_log_flush();
         return 1;
     }
-    if (!prepare_shaders) {   /* (longshot) the Discord status (discord_rpc.c): only a game run */
+    if (!prepare_shaders) {   /* (timelink) the Discord status (discord_rpc.c): only a game run */
         void hos_discord_start(void);
         hos_discord_start();
     }

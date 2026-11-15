@@ -102,7 +102,7 @@ def test_caches_named_in_renderer():
     check("the predicted and built notes' suffixes, and the index's", all(s in text for s in ('".predicted"', '".predicted_keys"', '".built"', '".idx"')))
     # (and the other way round: every .bin or .idx the renderer names beside the game is a cache, or one of the two files a
     # build makes (the shader seed, the shipped state list); a new cache file in the renderer fails here until it is classified)
-    named = set(re.findall(r'"(longshot_[A-Za-z0-9_.]*\.(?:bin|idx))"', text))
+    named = set(re.findall(r'"(timeLink_[A-Za-z0-9_.]*\.(?:bin|idx))"', text))
     unknown = sorted(n for n in named if not packs.is_cache(n) and n not in (packs.SEED, "timeLink_pipeline_states_shipped.bin"))
     check("every file the renderer keeps beside the game is classified (unknown: %s)" % unknown, not unknown)
 
@@ -460,7 +460,7 @@ def test_outputs_before_prepare(d):
         game = Path(kw["cwd"])
         write(game / "cache" / "timeLink_vk_pipelines.stamp", b"stamp")
         write(game / "cache" / "timeLink_pipelines.bin.predicted_keys", b"keys")
-        write(game / "longshot_some_future_cache.dat", b"a file a later renderer writes")
+        write(game / "timelink_some_future_cache.dat", b"a file a later renderer writes")
         return packs.subprocess.CompletedProcess(argv, 0)
     saved = packs.make_game, packs.changed_files, packs.git, packs.subprocess.run
     packs.make_game, packs.changed_files, packs.git = fake_make_game, (lambda tree, commit: set()), (lambda tree, *a: "c" * 40)
@@ -476,7 +476,7 @@ def test_outputs_before_prepare(d):
         check("the preparation runs once, after the build, with the Compile shaders level (%s)" % prep,
               len(prep) == 1 and prep[0][1][:1] == ["--prepare-shaders"] and "--compile-shaders" in prep[0][1])
         check("what the preparation wrote is not an output (%s)" % outputs,
-              not {"cache/timeLink_vk_pipelines.stamp", "cache/timeLink_pipelines.bin.predicted_keys", "longshot_some_future_cache.dat"}
+              not {"cache/timeLink_vk_pipelines.stamp", "cache/timeLink_pipelines.bin.predicted_keys", "timelink_some_future_cache.dat"}
               & set(outputs))
     check("what make_game.py made is (%s)" % outputs, "timeLink_shaders.bin" in outputs)
 

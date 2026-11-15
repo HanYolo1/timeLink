@@ -54,12 +54,12 @@ import toolchain as _toolchain
 import disk as _disk
 import object_store as _object_store
 import lift_store as _lift_store
-# (longshot) RX_TARGET=windows on Linux: the Windows game, with llvm-mingw's Linux release (TIMELINK_MINGW, or llvm-mingw
+# (timelink) RX_TARGET=windows on Linux: the Windows game, with llvm-mingw's Linux release (TIMELINK_MINGW, or llvm-mingw
 # beside the builder), to run under Proton or copy to a Windows PC
 LINUX, CROSS = not _toolchain.windows(), _toolchain.windows() and os.name != "nt"
 # (SDL2.dll is sdl2-compat: it loads SDL3.dll from beside the exe. Left out of bin\ since v2.0.0, it said "Failed loading SDL3
 # library" three times and no controller worked: Discord #bug-reporting, 11-08)
-BESIDE = ["longshot", "timeLink_vk.so", "libSDL2-2.0.so.0"] if LINUX else ["timeLink.exe", "timeLink_vk.dll", "SDL2.dll", "SDL3.dll", "wgpu_native.dll"]
+BESIDE = ["timeLink", "timeLink_vk.so", "libSDL2-2.0.so.0"] if LINUX else ["timeLink.exe", "timeLink_vk.dll", "SDL2.dll", "SDL3.dll", "wgpu_native.dll"]
 LANGUAGES = [("en-US", "English (US)"), ("en-GB", "English (UK)"), ("fr", "French (France)"), ("fr-CA", "French (Canada)"), ("de", "German"),
              ("it", "Italian"), ("es", "Spanish (Spain)"), ("es-419", "Spanish (Latin America)"), ("pt-BR", "Portuguese (Brazil)"), ("nl", "Dutch"),
              ("pl", "Polish"), ("ru", "Russian"), ("ja", "Japanese"), ("ko", "Korean"), ("zh-Hans", "Chinese (Simplified)"),
@@ -979,7 +979,7 @@ def _cleanup_owns(q, work, default_work):
         prefix = home.rstrip("\\") + "\\"
         parts = path[len(prefix):].split("\\") if path.startswith(prefix) else []
         return (len(parts) == 6 and parts[0] == "versions" and bool(parts[1])
-                and parts[2:] == ["timelinkbuilder", "tools", "nx2", "make_game.py"])
+                and parts[2:] == ["timelinkbuilder", "tools", "nx2", "make_game.py"])   # (parts are normcased: lowercase)
     if name not in ("clang.exe", "clang++.exe", "clang-cl.exe", "ld.lld.exe", "lld-link.exe"):
         return False
     outputs = []
@@ -1856,7 +1856,7 @@ def generated_names(work):
 
 
 def forget_failed_build(work, linked, failed=()):
-    """(longshot) After a compile or link that failed. It forgets the lift: the next build translates the game again. A lifted file
+    """(timelink) After a compile or link that failed. It forgets the lift: the next build translates the game again. A lifted file
     cut short (an antivirus, a full disk, a stopped run: "g_module_b" for g_module_base, issue 1197) or lifted C another builder
     left (20 undefined game functions at the link, issue 1176) otherwise failed the same way at every try, the key still matching.
     linked: every file compiled and the link (or a step after it) failed: the compiled objects go too, as a cached runtime object
@@ -2331,7 +2331,7 @@ def main(a=None):
                 for name in (KEPT_LIST, KEPT_LIST + ".new"):   # (the list of the lift before: it names that lift's objects)
                     with contextlib.suppress(FileNotFoundError):
                         os.remove(os.path.join(gen_dir, name))
-                # (longshot) the lifted C of an earlier lift goes first: a file that lift made and this one does not (another builder's
+                # (timelink) the lifted C of an earlier lift goes first: a file that lift made and this one does not (another builder's
                 # naming, a chunk cut short) was compiled with the new ones, undefined or doubly defined game functions at the link (issue
                 # 1176). The objects stay cached by their contents, so a file this lift writes the same is not compiled again
                 if os.path.isdir(gen_dir):
@@ -2526,7 +2526,7 @@ def main(a=None):
         print("the shader list was not made: the game will compile its shaders as it plays", flush=True)
     else:
         note_shader_list(work, romfs, os.path.join(out, "timeLink_shaders.bin"))
-    # (longshot) the button prompts of other controllers (host/prompts.c): the game's icon font redrawn per controller, with fontTools.
+    # (timelink) the button prompts of other controllers (host/prompts.c): the game's icon font redrawn per controller, with fontTools.
     # Without it the game shows its own icons
     prompts = os.path.join(out, "prompts")
     if importlib.util.find_spec("fontTools") is None:

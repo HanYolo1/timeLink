@@ -48,7 +48,7 @@ def config_dir():
     if os.name == "nt":
         return os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), "timeLink")
     base = os.environ.get("XDG_CONFIG_HOME") or os.path.join(os.path.expanduser("~"), ".config")
-    return os.path.join(base, "longshot")
+    return os.path.join(base, "timelink")
 
 
 def write_private(path, value):

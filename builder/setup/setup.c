@@ -1,6 +1,6 @@
 /* timeLinkBuilder.exe in timeLinkBuilder-<version>-windows-x64.zip (docs/releases.md): installs the timeLink Builder the zip
    carries, with the build tools tools.lock names, and starts it. It looks for no release itself: the timeLink Launcher
-   (MagicBeanDev/LongshotLauncher) installs and updates the builder from timeLink's releases, and RecompLauncher runs this.
+   (MagicBeanDev/timeLink Launcher) installs and updates the builder from timeLink's releases, and RecompLauncher runs this.
    The builder has no window: only --cli installs and starts it, --play starts a built game, and this file as a game folder's
    timeLink.exe starts that game. Started any other way (by hand), it says to get the timeLink Launcher and does nothing else.
    The zip holds this setup, timeLinkBuilder\ (the builder and timeLink's sources), tools.lock and VERSION: the builder is

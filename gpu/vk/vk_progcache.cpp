@@ -1,4 +1,4 @@
-// (longshot) The program cache: timeLink_programs.bin (and its .idx) beside the game, what translation made, kept between runs; its
+// (timelink) The program cache: timeLink_programs.bin (and its .idx) beside the game, what translation made, kept between runs; its
 // reads for play, the precompile, the prediction and the prepare; and the sizes of the prepare's worker pools.
 //
 // Not part of the translator stamp (nx2/translator_files.py: vk_shader.cpp, vk_bank.cpp, vk_state.h and the recompiler's
@@ -45,7 +45,7 @@
 
 namespace mkwvk {
 
-/// (longshot) The cache's own format: raise it with any change to what a record holds or how the file or its index is laid out
+/// (timelink) The cache's own format: raise it with any change to what a record holds or how the file or its index is laid out
 constexpr uint32_t kProgramCacheFormat = 1;
 // (what a record holds as it lies in memory, as format 1 has it: a build that changes one stops here. Raise kProgramCacheFormat, then
 // change these to the new layout)
@@ -73,7 +73,7 @@ uint64_t program_cache_stamp() {
     return stamp;
 }
 
-// ---- (longshot) The program cache, timeLink_programs.bin beside the executable: what translation made, by the key of the
+// ---- (timelink) The program cache, timeLink_programs.bin beside the executable: what translation made, by the key of the
 // stages' code and inputs. A program met for the first time stopped the frame for its translation, 9 s of it each run,
 // the long stutters when walking somewhere (replay workers in jobs_wait for up to 150 ms). The pipelines themselves were
 // already kept (timeLink_vk_pipelines.bin). Written as made; good for this translator (TIMELINK_SHADER_STAMP) and these switches only
@@ -83,7 +83,7 @@ std::mutex disk_mu;
 FILE* disk_in = nullptr;
 std::string disk_path;   // (timeLink_programs.bin: the precompile opens it once a thread)
 std::unordered_map<uint64_t, std::vector<DiskRecord>> disk_records;
-// (longshot) the records program_cache_load and program_cache_load_some took out of disk_records as they read them in: still in the
+// (timelink) the records program_cache_load and program_cache_load_some took out of disk_records as they read them in: still in the
 // file, and still kept programs to the prediction (program_cache_each). Without them a first start's prediction saw none of the
 // programs the state list's notes name, which its own preparation had just read in: "predicted 0 pipelines" on every new build
 std::unordered_map<uint64_t, std::vector<DiskRecord>> disk_taken;
@@ -92,7 +92,7 @@ FILE* disk_out = nullptr;
 FILE* disk_idx = nullptr;
 bool disk_listing = false;
 bool disk_on = false;
-bool disk_zstd = false;   // (longshot) RX_VK_PROGRAM_CACHE_ZSTD=1: records compressed with zstd, timeLink_programs.zst.bin
+bool disk_zstd = false;   // (timelink) RX_VK_PROGRAM_CACHE_ZSTD=1: records compressed with zstd, timeLink_programs.zst.bin
 std::atomic<int64_t> st_cache_hits{0};
 constexpr uint32_t kDiskMagic = 0x31505348;
 constexpr uint32_t kDiskMagicZstd = 0x32505348;   // ("HSP2": a 20-byte record head, key, stored size, kind)
@@ -130,7 +130,7 @@ void disk_init() {
     static std::once_flag once;
     std::call_once(once, [] {
         if (env_on("RX_VK_NO_PROGRAM_CACHE")) return;
-        // (longshot) RX_VK_PROGRAM_CACHE_ZSTD=1: each record compressed with zstd, in a file of its own so that a build
+        // (timelink) RX_VK_PROGRAM_CACHE_ZSTD=1: each record compressed with zstd, in a file of its own so that a build
         // without this switch never reads it. SPIR-V compresses about 7.7x at zstd's level 3.
         disk_zstd = env_on("RX_VK_PROGRAM_CACHE_ZSTD");
         const std::string path = cache_path(disk_zstd ? "timeLink_programs.zst.bin" : "timeLink_programs.bin");   // (vk_paths.h)
@@ -278,7 +278,7 @@ template <class V> void put_list(std::vector<uint8_t>& o, const V& v) {
     for (const auto& e : v) put(o, e);
 }
 
-/// (longshot) A program record's head, what comes before its stages: written and read only here, so that program_cache_read and
+/// (timelink) A program record's head, what comes before its stages: written and read only here, so that program_cache_read and
 /// program_cache_each read the same fields. program_cache_each read only the first ones and took the mesh fallback's five words
 /// for the stage count: no kept program reached the prediction (vk_predict.cpp, "predicted 0 pipelines")
 void put_head(std::vector<uint8_t>& o, const Program& p) {
@@ -322,7 +322,7 @@ void put_info(std::vector<uint8_t>& o, const Shader::Info& i) {
     put(o, (uint64_t)i.handle_programs.size());
     for (const auto& h : i.handle_programs) put_list(o, h);
 }
-/// (longshot) every descriptor array within kMaxDescriptorCount: the counts come from timeLink_programs.bin, and two of 2^31
+/// (timelink) every descriptor array within kMaxDescriptorCount: the counts come from timeLink_programs.bin, and two of 2^31
 /// wrapped the layout's sum to 0 (a push layout with billions of descriptors), and one made the binds loop that often
 constexpr uint32_t kMaxDescriptorCount = 4096;
 template <class Info> bool descriptor_counts_fit(const Info& i) {
@@ -525,7 +525,7 @@ void program_cache_read(FILE* in, std::mutex* mu, uint64_t key, const std::vecto
     }
 }
 
-// ---- (longshot) A compute program's kept variants, read at its first dispatch without their code. A key has up to 64 kept
+// ---- (timelink) A compute program's kept variants, read at its first dispatch without their code. A key has up to 64 kept
 // variants (the texture answers the prepare tried), and the dispatch runs one: which one is decided from each variant's answers
 // and its stage's descriptors (vk_shader.cpp still_valid), not from its SPIR-V. Reading every variant whole and making a module
 // of each was half of what a first dispatch cost on the thread replaying (RTX 3090, a tour with no compute program kept ready:
@@ -699,7 +699,7 @@ void program_cache_load(uint64_t key, std::vector<std::unique_ptr<Program>>& var
     }
 }
 
-// ---- (longshot) The records by position, for the load when the game makes a program (vk_programs.cpp) ----
+// ---- (timelink) The records by position, for the load when the game makes a program (vk_programs.cpp) ----
 bool program_cache_has(uint64_t key) {
     disk_init();
     if (!disk_on) return false;
@@ -835,7 +835,7 @@ size_t program_cache_load_some(const std::unordered_set<uint64_t>& wanted, const
     return n;
 }
 
-/// (longshot) Program key's kept variants made for fn, then let go (modules and layouts): the records stay for play
+/// (timelink) Program key's kept variants made for fn, then let go (modules and layouts): the records stay for play
 void program_cache_borrow(uint64_t key, const std::function<void(Program&)>& fn) {
     std::vector<std::unique_ptr<Program>> variants;
     program_cache_load(key, variants, true);

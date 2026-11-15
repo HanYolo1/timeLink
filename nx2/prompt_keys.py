@@ -1,4 +1,4 @@
-"""(longshot) The keyboard face of the button prompts: which icon each key and the sticks show, and the code points they take
+"""(timelink) The keyboard face of the button prompts: which icon each key and the sticks show, and the code points they take
 (nx2/prompt_draw.py draws them, from Kenney's Input Prompts Keyboard & Mouse font, CC0, third_party/kenney_input_keyboard: the
 keys whose names are words and the mouse's buttons drawn there).
 

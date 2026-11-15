@@ -1,4 +1,4 @@
-// (longshot) NVIDIA DLSS Super Resolution, one of the temporal upscaler's engines (vk_dlss.h). The frame chain it draws
+// (timelink) NVIDIA DLSS Super Resolution, one of the temporal upscaler's engines (vk_dlss.h). The frame chain it draws
 // with (the scene's camera and depth, the inputs, the actor motion, the jitter, the picture into the network's output) is
 // vk_temporal.cpp's; here are NGX, DLSS's feature and its evaluation.
 //
@@ -213,8 +213,8 @@ std::vector<fs::path> runtime_dirs(const fs::path& game) {
 #else
     if (fs::path e = env_path("RX_VK_DLSS_DIR"); !e.empty()) dirs.push_back(e);
     dirs.push_back(game / "ngx");
-    if (fs::path x = env_path("XDG_DATA_HOME"); !x.empty()) dirs.push_back(x / "longshot" / "ngx");
-    else if (fs::path h = env_path("HOME"); !h.empty()) dirs.push_back(h / ".local" / "share" / "longshot" / "ngx");
+    if (fs::path x = env_path("XDG_DATA_HOME"); !x.empty()) dirs.push_back(x / "timelink" / "ngx");
+    else if (fs::path h = env_path("HOME"); !h.empty()) dirs.push_back(h / ".local" / "share" / "timelink" / "ngx");
 #endif
     return dirs;
 }
@@ -806,7 +806,7 @@ void fg_release(Fg& g) {
     g.fw = g.fh = 0;
 }
 
-// (longshot) Why the last set DLSS-G was asked for went to the renderer's own (dlss_fg_skip); none when DLSS-G made it.
+// (timelink) Why the last set DLSS-G was asked for went to the renderer's own (dlss_fg_skip); none when DLSS-G made it.
 // A set with nothing to blend from (a loading hitch) leaves it as it was
 std::atomic<int> fg_skip{FG_SKIP_NONE};
 std::atomic<unsigned> fg_skip_most{0};

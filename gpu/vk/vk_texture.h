@@ -54,14 +54,14 @@ struct Texture {
     // contents
     bool uploaded = false;    // from guest memory, as of upload_gen
     uint32_t upload_gen = 0;
-    uint64_t bc_retry_frame = 0;   // (longshot) a BC3 image whose upload failed: tried again from this frame (vk_texture.cpp)
+    uint64_t bc_retry_frame = 0;   // (timelink) a BC3 image whose upload failed: tried again from this frame (vk_texture.cpp)
     uint64_t map_sig = 0;     // (a texture in a virtual pool: its pages' mapping when last uploaded)
     std::vector<uint64_t> page_map;   // (and each 64 KB page's guest address then: what a remap changed)
     struct Run { uint64_t off, guest, n; };   // (and its storage as runs of contiguous guest memory)
     std::vector<Run> runs;
     uint32_t runs_maps_gen = ~0u;             // (the GPU mappings' generation the runs were made at)
     bool gpu_written = false; // the GPU rendered, copied or stored into it: the image is the content
-    bool only_cleared = false; // (longshot) all the GPU did was clear it: what the CPU writes after still counts (a font cache's glyphs)
+    bool only_cleared = false; // (timelink) all the GPU did was clear it: what the CPU writes after still counts (a font cache's glyphs)
     uint32_t gpu_gen = 0;     // (the memory generation when the GPU last wrote it: CPU writes after it are taken)
     bool released = false;    // its texture was finalized after the GPU wrote it: CPU writes count again
     uint32_t release_gen = 0;
@@ -162,7 +162,7 @@ void copy_block_attachment(VkCommandBuffer cmd, const Texture& tex, VkImage bloc
                            bool to_attachment);
 VkImageView texture_view(Texture* tex, const nvn_tex* t, const nvn_view* v, VkImageViewType view_type, ViewUse use,
                          VkFormat* format_out = nullptr, VkFormat force_format = VK_FORMAT_UNDEFINED);
-/// (longshot) The format rules texture_get and texture_view follow (vk_texture.cpp), shared with the pipeline state list
+/// (timelink) The format rules texture_get and texture_view follow (vk_texture.cpp), shared with the pipeline state list
 VkFormat image_format_of(VkFormat vf, bool astc_decoded);
 VkFormat view_format_of(VkFormat image, bool astc_decoded, bool bc, int view_nvn, ViewUse use, VkFormat force_format);
 /// The format a draw renders in on this device, into a texture of NVN format tex_nvn through a view of NVN format view_nvn
@@ -213,7 +213,7 @@ uint64_t texture_bytes();
 void full_barrier(VkCommandBuffer cmd, const char* why = "barrier (other)");
 /// Full barriers recorded and left out (RX_VK_BARRIER_DEDUPE_OFF=1: none), since the start
 void barrier_stats(int64_t* made, int64_t* left_out);
-/// (longshot) Set around a draw's sampled-texture lookups (vk_draw.cpp): a new ASTC texture there may wait for a later frame
+/// (timelink) Set around a draw's sampled-texture lookups (vk_draw.cpp): a new ASTC texture there may wait for a later frame
 /// once this frame's uploads passed their budget (texture_touch). Never for compute: a dispatch may bake what it reads once
 extern thread_local bool upload_defer_ok;
 /// A draw pass just ended on cmd (end_pass): pass_start_barrier knows nothing else ran after it
@@ -226,7 +226,7 @@ void pass_start_barrier(VkCommandBuffer cmd);
 /// Pass starts with the fragment-stage barrier, since the start
 int64_t pass_barriers_relaxed();
 void texture_stats(int64_t* uploads, int64_t* astc_gpu, int64_t* bytes_uploaded);
-/// (longshot) whether texture_read_texels' walk of r at that row stride (0: the region's own) and its own image stride
+/// (timelink) whether texture_read_texels' walk of r at that row stride (0: the region's own) and its own image stride
 /// stays within avail bytes of the data it is given (overflow-checked: the stride is the game's)
 bool texels_fit(const nvn_tex* t, const NVNcopyRegion* r, uint64_t row, uint64_t avail);
 /// ReadTexels / WriteTexels: the CPU's copy of a region of the texture in guest memory (vk_texture.cpp)

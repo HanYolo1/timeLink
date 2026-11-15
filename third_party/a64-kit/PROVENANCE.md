@@ -20,6 +20,9 @@ Changes made here after the copy (against Hookshot's first import of it, commit 
   history is Hookshot's: `git log 04407384.. -- third_party/a64-kit`.
 - Longshot: `tools/toolchain.py` reads `LONGSHOT_MINGW`, as the rest of Longshot's build sets it, where Hookshot read
   `HOOKSHOT_MINGW` (marked `(longshot)`). The `(hookshot)` markers and comments stay as Hookshot wrote them.
+- timeLink (this fork): `tools/toolchain.py` reads `TIMELINK_MINGW` first, then `LONGSHOT_MINGW` (marked `(timelink)`),
+  as this fork's build renamed every switch from `LONGSHOT_*` to `TIMELINK_*`. Reading only the old name left Windows
+  and cross builds silently on MSVC, since nothing sets `LONGSHOT_MINGW` any more.
 
 So the copy can no longer be refreshed by copying the files again: a refresh keeps these changes, and the tree-sha256
 below is this folder's, not upstream's (python -I scripts/check_third_party.py).
@@ -27,4 +30,4 @@ below is this folder's, not upstream's (python -I scripts/check_third_party.py).
 Licensing: `lift/suyu/arm64_to_c.h` is suyu's (GPL-2.0-or-later, texts in `lift/suyu/`), so `a64emit.dll`, the
 generated runtime and all lifted C are GPL. See `NOTICE.TOTKPort.md`.
 
-tree-sha256: 9e8b8a6500f0b41bd18a55c36d49ab7cc9f5dfd05beff952287acd18a01dacbd
+tree-sha256: b1c684c5ffc229162392d26840bec5a2adbeff1b8b3757bfaf3358c9f01008a1

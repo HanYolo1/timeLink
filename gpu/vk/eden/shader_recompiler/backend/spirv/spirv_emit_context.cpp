@@ -533,7 +533,7 @@ EmitContext::EmitContext(const Profile& profile_, const RuntimeInfo& runtime_inf
     // (RX_VK_MESH_FIRST=1, with RX_VK_MESH_ARGS=1: off, one task program with it hung or ended the game at its first draw)
     if (stage == Stage::Task && !runtime_info.mesh_fallback && env_on("RX_VK_MESH_FIRST") &&
         profile.unified_descriptor_binding && profile.support_int64) {
-        // (longshot) the draw's first task workgroup, read through a pushed address (EmitIsbeRead)
+        // (timelink) the draw's first task workgroup, read through a pushed address (EmitIsbeRead)
         if (!Sirit::ValidId(U64)) { AddCapability(spv::Capability::Int64); U64 = Name(TypeInt(64, false), "u64"); }
         wants_mesh_first = true;
         AddCapability(spv::Capability::PhysicalStorageBufferAddresses);
@@ -1061,7 +1061,7 @@ void EmitContext::DefineWriteStorageCasLoopFunction(const Info& info) {
     write_storage_cas_loop_func = func;
 }
 
-// (longshot) The page table of guest memory for pointers no bound buffer holds: 4 KB pages from this base, a device address each
+// (timelink) The page table of guest memory for pointers no bound buffer holds: 4 KB pages from this base, a device address each
 constexpr unsigned long long kGuestPagesBase = 0x1000000000ull;
 constexpr unsigned long long kGuestPagesBytes = 8ull << 30;
 // (a second window, its entries after the first's: the pools the game's GPU allocator puts at 0x7fxxxxxxxx, where its storage
@@ -1073,7 +1073,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
     if (!info.uses_global_memory || !profile.support_int64) {
         return;
     }
-    // (longshot) A pointer that is in no bound buffer. Eden gave such a load 0, and the game's foliage culling follows pointers read from its
+    // (timelink) A pointer that is in no bound buffer. Eden gave such a load 0, and the game's foliage culling follows pointers read from its
     // storage buffers to all of a forest's data: it read zeros, and left out every tree, fern and blade of grass. The console's GPU just reads
     // memory: here a page table (vk_memory.cpp) takes the guest address to its pool's device address.
     const char* const gp_test{getenv("RX_VK_GP_TEST")};   // (1: the addressing model alone, 2: and the table's load, 3 or unset: all of it)
@@ -1127,7 +1127,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
     // and must end that block (a return). Falls through after it)
     // (RX_VK_FOLLOW_STORES=1: writes and atomics through the table too; off by default, see the storage buffer pass)
     static const bool follow_stores{env_on("RX_VK_FOLLOW_STORES")};
-    // (longshot) size: the access's bytes. An access that runs past its 4 KB page is left to the miss path: the table maps pages one
+    // (timelink) size: the access's bytes. An access that runs past its 4 KB page is left to the miss path: the table maps pages one
     // by one, the next page may be another allocation's or none, and a 16-byte read at a page's end faulted the device (the culling
     // passes 53caac5f, b6122162 at a save's load)
     const auto guest_lookup = [&](Id addr, u32 size, auto&& hit) {
@@ -1401,7 +1401,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
         }
         record_miss(addr);   // (EvilOOT, RX_VK_MISS_LOG: here no buffer held the address)
     }};
-    // (longshot) the helpers below are DontInline: inlined at each of a culling program's hundreds of global accesses, with EvilOOT's
+    // (timelink) the helpers below are DontInline: inlined at each of a culling program's hundreds of global accesses, with EvilOOT's
     // fuller buffer search, NVIDIA's compiler took 41 s on 53caac5f and the driver reset. Lichii PR 408 found the same (161 s for 68 programs)
     const auto define_load{[&](DefPtr ssbo_member, Id element_pointer, Id type, u32 shift) {
         const Id function_type{TypeFunction(type, U64)};
@@ -1460,7 +1460,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
         define(&StorageDefinitions::U32x2, storage_types.U32x2, U32[2], sizeof(u32[2]));
     std::tie(load_global_func_u32x4, write_global_func_u32x4) =
         define(&StorageDefinitions::U32x4, storage_types.U32x4, U32[4], sizeof(u32[4]));
-    // (longshot) the 32-bit atomics' fallbacks, as the loads': the old value, 0 where no buffer holds the address
+    // (timelink) the 32-bit atomics' fallbacks, as the loads': the old value, 0 where no buffer holds the address
     using Atomic = Id (Sirit::Module::*)(Id, Id, Id, Id, Id);
     static constexpr std::array<Atomic, 9> atomics{
         &Sirit::Module::OpAtomicIAdd, &Sirit::Module::OpAtomicSMin, &Sirit::Module::OpAtomicUMin,
@@ -1485,7 +1485,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
             OpFunctionEnd();
             atomic_global_func_u32[i] = func_id;
         }
-        // (longshot) ATOMG.CAS's: the comparator, then the value stored where the word equals it
+        // (timelink) ATOMG.CAS's: the comparator, then the value stored where the word equals it
         const Id function_type{TypeFunction(U32[1], U64, U32[1], U32[1])};
         const Id func_id{OpFunction(U32[1], spv::FunctionControlMask::DontInline, function_type)};
         const Id addr{OpFunctionParameter(U64)};
@@ -1505,7 +1505,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
         OpFunctionEnd();
         atomic_global_cas_func_u32 = func_id;
     }
-    // (longshot) 8- and 16-bit global stores: the aligned 32-bit word is changed in place with a compare-exchange loop, as
+    // (timelink) 8- and 16-bit global stores: the aligned 32-bit word is changed in place with a compare-exchange loop, as
     // the storage buffers' narrow stores are (emit_spirv_memory.cpp). A plain load/store pair loses the other invocations'
     // halves of the word; the console's byte-enabled store does not.
     if (info.stores_global_memory) {
@@ -1560,7 +1560,7 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
         OpFunctionEnd();
         write_global_cas_loop_func = func;
     }
-    // (longshot) RED/ATOM.E.ADD.F32 at an address no buffer was tracked to: the 32-bit atomics' fallback, with the float
+    // (timelink) RED/ATOM.E.ADD.F32 at an address no buffer was tracked to: the 32-bit atomics' fallback, with the float
     // sum made in a compare-exchange loop as the storage buffers' f32_add_cas does, or the GPU's own float add where
     // the storage buffers' adds are (native_f32_add: the f32 views, searched as the u32 ones)
     if (info.stores_global_memory) {
@@ -1880,7 +1880,7 @@ void EmitContext::DefineConstantBufferIndirectFunctions(const Info& info) {
 }
 
 void EmitContext::DefineStorageBuffers(const Info& info, u32& binding) {
-    // (longshot) RED/ATOM.ADD.F32 as the GPU's own float add where it has one, on an f32 view of the buffer: the
+    // (timelink) RED/ATOM.ADD.F32 as the GPU's own float add where it has one, on an f32 view of the buffer: the
     // compare-exchange loop gives up after CAS_LOOP_MAX_TRIES attempts, and an add that gives up is lost. Decided before
     // the early return: DefineGlobalMemoryFunctions' fallback reads it too
     native_f32_add = profile.support_float32_atomic_add && profile.support_descriptor_aliasing && info.uses_atomic_f32_add;
@@ -2437,7 +2437,7 @@ void EmitContext::DefineMesh(const IR::Program& program) {
     for (const u32 line : mesh_info.vertex_lines) {
         mesh_vertex_targets.push_back(target(line, false));
     }
-    // (longshot) A component of a generic output no line writes was undefined at the fragment stage (the console's: 0, and 1 for .w,
+    // (timelink) A component of a generic output no line writes was undefined at the fragment stage (the console's: 0, and 1 for .w,
     // as the vertex stage's defaults here). The foliage is drawn by mesh programs: neon plants. RX_VK_MESH_NO_DEFAULTS=1: as before
     if (!env_on("RX_VK_MESH_NO_DEFAULTS")) {
         std::array<u32, IR::NUM_GENERICS> written{};

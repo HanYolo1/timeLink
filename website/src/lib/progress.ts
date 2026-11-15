@@ -1,5 +1,5 @@
 import { reportEvidence } from './progress-watch.ts';
-export const REPOSITORY = 'MagicBeanDev/Longshot';
+export const REPOSITORY = 'MagicBeanDev/timeLink';
 export const ROOT = `https://git.magicbean.dev/${REPOSITORY}`;
 export const REFRESH_MS = 5 * 60 * 1000;
 export const AREAS = ['Graphics', 'Performance', 'Crashes or startup', 'Sound, controls or saves', 'Controls', 'Audio', 'Setup', 'Documentation'];

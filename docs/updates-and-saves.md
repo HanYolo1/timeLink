@@ -8,7 +8,7 @@ need your copy of the game again, and your saves and settings stay as they are.
 When the launcher starts, it checks for a newer version on your channel. If there is one, press **Update**: it
 downloads the new builder (only the parts that changed) and builds the game again, usually faster than the first time.
 The launcher updates itself the same way. What changed in each version is on
-[timeLink's releases](https://git.magicbean.dev/MagicBeanDev/Longshot/releases).
+[timeLink's releases](https://github.com/HanYolo1/timeLink/releases).
 
 ## Before you update
 

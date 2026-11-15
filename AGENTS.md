@@ -1,6 +1,6 @@
 # Notes for AI coding agents
 
-timeLink lives on the team's Forgejo, [git.magicbean.dev/MagicBeanDev/Longshot](https://git.magicbean.dev/MagicBeanDev/Longshot).
+timeLink lives on the team's Forgejo, [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink).
 Everything in [CONTRIBUTING.md](CONTRIBUTING.md) applies to agents as to everyone, above all **the rule with no
 exceptions: no game files, keys or anything made from them leave the PC.** This page is what agents need on top.
 

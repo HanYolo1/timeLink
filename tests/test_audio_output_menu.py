@@ -128,12 +128,12 @@ def main():
     tab, name, lo, hi, step, text, hint, restart, exempt = row.groups()
     assert (tab, lo, hi, step, text, hint, restart, exempt) == \
         ("AUDIO", "0", "3", "1", "tx_audio_output", "hn_audio_output", "true", "true"), row.groups()
-    host = between(audio, "/* (longshot) The Insert menu's Audio output", "/* The device's format,")
+    host = between(audio, "/* (timelink) The Insert menu's Audio output", "/* The device's format,")
     hints = re.search(r'MENU_HINTS\(hn_audio_output,.*?\)\n(?=\S)', menu, re.S)
     assert hints, "no MENU_HINTS(hn_audio_output, ...)"
     menu_part = between(menu, "/// A row's hints from a table", "const char* tx_framegen(") + hints.group(0) + \
         between(menu, "const char* tx_audio_output(int v) {", "const char* tx_robust(") + \
-        between(menu, "const char* ini_key(const Row& r) {", "// (longshot) the controls, kept by the host")
+        between(menu, "const char* ini_key(const Row& r) {", "// (timelink) the controls, kept by the host")
     menu_part += between(menu, "struct Out {", "/// The choice of size w x h:")
     menu_part += between(menu, "int row_restart_value(const Row& r) {", "void restart_init() {")
     assert "restart_state.add(row_restart_value(rows[i]))" in menu

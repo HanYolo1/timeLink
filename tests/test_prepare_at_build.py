@@ -137,7 +137,7 @@ class SkipTests(unittest.TestCase):
     def test_the_unticked_box(self):
         self.assertIn("unticked", self.skipped({}, flag=True))
 
-    def test_longshot_no_prepare_as_the_game_reads_its_switches(self):
+    def test_timelink_no_prepare_as_the_game_reads_its_switches(self):
         self.assertIsNone(self.skipped({"TIMELINK_NO_PREPARE": "0"}))
         self.assertIsNotNone(self.skipped({"TIMELINK_NO_PREPARE": "1"}))
         self.assertIsNotNone(self.skipped({"TIMELINK_NO_PREPARE": ""}))   # (set, as the game's getenv && strcmp(.., "0"))

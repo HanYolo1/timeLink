@@ -3,7 +3,7 @@ its caches and logs in, loose beside the game, started once. No game: authored p
 
 - cache/, cache/prompts and logs/ are made;
 - the logs go into logs/, the shader and pipeline caches into cache/, the Vulkan pipeline cache renamed from mkw_vk_pipelines* to
-  longshot_vk_pipelines* (its stamp and its play files too), and what a write of it cut short left (.tmp, .tmp-<n>) is deleted;
+  timeLink_vk_pipelines* (its stamp and its play files too), and what a write of it cut short left (.tmp, .tmp-<n>) is deleted;
 - the program cache's old lock files beside the game are deleted (the game locks cache/'s);
 - the button prompts an older build made in prompts/ are deleted (made again in cache/prompts); the build's own prompts stay;
 - the build's files, the settings and the saves stay where they are;
@@ -57,7 +57,7 @@ def game_folder(root, built, in_bin=False):
         (root / name).write_text(name)
     where = root / "bin" if in_bin else root
     where.mkdir(exist_ok=True)
-    exe = where / "longshot"
+    exe = where / "timelink"
     shutil.copy2(built, exe)
     return exe
 
@@ -126,7 +126,7 @@ def main():
         check(game, run(exe))
         assert not (game / "bin" / "cache").exists() and not (game / "bin" / "logs").exists()
     print("PASS: cache/ and logs/ made; the logs and shader caches a build from before left loose moved into them (the Vulkan "
-          "pipeline cache renamed longshot_vk_pipelines*, its cut-short writes and the old prompts deleted); the build's files, "
+          "pipeline cache renamed timeLink_vk_pipelines*, its cut-short writes and the old prompts deleted); the build's files, "
           "settings and saves stay; nothing written over; once only; the folder above bin/")
 
 

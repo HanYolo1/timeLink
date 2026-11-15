@@ -4,7 +4,7 @@ timeLink is a static recompilation of a supported console game: the game's AArch
 code is lifted to C, the Horizon OS and NVN2 are implemented natively, and the GPU work is replayed on Vulkan. No
 emulator is involved, and the game is built on your PC from your own copy.
 
-It lives on the team's Forgejo, [git.magicbean.dev/MagicBeanDev/Longshot](https://git.magicbean.dev/MagicBeanDev/Longshot).
+It lives on the team's Forgejo, [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink).
 This page gets you set up, then covers what to send, how to build and test it, and the rules that keep the project
 out of trouble. The [development guide](docs/development.md) has the full pipeline; the [design notes](docs/design.md)
 have the architecture.
@@ -32,11 +32,11 @@ Five minutes, then a first build.
 1. **Clone:**
 
    ```
-   git clone --depth 1 https://git.magicbean.dev/MagicBeanDev/Longshot.git
+   git clone --depth 1 https://github.com/HanYolo1/timeLink.git
    cd timeLink
    ```
 
-   (jj users: `jj git clone --colocate --depth 1 https://git.magicbean.dev/MagicBeanDev/Longshot.git`.)
+   (jj users: `jj git clone --colocate --depth 1 https://github.com/HanYolo1/timeLink.git`.)
 
    `--depth 1` fetches the newest commit only, not the whole history: about half the download, and half the work for
    git.magicbean.dev. `git pull`, branches and pull requests work as usual. What needs the history: `git log` and
@@ -74,14 +74,14 @@ break.
 |---|---|
 | **Test on other hardware** | NVIDIA cards are the most tested; the README's [status table](README.md#project-status) says what works where, and the [tested configurations catalogue](https://longshot.magicbean.dev/tested-configurations/) lists the runs behind it. Reports from AMD and Intel cards, other drivers, other distributions and SteamOS help even when everything works. Pull requests that need a run on your hardware are queued as [test requests](docs/test-requests.md). |
 | **Play further** | The tested area is the start of the game. Reaching new areas, cutscenes, menus and items finds problems nobody has seen. |
-| **Report what is broken** | Use the [issue forms](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/new/choose): game problem, install or build problem, save problem or idea. Include the version, your hardware, where you were and `timeLink_log.txt`. |
+| **Report what is broken** | Use the [issue forms](https://github.com/HanYolo1/timeLink/issues/new/choose): game problem, install or build problem, save problem or idea. Include the version, your hardware, where you were and `timeLink_log.txt`. |
 | **Send a fix** | Branch, fix, test, open a pull request from your fork ([how](#commits-and-pull-requests)). Small, focused changes are the easiest to review. |
 | **Improve the docs** | The README, the development guide and the design notes are part of the project. |
 
 ## Before you open an issue or a PR
 
 - Try current `main` first: it has every fix so far.
-- Search the [open issues](https://git.magicbean.dev/MagicBeanDev/Longshot/issues). If yours is there, add your
+- Search the [open issues](https://github.com/HanYolo1/timeLink/issues). If yours is there, add your
   details instead of opening another.
 - English, please. One topic per issue or pull request.
 - Report the version you actually ran: the first line of `timeLink_log.txt`.
@@ -96,7 +96,7 @@ memory, see the README's [requirements](README.md#what-you-need): the game alone
 build, driver and scene. Build on an SSD if you can: a hard drive works but takes much longer.
 
 Where a step below needs files from the Builder, use the Windows builder of the newest
-[timeLink release](https://git.magicbean.dev/MagicBeanDev/Longshot/releases).
+[timeLink release](https://github.com/HanYolo1/timeLink/releases).
 
 ### Windows
 
@@ -165,7 +165,7 @@ On Windows, NVIDIA's static `nvsdk_ngx_s.lib` is linked into `timeLink_vk.dll` (
 `nvngx_dlssg.dll` into the game's `ngx` folder; never put NGX's core, `_nvngx.dll`, beside the game. On Linux it is
 `--platform linux` (or `scripts/linux/ngx-sdk.sh`). Never share a game folder built with the SDK. A change to the
 pinned SDK release updates `scripts/ngx_sdk.py`, `tests/test_ngx_sdk.py` and the release named in the timeLink
-Launcher's license text (MagicBeanDev/LongshotLauncher, `App/ViewModels/SettingsStepViewModel.cs`).
+Launcher's license text (MagicBeanDev/timeLink Launcher, `App/ViewModels/SettingsStepViewModel.cs`).
 
 ### timeLink Builder
 
@@ -453,7 +453,7 @@ SDK is not one of them: it is never in the repository ([NVIDIA DLSS](#nvidia-dls
 
 - **Discord:** https://discord.gg/magicbean. Claim work and discuss pull requests in `#dev-work`; `#prs` shows every
   open pull request, kept up to date.
-- **Issues:** [the forms on git.magicbean.dev](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/new/choose).
+- **Issues:** [the forms on git.magicbean.dev](https://github.com/HanYolo1/timeLink/issues/new/choose).
 - **Agents:** [AGENTS.md](AGENTS.md); they post progress to the team chat (`scripts/team_chat.py`).
 
 Thanks for testing, reporting and sending fixes. Every report from a different GPU and every area played further than

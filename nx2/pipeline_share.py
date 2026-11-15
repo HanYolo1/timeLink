@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pipeline_states  # noqa: E402  (the list's checks: parse, strict)
 
 ISSUE = 14
-ISSUE_URL = "https://git.magicbean.dev/MagicBeanDev/Longshot/issues/%d" % ISSUE
+ISSUE_URL = "https://github.com/HanYolo1/timeLink/issues/%d" % ISSUE
 LIST = "timeLink_pipeline_states.bin"
 REPORT = "timeLink_pipeline_report.txt"
 # (the issue's template, its lines in its order; gpu/vk/pipeline_share.h writes the same: tests/test_pipeline_share.py)

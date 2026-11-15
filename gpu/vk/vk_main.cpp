@@ -86,7 +86,7 @@ const MkwVkHost* host;
 int64_t prof_ns[PROF_COUNT];
 Device dev;
 PFN_vkGetInstanceProcAddr instance_proc() { return vkx::instance_proc_addr(); }
-/// (longshot) The driver as it names itself (VkPhysicalDeviceDriverProperties: "NVIDIA 580.95.05", "radv Mesa 25.2.4"), else its
+/// (timelink) The driver as it names itself (VkPhysicalDeviceDriverProperties: "NVIDIA 580.95.05", "radv Mesa 25.2.4"), else its
 /// version number: the log's "vk: driver:" line and the menu's Save my pipeline list (vk_menu.cpp)
 std::string driver_text() {
     VkPhysicalDeviceDriverProperties drv{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES};
@@ -103,7 +103,7 @@ std::string driver_text() {
     return info.empty() ? name : name.empty() ? info : name + " " + info;
 }
 
-/// (longshot) Milliseconds on the steady clock: the log's last line and the preparation's watchdog
+/// (timelink) Milliseconds on the steady clock: the log's last line and the preparation's watchdog
 int64_t steady_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
@@ -166,13 +166,13 @@ bool create_instance() {
     VkInstanceCreateInfo ci{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     ci.pApplicationInfo = &app;
     std::vector<const char*> ext_list(exts, exts + n_exts);
-    {   // (longshot) what NVIDIA DLSS needs (vk_dlss.cpp; nothing in a build without it)
+    {   // (timelink) what NVIDIA DLSS needs (vk_dlss.cpp; nothing in a build without it)
         uint32_t n = 0;
         vkEnumerateInstanceExtensionProperties(nullptr, &n, nullptr);
         std::vector<VkExtensionProperties> all(n);
         vkEnumerateInstanceExtensionProperties(nullptr, &n, all.data());
         dlss_instance_extensions(ext_list, all);
-        // (longshot) the HDR10 colour space for the Insert menu's HDR (the menu's settings are read after the instance is made, so
+        // (timelink) the HDR10 colour space for the Insert menu's HDR (the menu's settings are read after the instance is made, so
         // whenever the driver has it; the SDR choice in create_swapchain keeps to the sRGB surface)
         if (has_extension(all, VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME))
             ext_list.push_back(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME), dev.swapchain_colorspace = true;
@@ -259,7 +259,7 @@ bool pick_device() {
     return true;
 }
 
-/// (longshot) Whether the shaders' float adds to storage buffers are asked to be the GPU's own atomic (create_device):
+/// (timelink) Whether the shaders' float adds to storage buffers are asked to be the GPU's own atomic (create_device):
 /// RX_VK_NATIVE_FADD by the switches' rule (timeLink_env.h env_value_off: 0, false, off, no or empty is off, any other
 /// value on); unset, with NVIDIA's driver (an RTX 4090 in Kakariko and on Death Mountain Trail) and with Intel's Windows
 /// driver on the GPU families it was run on: the Xe-LPG iGPUs of Meteor Lake and Arrow Lake (PCI device 0x7Dxx; run on a
@@ -349,7 +349,7 @@ bool create_device() {
     optional(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME, dev.stencil_export);
     optional(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, dev.memory_budget);
     optional(VK_EXT_IMAGE_2D_VIEW_OF_3D_EXTENSION_NAME, dev.view_2d_of_3d);
-    // (longshot) on by default: with a marker before each draw and dispatch the device has not been lost (five
+    // (timelink) on by default: with a marker before each draw and dispatch the device has not been lost (five
     // runs); without them it was, every run, shortly after OoT's first gameplay frames (nvlddmkm event 153; the
     // extension alone, RX_VK_CHECKPOINTS=ext, did not keep it). The race they hide is not found yet.
     // RX_VK_CHECKPOINTS=0: off
@@ -360,7 +360,7 @@ bool create_device() {
         optional(VK_AMD_BUFFER_MARKER_EXTENSION_NAME, dev.buffer_marker);
     optional(VK_EXT_DEVICE_FAULT_EXTENSION_NAME, dev.device_fault);
     optional(VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME, dev.coop_matrix);
-    // (longshot) the GPU's own float add on storage buffers: the game's RED/ATOM.ADD.F32 become one OpAtomicFAddEXT instead
+    // (timelink) the GPU's own float add on storage buffers: the game's RED/ATOM.ADD.F32 become one OpAtomicFAddEXT instead
     // of a compare-exchange loop, which gives up after CAS_LOOP_MAX_TRIES attempts and loses that add (eden
     // spirv_emit_context.cpp DefineStorageBuffers). By default with NVIDIA's driver, and Intel's Windows driver on the
     // Meteor Lake and Arrow Lake iGPUs (native_fadd_wanted); RX_VK_NATIVE_FADD=1 asks for it on any GPU, =0 keeps the loop
@@ -398,7 +398,7 @@ bool create_device() {
     q.queueFamilyIndex = dev.queue_family;
     q.queueCount = 1;
     q.pQueuePriorities = &priority;
-    // (longshot) The presents on a queue of a compute family of their own, beside the replay's (RX_VK_PRESENT_QUEUE=1 / 0: on /
+    // (timelink) The presents on a queue of a compute family of their own, beside the replay's (RX_VK_PRESENT_QUEUE=1 / 0: on /
     // off; on by default with NVIDIA's driver on Windows, where it was measured). On the replay's queue vkQueuePresentKHR blocked
     // with dev.present_mu held, ~0.8 ms a present with frame interpolation at 4x and up to 8, and the game's main and presentation
     // threads waited there to submit. A second queue of the graphics family took that lock off the presents, but its presents
@@ -423,7 +423,7 @@ bool create_device() {
             if ((families[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && !(families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT))
                 compute_family = i;
     }
-    // (longshot) The presenter thread's own queue (vk_replay.cpp; RX_VK_PRESENT_THREAD=0: none): a second queue of the replay's
+    // (timelink) The presenter thread's own queue (vk_replay.cpp; RX_VK_PRESENT_THREAD=0: none): a second queue of the replay's
     // family (NVIDIA's has 16), else a queue of a compute-only family (RADV: one graphics queue), its family's next free one. A
     // device without either presents on the game's thread, as before
     const char* pt_env = getenv("RX_VK_PRESENT_THREAD");
@@ -561,7 +561,7 @@ bool create_device() {
     pv.transformFeedbackPreservesProvokingVertex = VK_FALSE;
     dev.provoking_vertex = dev.provoking_vertex && pv.provokingVertexLast;
     dev.conditional_rendering = dev.conditional_rendering && cond.conditionalRendering;
-    // (longshot) the occlusion queries' real counts (vk_replay.cpp, RX_VK_OCC_QUERIES): a sample count, not only "any", and
+    // (timelink) the occlusion queries' real counts (vk_replay.cpp, RX_VK_OCC_QUERIES): a sample count, not only "any", and
     // their reset from the CPU once read (both on when the device has them: the queried chain is what it is created with)
     dev.occlusion_precise = f.features.occlusionQueryPrecise == VK_TRUE;
     dev.host_query_reset = f12.hostQueryReset == VK_TRUE;
@@ -579,7 +579,7 @@ bool create_device() {
     dev.eds3_clamp = dev.dynamic_state3 && eds3.extendedDynamicState3DepthClampEnable;
     dev.eds3_blend = dev.dynamic_state3 && eds3.extendedDynamicState3ColorBlendEnable &&
                      eds3.extendedDynamicState3ColorBlendEquation && eds3.extendedDynamicState3ColorWriteMask;
-    {   // (longshot) the vendor and driver workarounds this device needs: vk_vendor.h, each forced by its RX_VK_ switch
+    {   // (timelink) the vendor and driver workarounds this device needs: vk_vendor.h, each forced by its RX_VK_ switch
         VkPhysicalDeviceDriverProperties drv{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES};
         VkPhysicalDeviceProperties2 p2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
         p2.pNext = &drv;
@@ -709,7 +709,7 @@ std::string device_report_text() {
     if (drv.driverInfo[0]) text += std::string(" ") + drv.driverInfo;
     return text;
 }
-/// (longshot) The UNORM format of an sRGB one (the same bytes, read and written as they are), else the format itself
+/// (timelink) The UNORM format of an sRGB one (the same bytes, read and written as they are), else the format itself
 VkFormat unorm_of(VkFormat f) {
     switch (f) {
     case VK_FORMAT_B8G8R8A8_SRGB: return VK_FORMAT_B8G8R8A8_UNORM;
@@ -718,13 +718,13 @@ VkFormat unorm_of(VkFormat f) {
     default: return f;
     }
 }
-/// (longshot) The views of the swapchain's images let go (before the swapchain they view: the device idle already)
+/// (timelink) The views of the swapchain's images let go (before the swapchain they view: the device idle already)
 void swap_views_drop() {
     for (auto view : dev.swap_views)
         if (view) vkDestroyImageView(dev.device, view, nullptr);
     dev.swap_views.clear();
 }
-/// (longshot) A view of each of the swapchain's images, for Dear ImGui's overlays (vk_imgui.cpp), when they can be drawn into,
+/// (timelink) A view of each of the swapchain's images, for Dear ImGui's overlays (vk_imgui.cpp), when they can be drawn into,
 /// in the format given (the swapchain's, or its UNORM one when the swapchain was made mutable)
 void swap_views_make(VkImageUsageFlags usage, VkFormat format) {
     swap_views_drop();
@@ -741,12 +741,12 @@ void swap_views_make(VkImageUsageFlags usage, VkFormat format) {
     }
 }
 
-/// (longshot) Frame generation as the swapchain is made for it: the fixed multiplier, 2 to 4 (more takes no more images), or 0
+/// (timelink) Frame generation as the swapchain is made for it: the fixed multiplier, 2 to 4 (more takes no more images), or 0
 /// for off and Auto. Its present mode under V-Sync Auto and its spare images follow it; present_image makes the swapchain
 /// again when it changes
 int swapchain_framegen() { return opts.framegen >= 2 ? std::min(opts.framegen, 4) : 0; }
 
-/// (longshot) Whether the swapchain is made for NVIDIA DLSS Frame Generation: a fixed multiplier, and DLSS-G making the sets
+/// (timelink) Whether the swapchain is made for NVIDIA DLSS Frame Generation: a fixed multiplier, and DLSS-G making the sets
 /// (vk_dlss.cpp dlss_fg_runs: asked for, on a device it runs on, its runtime making as many frames as the multiplier asks).
 /// V-Sync Auto is FIFO for it, where it was measured; the renderer's own methods and other GPUs keep Auto's mailbox (or
 /// immediate), and so does DLSS-G asked for more frames than its runtime makes, which the renderer's own then makes.
@@ -833,7 +833,7 @@ bool create_swapchain(uint32_t width, uint32_t height) {
         if ((f.format == VK_FORMAT_B8G8R8A8_UNORM || f.format == VK_FORMAT_R8G8B8A8_UNORM) &&
             f.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             fmt = f;
-    // (longshot) the Insert menu's HDR: a 10-bit HDR10 surface when the display lists one (Windows: "Use HDR" on in its display
+    // (timelink) the Insert menu's HDR: a 10-bit HDR10 surface when the display lists one (Windows: "Use HDR" on in its display
     // settings), the picture then written by framegen_hdr. Otherwise the SDR one above, said once
     dev.hdr = false;
     if (opts.hdr) {
@@ -863,11 +863,11 @@ bool create_swapchain(uint32_t width, uint32_t height) {
     if (invalidate_lost_surface(result)) return false;
     if (result != VK_SUCCESS || modes.empty())
         logf("vk: querying present modes failed (VkResult %d, count %u); trying mandatory FIFO mode", (int)result, n);
-    // (longshot) the Insert menu's V-Sync (menu_vsync: RX_VK_FIFO=1 On, RX_VK_IMMEDIATE=1 Off for a run): On is FIFO, as on a
+    // (timelink) the Insert menu's V-Sync (menu_vsync: RX_VK_FIFO=1 On, RX_VK_IMMEDIATE=1 Off for a run): On is FIFO, as on a
     // card or driver with vsync forced; Auto and Off as below. FIFO is the one mode every driver has
     VkPresentModeKHR mode = VK_PRESENT_MODE_FIFO_KHR;
     const int vsync = menu_vsync();
-    // (longshot) V-Sync Auto with DLSS Frame Generation at 2x and up: FIFO. Mailbox, NVIDIA's Fast Sync, puts the made frames on
+    // (timelink) V-Sync Auto with DLSS Frame Generation at 2x and up: FIFO. Mailbox, NVIDIA's Fast Sync, puts the made frames on
     // the refresh grid whenever they come slower than the display (DLSS Frame Gen 3x: ~135 shown on a 165 Hz screen), so evenly
     // timed presents still reached the screen unevenly; FIFO on a VRR display shows each one when it is presented. Only where
     // that was measured (swapchain_dlssg): the renderer's own frame generation and other GPUs keep Auto as it was, also when
@@ -896,7 +896,7 @@ bool create_swapchain(uint32_t width, uint32_t height) {
     VkSwapchainCreateInfoKHR ci{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
     ci.surface = dev.surface;
     ci.minImageCount = std::max(caps.minImageCount, 4u);   // (timeLink: mailbox with frame interpolation: an image always free)
-    // (longshot) A fixed frame generation multiplier's set is presented ahead (vk_framegen.cpp present_ahead_wanted): each
+    // (timelink) A fixed frame generation multiplier's set is presented ahead (vk_framegen.cpp present_ahead_wanted): each
     // of its frames holds an image from the copy to its present, so the set needs as many spare images as it has frames. 3x
     // and 4x ask for that many over the surface's least (an NVIDIA surface: 5 and 6 images); a set the chain cannot hold is
     // shown one at a time as before
@@ -910,7 +910,7 @@ bool create_swapchain(uint32_t width, uint32_t height) {
     // The renderer copies into swapchain images. Readback is optional and only available on surfaces that allow it.
     if (caps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
         ci.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-    // (longshot) the overlays Dear ImGui draws (vk_imgui.cpp) render into it. Every surface allows it (the Vulkan spec)
+    // (timelink) the overlays Dear ImGui draws (vk_imgui.cpp) render into it. Every surface allows it (the Vulkan spec)
     if (caps.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
         ci.imageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     ci.preTransform = caps.currentTransform;
@@ -939,7 +939,7 @@ bool create_swapchain(uint32_t width, uint32_t height) {
     }
     ci.clipped = VK_TRUE;
     ci.oldSwapchain = dev.swapchain;
-    // (longshot) an sRGB swapchain (some drivers list no UNORM format) made mutable when the driver can: the overlays draw
+    // (timelink) an sRGB swapchain (some drivers list no UNORM format) made mutable when the driver can: the overlays draw
     // through UNORM views, their colours as they are, as on a UNORM swapchain. Without it, vk_imgui.cpp makes them linear
     const VkFormat view_formats[2] = {fmt.format, unorm_of(fmt.format)};
     VkImageFormatListCreateInfo format_list{VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO};
@@ -999,12 +999,12 @@ bool create_swapchain(uint32_t width, uint32_t height) {
 namespace {
 
 HWND main_window = nullptr;
-// (longshot) timeLink --prepare-shaders (a builder, after a build): the same work with no game, its progress as
+// (timelink) timeLink --prepare-shaders (a builder, after a build): the same work with no game, its progress as
 // "@@progress" lines on stdout. A skip there leaves timeLink_prepare_skipped beside the game: its own starts then
 // leave the work out too (what was not prepared is built when first drawn), until a --prepare-shaders run ends it
 bool prepare_only() { return env_on("TIMELINK_PREPARE_ONLY"); }
 std::string skipped_path() { return cache_path("timeLink_prepare_skipped"); }
-// (longshot) The --prepare-shaders run's watchdog, for any GPU and any part of it.
+// (timelink) The --prepare-shaders run's watchdog, for any GPU and any part of it.
 // - What it waits on, in the log the builder shows: every 30 s that nothing has moved, the part, its count, and whether the
 //   GPU driver faulted; a driver fault as soon as it is caught. (The pipeline steps log their own progress every 10 s,
 //   vk_draw.cpp prepare_progress_log, #2186; this adds the shader programs' count when the log has been quiet for 30 s.)
@@ -1130,7 +1130,7 @@ void prepare_watchdog() {
         }
     }).detach();
 }
-// (longshot) The first start after an update prepares every shader (prepare_run) and the pipelines the last sessions noted
+// (timelink) The first start after an update prepares every shader (prepare_run) and the pipelines the last sessions noted
 // (precompile_run): a minute and more, before the game's first frame. They run on a thread of their own while this one, the
 // renderer's start, shows the window at once with what they are doing on it, and keeps it shown and sized; on Windows it is also
 // the window's thread, and handles its messages meanwhile (it would not answer otherwise). Closing the window stops them
@@ -1443,7 +1443,7 @@ bool open_window_surface(bool log_failure) {
     return true;
 }
 
-/// (longshot) What this PC reports about itself, for the Quality preset Auto (this PC) (auto_settings.h, vk_menu.cpp
+/// (timelink) What this PC reports about itself, for the Quality preset Auto (this PC) (auto_settings.h, vk_menu.cpp
 /// menu_auto_for_gpu): once, when the window is known (its screen's size and refresh), the card already chosen
 void auto_profile() {
     static bool done;
@@ -1556,7 +1556,7 @@ MkwVkRenderer table;
 } // namespace
 } // namespace mkwvk
 
-// (longshot) The window is being closed (host/display.c, host/posix/display_sdl.c, before they end the process): while the
+// (timelink) The window is being closed (host/display.c, host/posix/display_sdl.c, before they end the process): while the
 // shaders are prepared, their workers are stopped and what they made is kept first (10 s at most: a driver can take longer on one
 // pipeline). Looked up by name, so an executable and a back end of different versions still close
 extern "C"
@@ -1645,7 +1645,7 @@ const MkwVkRenderer* mkwvk_init(const MkwVkHost* h) {
 namespace mkwvk {
 HWND app_window() { return main_window; }   // (timeLink: the Insert menu's Fullscreen row)
 
-/// (longshot) The refresh rate of the display the window is on, in mHz; 0 when not known (frame generation's Auto). Asked
+/// (timelink) The refresh rate of the display the window is on, in mHz; 0 when not known (frame generation's Auto). Asked
 /// again once a second at most: the window may move to another display, and Windows' answer costs a few system calls
 int display_refresh_mhz() {
     static std::atomic<int> cached{0};

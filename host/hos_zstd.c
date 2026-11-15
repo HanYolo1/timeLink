@@ -1,4 +1,4 @@
-/* (longshot) The game's zstd stream decode on the host's libzstd (third_party/zstd 1.5.7): HOS_NATIVE_ZSTD=1.
+/* (timelink) The game's zstd stream decode on the host's libzstd (third_party/zstd 1.5.7): HOS_NATIVE_ZSTD=1.
 
    The game decodes its .zs files on ParallelDecompThread: a job loop (f_80115bf0) hands each compressed chunk it has read to
    f_80115c80, the game's own wrapper around zstd's buffer-less streaming API (decompressBegin_usingDDict,

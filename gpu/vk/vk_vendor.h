@@ -1,4 +1,4 @@
-// (longshot) Workarounds for one GPU vendor's or driver's behaviour, chosen from the device's properties alone: who made it
+// (timelink) Workarounds for one GPU vendor's or driver's behaviour, chosen from the device's properties alone: who made it
 // (vendorID), whose driver it runs (driverID, and driverInfo where a driver names its compiler) and what kind of GPU it is.
 // vendor_fixes() is plain code with no Vulkan calls, so tests/test_vendor_fixes.py runs it on made-up devices: each fix on
 // the GPUs it is for and on no other, and NVIDIA's driver with none of them (the GPU every row of the game was checked on).

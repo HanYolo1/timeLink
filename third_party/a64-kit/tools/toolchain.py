@@ -17,8 +17,12 @@ def mingw(host=False):
     """(hookshot) HOOKSHOT_MINGW=<llvm-mingw folder>: Windows builds with that toolchain's clang, headers and libraries (the GNU ABI
     on the UCRT), as TotK Recomp's installer does: nothing of Visual Studio or the Windows SDK is needed. Empty: the MSVC target.
     host: for a tool the build itself runs (zbic, a64emit), which a cross build makes for this PC, not for Windows"""
-    # (longshot) the variable is LONGSHOT_MINGW, as the rest of Longshot's build sets it (Hookshot's was HOOKSHOT_MINGW)
-    return os.environ.get("LONGSHOT_MINGW", "") if windows() and not (host and os.name != "nt") else ""
+    # (timelink) the variable is TIMELINK_MINGW, as the rest of timeLink's build sets it (Longshot's was LONGSHOT_MINGW,
+    # Hookshot's HOOKSHOT_MINGW)
+    for name in ("TIMELINK_MINGW", "LONGSHOT_MINGW"):
+        if os.environ.get(name):
+            return os.environ[name] if windows() and not (host and os.name != "nt") else ""
+    return ""
 
 
 def find(tool, host=False):

@@ -66,7 +66,7 @@ bool SplitFallbackOn() {
     static const bool on = !std::getenv("RX_VK_PTR_SPLIT_FALLBACK") || std::atoi(std::getenv("RX_VK_PTR_SPLIT_FALLBACK")) != 0;
     return on;
 }
-/// (longshot) Switches for the analysis ported from Fritchii (Frizti/Fritchii), read once. EDEN_* variables are part of the
+/// (timelink) Switches for the analysis ported from Fritchii (Frizti/Fritchii), read once. EDEN_* variables are part of the
 /// program cache's key (vk_shader.cpp disk_stamp), so a change translates the programs again.
 ///   EDEN_NX2_GM_LEGACY=0     the port (default 1 since v2.0.4: the tracking as before the port (NVN-biased, then unbiased search; no pairing, no native rules)
 ///   EDEN_NX2_GM_NATIVE=0     the pairing, but not the native-program rules (mapped pointers, candidates bound together)
@@ -82,7 +82,7 @@ bool GmLegacy() {
     static const bool on{EnvSwitch("EDEN_NX2_GM_LEGACY", true)};
     return on;
 }
-/// (longshot) The tracking a stage gets. EDEN_NX2_GM_LEGACY=0/1: the port / the tracking as before, for every stage. Unset: the port
+/// (timelink) The tracking a stage gets. EDEN_NX2_GM_LEGACY=0/1: the port / the tracking as before, for every stage. Unset: the port
 /// for the geometry and compute stages, the tracking as before for the fragment stage. The port placed the trees and terrain right
 /// (v2.0.3: no floating trees, issue #729) and the dark characters were lighting, which the fragment stage reads (light probes).
 /// EDEN_NX2_GM_SPLIT=1: that split; unset or 0: the tracking as before everywhere (v2.0.4/v2.0.5's default). Off by default again
@@ -158,11 +158,11 @@ struct StorageInfo {
     std::unordered_map<const IR::Inst*, small_vector<StorageBufferAddr, 4>> native_candidates;
     /// A native access with several candidate pointers was left global.
     bool native_runtime_bounds{};
-    /// (longshot) Fritchii's analysis (pointer pairing, iterator words, atomics' pointers): off, the old tracks alone
+    /// (timelink) Fritchii's analysis (pointer pairing, iterator words, atomics' pointers): off, the old tracks alone
     bool pairing{true};
-    /// (longshot) Fritchii's native-program rules (Environment::IsNativeProgram): pointers must be mapped, candidates
+    /// (timelink) Fritchii's native-program rules (Environment::IsNativeProgram): pointers must be mapped, candidates
     bool native{};
-    /// (longshot) Several candidates of an access, and the tracked side of a split one, are bound; cleared when they
+    /// (timelink) Several candidates of an access, and the tracked side of a split one, are bound; cleared when they
     /// would leave too few bindings (Lichii #421: the first result kept instead of overflowing MAX_SSBOS)
     bool bind_candidates{true};
     /// (timeLink, Lichii #410) the tracked side of a split access is bound (see CollectStorageBuffers)
@@ -500,7 +500,7 @@ std::optional<StorageBufferAddr> Track(const IR::Value& value, const Bias* bias,
     return BreadthFirstSearch(value, pred, stop_at_memory);
 }
 
-/// (longshot) A low address read from a storage buffer table: GetCbuf(index, x * 16 + base), x a run-time value
+/// (timelink) A low address read from a storage buffer table: GetCbuf(index, x * 16 + base), x a run-time value
 std::optional<StorageBufferAddr> TrackTable(const IR::Value& value) {
     const auto pred{[](const IR::Inst* inst) -> std::optional<StorageBufferAddr> {
         if (inst->GetOpcode() != IR::Opcode::GetCbufU32 && inst->GetOpcode() != IR::Opcode::GetCbufU32x2) {
@@ -1385,7 +1385,7 @@ void CollectStorageBuffers(IR::Block& block, IR::Inst& inst, StorageInfo& info, 
         }
     }
     const IR::U32 low_addr{low_addr_info->value};
-    // (longshot) Left global: found by its address at run time (the bound buffers, the program's tables, the page table).
+    // (timelink) Left global: found by its address at run time (the bound buffers, the program's tables, the page table).
     // The table the address is read from, if it is, is kept for that search, as on every way to the run-time search.
     const auto leave_global{[&] {
         bool table_found{};
@@ -1485,7 +1485,7 @@ void CollectStorageBuffers(IR::Block& block, IR::Inst& inst, StorageInfo& info, 
     if (!storage_buffer) {
         // If it fails, track without a bias
         storage_buffer = not_c1(cached_track(nullptr, info.unbiased_tracks));
-        // (longshot) A float add has no run-time search: its fallback stores nothing, so where the search above found only a c1
+        // (timelink) A float add has no run-time search: its fallback stores nothing, so where the search above found only a c1
         // word the sum was lost. OoT's 499dbfd0721d2858 adds the sky's spherical harmonics (the outdoor ambient light) at
         // c0+0x20's buffer plus a c1 offset: the c0 pointer beside that offset is the base. Without it the scene lost its
         // ambient light and the exposure lifted the dark night until it looked like day. EDEN_F32_ADD_TRACK=0: as before

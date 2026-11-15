@@ -82,7 +82,7 @@ extern uint64_t hos_space_end;   /* web: the guest window ends where the host's 
 #else
 #define HOS_SPACE_END 0x8000000000ULL
 #endif
-/* (longshot) host pointer of the n guest bytes at a, NULL unless all of them lie in the guest window. For addresses
+/* (timelink) host pointer of the n guest bytes at a, NULL unless all of them lie in the guest window. For addresses
    and sizes host code takes from guest memory or arguments before it reads or writes there: GP alone wraps around
    to any host address. */
 static inline void *hos_guest_range(uint64_t a, uint64_t n) {
@@ -104,7 +104,7 @@ void hos_fatal(Ctx *c, const char *fmt, ...);
 
 /* ---- guest memory (hos_mem.c) */
 uint64_t hos_sys_alloc(uint64_t size, uint64_t align);     /* zeroed, from the system region; hos_sys_free gives it back */
-void hos_sys_free(uint64_t addr, uint64_t size);            /* (longshot) a block hos_sys_alloc gave, for the next of its size */
+void hos_sys_free(uint64_t addr, uint64_t size);            /* (timelink) a block hos_sys_alloc gave, for the next of its size */
 uint64_t hos_region_alloc(uint64_t size, uint64_t align);  /* address space above the heap */
 void hos_region_free(uint64_t addr);
 int hos_regions(uint64_t (*out)[2], int cap);   /* the regions: {start, end}, at most cap; how many */

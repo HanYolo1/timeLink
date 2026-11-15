@@ -203,7 +203,7 @@ def documented_example_checks(exe, tmp):
         dest.write_text(text, encoding="utf-8")
     mods = tmp / "mods"
     (tmp / "romfs").mkdir()
-    env = dict(os.environ, TEST_GAME_EXE=str(tmp / "longshot"), TEST_ROMFS=str(tmp / "romfs"))
+    env = dict(os.environ, TEST_GAME_EXE=str(tmp / "timelink"), TEST_ROMFS=str(tmp / "romfs"))
     expected = {
         "Example/message.txt": "nested mod wins by its full path\n",
         "Example/only-first.txt": "kept from the first mod\n",
@@ -334,7 +334,7 @@ int main(int argc, char **argv) {
             for rel, data in files.items():
                 (top / "mods" / folder / "romfs" / rel).parent.mkdir(parents=True, exist_ok=True)
                 (top / "mods" / folder / "romfs" / rel).write_bytes(data)
-        env = dict(os.environ, TEST_GAME_EXE=str(game / "longshot"), HOS_MODS=str(top / "mods"), TEST_ROMFS=str(game / "romfs"))
+        env = dict(os.environ, TEST_GAME_EXE=str(game / "timelink"), HOS_MODS=str(top / "mods"), TEST_ROMFS=str(game / "romfs"))
         out = subprocess.run([str(exe), *opens], env=env, check=True, capture_output=True, text=True, timeout=60).stdout
         served = {}
         for line in out.splitlines():

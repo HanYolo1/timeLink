@@ -1,4 +1,4 @@
-/* (longshot) The control bridge: HOS_CONTROL=<socket path> lets a tool on the same PC (a test, a script, a coding agent)
+/* (timelink) The control bridge: HOS_CONTROL=<socket path> lets a tool on the same PC (a test, a script, a coding agent)
    drive the running game and read its state over a local socket, instead of a file the game polls (HOS_INPUT_LIVE) and its
    log scraped for the frame rate and draw counts. docs/control.md has the protocol; scripts/timeLink_ctl.py is a client.
 
@@ -291,7 +291,7 @@ typedef struct Conn {
 #ifdef _WIN32
     HANDLE pipe;
     OVERLAPPED rov;
-    HANDLE write_event;   /* (longshot) the write's event, made once with the connection */
+    HANDLE write_event;   /* (timelink) the write's event, made once with the connection */
     char rbuf[4096];
     int reading;
 #else
@@ -2206,7 +2206,7 @@ static void conn_write(Conn *c) {   /* (blocking, two seconds at most: the bridg
     if (!c->out.n || c->closing) return;
     OVERLAPPED ov;
     memset(&ov, 0, sizeof ov);
-    /* (longshot) The event is the connection's, made with it and closed with it: one CreateEvent/CloseHandle a reply was
+    /* (timelink) The event is the connection's, made with it and closed with it: one CreateEvent/CloseHandle a reply was
        churn on the bridge's thread, and the handle table's growth with it */
     if (!c->write_event) c->write_event = CreateEventA(NULL, TRUE, FALSE, NULL);
     ov.hEvent = c->write_event;

@@ -76,7 +76,7 @@ int hos_mem_region(uint64_t addr, uint64_t size) {
     return cls;
 }
 
-/* (longshot) The system region is a bump allocator, and a guest thread's blocks (its TLS block, TLR, ThreadType and stack,
+/* (timelink) The system region is a bump allocator, and a guest thread's blocks (its TLS block, TLR, ThreadType and stack,
    ~4 KB + the stack) were never given back: a game that makes and destroys threads ran the region out and hos_sys_alloc
    stopped the process. Freed blocks go on a first-fit list, and a later allocation of the same size takes one (zeroed, as a
    fresh one is). The list is small: a thread's four blocks, and the few other one-off allocations. */
@@ -114,7 +114,7 @@ uint64_t hos_sys_alloc(uint64_t size, uint64_t align) {
     return a;
 }
 
-/* (longshot) A block hos_sys_alloc gave back, for the next allocation of its size or less. 0: nothing to give back */
+/* (timelink) A block hos_sys_alloc gave back, for the next allocation of its size or less. 0: nothing to give back */
 void hos_sys_free(uint64_t addr, uint64_t size) {
     if (!addr || !size || addr < HOS_SYSTEM_BASE || addr + size > HOS_SYSTEM_END) return;
     SysFree *f = (SysFree *)calloc(1, sizeof *f);
@@ -213,7 +213,7 @@ static void discard_pages(uint64_t addr, uint64_t size) {
 #endif
 }
 
-/* (longshot) the address regions (hos_region_alloc's), at most cap of them into out ({start, end}); how many there are. For
+/* (timelink) the address regions (hos_region_alloc's), at most cap of them into out ({start, end}); how many there are. For
    host/prompts.c: where the game keeps its resources */
 int hos_regions(uint64_t (*out)[2], int cap) {
     LOCK();
@@ -236,7 +236,7 @@ void hos_region_free(uint64_t addr) {
             break;
         }
     }
-    /* (longshot) region_floor is the lowest region, and the heap may not grow past it. It was only ever lowered, so after
+    /* (timelink) region_floor is the lowest region, and the heap may not grow past it. It was only ever lowered, so after
        the lowest region was freed the heap could never grow back into that space: recomputed here from what is left. */
     if (freed_size) {
         uint64_t floor = ~0ULL;
@@ -260,7 +260,7 @@ void hos_mark_written(const void *p, size_t n) {
 }
 #endif
 
-/* (longshot) a heap of size bytes ends below the address regions and the guest window's end (no wrap-around: the size
+/* (timelink) a heap of size bytes ends below the address regions and the guest window's end (no wrap-around: the size
    comes from the game). Also svc SetHeapSize's check (hos_svc.c) */
 int hos_heap_size_fits(uint64_t size) {
     const uint64_t limit = region_floor < HOS_SPACE_END ? region_floor : HOS_SPACE_END;
@@ -287,7 +287,7 @@ HLE(_ZN2nn2os17SetMemoryHeapSizeEm) {
         for (uint64_t a = HOS_HEAP_BASE + hos_heap_size; a < HOS_HEAP_BASE + size; a += 4096) *(volatile uint8_t *)GP(a) = 0;
         hos_log("heap: %llu MB prefaulted in %.0f ms", (unsigned long long)((size - hos_heap_size) >> 20), (hos_now_ns() - t0) / 1e6);
     }
-    /* (longshot) Windows: the heap is left reserved and committed as it is touched (mkw_glue.c commit_on_touch), not all at
+    /* (timelink) Windows: the heap is left reserved and committed as it is touched (mkw_glue.c commit_on_touch), not all at
        once. OoT asks for ~6.9 GB and touches a fraction of it; committed, all of it counted against RAM plus the page file
        (a 12 GB commit charge at the title screen against a 5 GB working set), and players hit "out of memory" with GBs of
        RAM free. Host calls that hand guest memory to the kernel (nn_fs.c ReadFile/WriteFile) commit their range first.
@@ -379,7 +379,7 @@ static void pages_report_locked(void) {
     }
 }
 
-/* (longshot) what the game is told it uses: base (its program, and the system's share) plus the heap and its mapped pages;
+/* (timelink) what the game is told it uses: base (its program, and the system's share) plus the heap and its mapped pages;
    base alone with HOS_MEMINFO_OLD=1. QueryMemoryInfo below, and svc GetInfo's used memory (hos_svc.c). Never more than the
    console's total: nothing refuses AllocateMemoryPages by default (HOS_PAGES_LIMIT), and past the total the game's
    free = total - used would wrap to a huge figure and it would map without limit again */

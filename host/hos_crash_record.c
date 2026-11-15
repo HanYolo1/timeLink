@@ -431,7 +431,7 @@ static int valid_run_id(const char id[33]) {
 
 static void format_record(Text *b, const Session *s, const HosCrashContext *c, uint64_t now, const LogFacts *facts) {
     b->n = 0; b->full = 0;
-    put(b, c ? "Longshot crash record 1\n" : "Longshot unclean record 1\n");
+    put(b, c ? "timeLink crash record 1\n" : "timeLink unclean record 1\n");
     label_field(b, "version", s->version, sizeof s->version);
     field(b, "run_id", s->run_id);
     char when[17]; timestamp(now, when); field(b, "when", when);
@@ -539,7 +539,7 @@ static void recover_one(const char *name) {
         ssize_t n = read(file, saved, sizeof saved - 1); if (n > 0) got = (size_t)n;
 #endif
         saved[got] = 0;
-        const int complete = got > 30 && !strncmp(saved, "Longshot crash record 1\n", 24) &&
+        const int complete = got > 30 && !strncmp(saved, "timeLink crash record 1\n", 24) &&
                              strstr(saved, "\nrecord_complete: yes\n") != NULL;
         int ok = complete;
         if (!complete) {

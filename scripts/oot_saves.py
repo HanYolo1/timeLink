@@ -59,8 +59,8 @@ EMULATORS = [
             ["nx2navi", "ocarina"], []),
 ]
 # (the builders' default game folder on Windows; Hookshot's 3.0 launcher kept one folder per version under it)
-LONGSHOT = Program("longshot", "timeLink", {"linux": ["{data}/timeLink"], "windows": ["{home}/Games/timeLink"]},
-                   ["longshot"], [])
+TIMELINK = Program("timelink", "timeLink", {"linux": ["{data}/timeLink"], "windows": ["{home}/Games/timeLink"]},
+                   ["timelink"], [])
 HOOKSHOT = Program("hookshot", "Hookshot", {"linux": ["{data}/hookshot"],
                                             "windows": ["{home}/Games/Hookshot", "{home}/Games/Hookshot/*"]},
                    ["hookshot"], [])
@@ -186,7 +186,7 @@ def new_save_folder(program, override):
     """Where a save copied into timeLink or Hookshot goes when it has none yet: save/USER_ID in its data folder on Linux,
     user/save/USER_ID in its game folder on Windows (which has to be there: no save is made where nothing was built).
     None for the others: their profile ids are their own."""
-    if program not in (LONGSHOT, HOOKSHOT):
+    if program not in (TIMELINK, HOOKSHOT):
         return None
     root = override if override is not None else folders(program)[0]
     if not WINDOWS:
@@ -215,7 +215,7 @@ def side(program, override, flag, wanted, target):
         if fresh is None or os.path.exists(fresh) and not os.path.isdir(fresh):
             raise
         return fresh
-    own = program in (LONGSHOT, HOOKSHOT)
+    own = program in (TIMELINK, HOOKSHOT)
     return pick(found, program.display, flag + " <the user id folder>" if own else "--profile <id>", wanted)[1]
 
 
@@ -234,7 +234,7 @@ def pending_commit(save):
 def process_names():
     """{process name: what it belongs to} for every program in the tables."""
     names = collections.OrderedDict()
-    for program in [LONGSHOT] + OTHERS:
+    for program in [TIMELINK] + OTHERS:
         for p in program.processes:
             names[p] = names[p] + " or " + program.display if p in names else program.display
     return names
@@ -293,7 +293,7 @@ def show(title, folder, found):
 
 
 def list_all(args):
-    for program, override, flag in ((LONGSHOT, args.timeLink, "--timeLink"), (HOOKSHOT, args.hookshot, "--hookshot")):
+    for program, override, flag in ((TIMELINK, args.timeLink, "--timeLink"), (HOOKSHOT, args.hookshot, "--hookshot")):
         try:
             show(program.display, *locate(program, override, flag))
         except Fail as e:
@@ -507,7 +507,7 @@ def run(args):
         raise Fail("--hookshot is Hookshot's folder: it goes with import hookshot or export hookshot")
     folder = args.folder or (args.hookshot if other is HOOKSHOT else None)
     importing = args.command == "import"
-    ours = side(LONGSHOT, args.timeLink, "--timeLink", None, importing)
+    ours = side(TIMELINK, args.timeLink, "--timeLink", None, importing)
     theirs = side(other, folder, flag if args.folder or other is not HOOKSHOT else "--hookshot", args.profile, not importing)
     src, dst = (theirs, ours) if importing else (ours, theirs)
     if os.path.isdir(dst) and os.path.realpath(src) == os.path.realpath(dst):

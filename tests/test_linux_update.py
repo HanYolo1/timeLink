@@ -52,11 +52,11 @@ class FolderTests(unittest.TestCase):
             with mock.patch.dict(os.environ, {"TIMELINK_TOOLS": str(ROOT)}):
                 exec(finish, make_game.__dict__, {"built": str(built), "out": str(out), "work": str(work),
                                                    "a": SimpleNamespace(fsr=False, no_fsr=False, update=None, fetch_fsr_runtime=False)})
-            self.assertEqual((out / "longshot").read_bytes(), (ROOT / "builder" / "linux" / "timeLink-folder").read_bytes())
-            self.assertTrue((out / "longshot").stat().st_mode & stat.S_IXUSR)
-            self.assertEqual(sorted(p.name for p in out.iterdir()), ["bin", "image.bin", "longshot"])
+            self.assertEqual((out / "timeLink").read_bytes(), (ROOT / "builder" / "linux" / "timeLink-folder").read_bytes())
+            self.assertTrue((out / "timeLink").stat().st_mode & stat.S_IXUSR)
+            self.assertEqual(sorted(p.name for p in out.iterdir()), ["bin", "image.bin", "timeLink"])
             self.assertEqual(sorted(p.name for p in (out / "bin").iterdir()), sorted(make_game.BESIDE))
-            self.assertEqual((out / "bin" / "longshot").read_bytes(), b"new timeLink")
+            self.assertEqual((out / "bin" / "timeLink").read_bytes(), b"new timeLink")
 
     def test_the_sysroot_path_is_not_part_of_an_object_key(self):
         import build
@@ -81,7 +81,7 @@ class FolderTests(unittest.TestCase):
             builder.write_text("#!/bin/sh\nprintf '%%s\\n' \"$0\" \"$@\" > '%s'\n" % started, encoding="utf-8")
             builder.chmod(0o755)
             (game / "timeLink_version.txt").write_text("version=v1\nbuilder=%s\n" % builder, encoding="utf-8")
-            script = game / "longshot"
+            script = game / "timeLink"
             shutil.copyfile(ROOT / "builder" / "linux" / "timeLink-folder", script)
             script.chmod(0o755)
             env = os.environ.copy()
@@ -96,10 +96,10 @@ class FolderTests(unittest.TestCase):
             root = Path(tmp)
             game = root / "game"
             (game / "bin").mkdir(parents=True)
-            (game / "bin" / "longshot").write_text("#!/bin/sh\nprintf 'game\\n'\n", encoding="utf-8")
-            (game / "bin" / "longshot").chmod(0o755)
+            (game / "bin" / "timeLink").write_text("#!/bin/sh\nprintf 'game\\n'\n", encoding="utf-8")
+            (game / "bin" / "timeLink").chmod(0o755)
             (game / "timeLink_version.txt").write_text("version=v1\nbuilder=%s\n" % (root / "gone"), encoding="utf-8")
-            script = game / "longshot"
+            script = game / "timeLink"
             shutil.copyfile(ROOT / "builder" / "linux" / "timeLink-folder", script)
             script.chmod(0o755)
             env = os.environ.copy()

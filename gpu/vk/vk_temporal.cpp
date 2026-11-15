@@ -1,4 +1,4 @@
-// (longshot) A temporal upscaler in place of OoT's gameplay upscale network: the frame chain (vk_temporal.h), shared by the
+// (timelink) A temporal upscaler in place of OoT's gameplay upscale network: the frame chain (vk_temporal.h), shared by the
 // engines that draw with it, NVIDIA DLSS (vk_dlss.cpp) and AMD FSR 4 (vk_fsr4.cpp).
 // The chain is hckrman101's, from their NVIDIA DLSS (#841): the camera, the inputs pass, the actor motion and the jitter's
 // state, moved here from vk_dlss.cpp unchanged in what they do, so that DLSS and FSR share them.
@@ -101,7 +101,7 @@ int temporal_mode() {
     int v = opts.dlss;
     if (dlss > 0) v = dlss >= 2 ? ur::DLAA : ur::DLSS;   // (2 and up: DLAA, as RX_VK_DLSS was clamped before)
     else if (fsr4 > 0) v = fsr4 >= 2 ? ur::FSR4_AA : ur::FSR4;
-    // (longshot) FSR 3.1, the row's 3 or RX_VK_FSR=1, is an engine of this chain (vk_fsr3.h fsr3_on_chain): its inputs are the
+    // (timelink) FSR 3.1, the row's 3 or RX_VK_FSR=1, is an engine of this chain (vk_fsr3.h fsr3_on_chain): its inputs are the
     // chain's, the skinned draws' motion in them. A switch above goes over the row's FSR 3.1 (fsr3_chosen asks
     // temporal_env_chosen); RX_VK_FSR=1 goes over them
     if (fsr3_on_chain() && fsr3_chosen()) return ur::FSR3;
@@ -1185,7 +1185,7 @@ bool temporal_upscale(VkCommandBuffer cmd, uint64_t key, bool known, Texture* in
         !make_image(cmd, s.output, VK_FORMAT_R16G16B16A16_SFLOAT, dw, dh, VK_IMAGE_USAGE_TRANSFER_DST_BIT))   // (FSR 3.1 copies in)
         return fail("its images were not made");
 
-    // (longshot) the projection without this frame's jitter, for an engine that makes its depth constants from it (FSR 3.1), and
+    // (timelink) the projection without this frame's jitter, for an engine that makes its depth constants from it (FSR 3.1), and
     // its depth reversed for FSR's passes where the near plane is at 0 (fsr3_math.h): bit 3 of the prep's flags
     float projection[16];
     std::memcpy(projection, cam.projection, sizeof projection);

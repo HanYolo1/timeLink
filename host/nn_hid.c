@@ -1,7 +1,7 @@
 /* nn::hid: one Pro Controller (FullKey style) on Npad No.1, from every XInput gamepad and the keyboard and mouse at
    once. Buttons map by position (the Xbox bottom face button is the Switch's bottom one, B).
 
-   (longshot) What presses each button, on a gamepad and on the keyboard, is the player's: the Insert menu's Controls
+   (timelink) What presses each button, on a gamepad and on the keyboard, is the player's: the Insert menu's Controls
    page (gpu/vk/vk_menu.cpp) changes it, kept in timeLink_options.ini (binds_load). The defaults:
    Keyboard (totk-pc-recomp's layout): WASD left stick, arrows or IJKL right stick (camera), Space X (jump), E A
    (action), Shift B (run/cancel), Q L (abilities), R R, Z ZL, X or F ZR (bow), Ctrl left-stick click (crouch), C
@@ -500,7 +500,7 @@ static void stick_max(int32_t stick[4], const int32_t v[4]) {
         if ((v[i] < 0 ? -v[i] : v[i]) > (stick[i] < 0 ? -stick[i] : stick[i])) stick[i] = v[i];
 }
 
-/* ---- (longshot) the controls: the gamepad inputs (by position) and the keys that press each Switch button, from
+/* ---- (timelink) the controls: the gamepad inputs (by position) and the keys that press each Switch button, from
    timeLink_options.ini beside the executable when it has them: pad_<button>=<position>[,<position>] (HOS_PAD_*, -1 none) and
    key_<button>=<key code>,<key code> (Windows key codes, 0 none), <button> one of bind_names. Read once, at the
    first use; what the file leaves out keeps its default. Keys only, after the Switch's buttons (HOS_KEY_*): the left
@@ -538,7 +538,7 @@ static SRWLOCK pad_bind_lock = SRWLOCK_INIT;
 static int pad_bind[HOS_KEY_N][2];
 static volatile LONG key_bind[HOS_KEY_N][2];   /* (the menu changes them as the game reads them) */
 
-/* ---- (longshot) the ocarina's five note controls, driven by the wait flag nx2/oot_patches.py's patch sets ---- */
+/* ---- (timelink) the ocarina's five note controls, driven by the wait flag nx2/oot_patches.py's patch sets ---- */
 volatile uint64_t hos_oc_note_bits;
 volatile int hos_oc_wait;
 volatile int hos_oc_last_kind;
@@ -827,7 +827,7 @@ static int pads_in_background(const char *env, int menu) {
     return env ? atoi(env) != 0 : menu != 0;
 }
 
-/* (longshot) Whether a pad's motion counts: when its buttons do, with the game's window in front, or behind another
+/* (timelink) Whether a pad's motion counts: when its buttons do, with the game's window in front, or behind another
    window when the player asked for the pads there. Otherwise GetSixAxisSensorStates hands out the pad at rest, so a
    gyro moved while the player is in another window does not turn the camera. tests/test_motion_background.py */
 static int motion_counts(int front, const char *env, int menu) {
@@ -977,7 +977,7 @@ static uint64_t oc_pad_word(uint64_t buttons) {
     return w;
 }
 
-/* (longshot) Walking on the keyboard. The movement keys push the left stick to its edge, so on the keyboard Link always
+/* (timelink) Walking on the keyboard. The movement keys push the left stick to its edge, so on the keyboard Link always
    ran. While the Walk control's key is held (Caps Lock unless the Controls page changes it), or with the Controls tab's
    Walk mode on Toggle from one press of it to the next, they tilt it to the Walk speed row's share of the way instead,
    where the game walks him (move_keys_stick). Only the movement keys: the camera keys, the mouse, the controllers and
@@ -1018,7 +1018,7 @@ static void read_input(uint64_t *buttons, int32_t stick[4]) {
     scripted_input(buttons, stick);
     void hos_oot_autoload_input(void);   /* (host/oot_autoload.c: the Skip title screen row's presses) */
     hos_oot_autoload_input();
-    /* (longshot) HOS_CONTROL: the control bridge's presses (host/control.c); one that asked to be exclusive keeps the
+    /* (timelink) HOS_CONTROL: the control bridge's presses (host/control.c); one that asked to be exclusive keeps the
        player's devices out while it lasts */
     if (hos_control_input(buttons, stick)) return;
     oc_notes();   /* (marks the note rows' inputs consumed before the pads and keys below are read) */
@@ -1026,7 +1026,7 @@ static void read_input(uint64_t *buttons, int32_t stick[4]) {
        left set in a shell no longer leaves the game without controls), and otherwise the pads count only
        while the game's window is in front, like the keyboard: XInput is global, so a test run in the background
        used to follow the player's pad (and pressed things in its own menus). */
-    /* (longshot) The player's devices count during a script too (the user plays along in test runs, 2026-11-05):
+    /* (timelink) The player's devices count during a script too (the user plays along in test runs, 2026-11-05):
        the presses add to theirs. HOS_INPUT_EXCLUSIVE=1: the script alone until 5 s after its last press, as before */
     static int exclusive = -1;
     if (exclusive < 0) exclusive = env_on("HOS_INPUT_EXCLUSIVE");
@@ -1048,7 +1048,7 @@ static void read_input(uint64_t *buttons, int32_t stick[4]) {
         walk_held(0, 0, 0);
         return;
     }
-    {   /* (longshot) while the Insert menu is open the pads are its own, as the keyboard is (key()), and after it
+    {   /* (timelink) while the Insert menu is open the pads are its own, as the keyboard is (key()), and after it
            closed until they are let go (the press that closed it never reaches the game) */
         uint64_t pb = 0;
         int32_t ps[4] = {0};
@@ -1218,7 +1218,7 @@ HLE(_ZN2nn3hid21ShowControllerSupportEPNS0_27ControllerSupportResultInfoERKNS0_2
 /* Handles: six-axis ones are opaque u32s; a vibration handle is {u8 style type (3 = full key), u8 npad id, u8 device
    index (0 left, 1 right), u8 reserved}, which the SDK's vibration classes read. Vibration goes nowhere yet. */
 HLE(_ZN2nn3hid23GetSixAxisSensorHandlesEPNS0_19SixAxisSensorHandleEiRKjNS_4util10BitFlagSetILi32ENS0_12NpadStyleTagEEE) {
-    /* (longshot) OoT asks for two (a Joy-Con pair) but runs its motion path only when three come back: at two its
+    /* (timelink) OoT asks for two (a Joy-Con pair) but runs its motion path only when three come back: at two its
        third source (the console's own, through JCMS) stays dead, and that branch is what marks motion active for the
        aim (spluton, issue 112). The count says three; only the handles asked for are written, so a caller's array
        sized for two is never written past (the handles are opaque: GetSixAxisSensorStates does not read them). */
@@ -1230,7 +1230,7 @@ HLE(_ZN2nn3hid23GetSixAxisSensorHandlesEPNS0_19SixAxisSensorHandleEiRKjNS_4util1
 }
 /* SixAxisSensorState, 0x60 bytes: {i64 delta time (ns), i64 sampling number, f32 acceleration[3] (G), angular velocity[3]
    (revolutions a second), angle[3] (revolutions), direction[3][3], u32 attributes (1 connected), pad}. Newest first.
-   (longshot) With Motion controls on and a pad with a gyroscope (host/pad_sdl.c), the state OoT aims with
+   (timelink) With Motion controls on and a pad with a gyroscope (host/pad_sdl.c), the state OoT aims with
    (host/hos_motion.h: the full state, as the console and Eden build it); else a pad lying still. */
 HLE(_ZN2nn3hid22GetSixAxisSensorStatesEPNS0_18SixAxisSensorStateEiRKNS0_19SixAxisSensorHandleE) {
     /* (the sampling number goes up once per reading, as the hardware's does: while live it is the readings' own count,

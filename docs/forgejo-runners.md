@@ -6,8 +6,8 @@ instance or of MagicBeanDev; nothing here needs a game.
 
 ## Turn Actions on
 
-Repository *Settings > Units > Actions* (or the API's `has_actions`), on MagicBeanDev/Longshot and
-MagicBeanDev/LongshotLauncher. The secrets and the variable the release workflows read are in [RELEASING.md](../RELEASING.md), *One-time setup*.
+Repository *Settings > Units > Actions* (or the API's `has_actions`), on MagicBeanDev/timeLink and
+MagicBeanDev/timeLink Launcher. The secrets and the variable the release workflows read are in [RELEASING.md](../RELEASING.md), *One-time setup*.
 
 ## The labels the workflows ask for
 

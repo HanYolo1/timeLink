@@ -1,4 +1,4 @@
-// (longshot) Dear ImGui (third_party/imgui) over the window's image (vk_imgui.h): at the window's size, after the game's picture,
+// (timelink) Dear ImGui (third_party/imgui) over the window's image (vk_imgui.h): at the window's size, after the game's picture,
 // its scaling and frame generation, in present_image. The overlays are drawn with ImGui's draw lists (vk_menu.cpp, vk_ui.h);
 // ImGui takes no input of its own: the menu keeps its keys, gamepad and mouse (vk_menu.cpp menu_tick).
 // Textures (the fonts' glyphs, the logo) are copied in on the present's own command buffer, before its render pass: the

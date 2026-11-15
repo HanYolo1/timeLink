@@ -60,7 +60,7 @@ OBJ_CACHE = os.path.join(kit.WORK, "objcache")
 # (TIMELINK_OBJ_STORE: one store of objects for every work folder, nx2/object_store.py. Its folder for this work folder's compiler
 # and headers, or None)
 OBJ_STORE = object_store.folder(kit.WORK)
-# (longshot) work/hot_order.txt: the functions that run, hottest first (sampled), packed together by the linker; RX_NO_ORDER=1: off
+# (timelink) work/hot_order.txt: the functions that run, hottest first (sampled), packed together by the linker; RX_NO_ORDER=1: off
 PGO = os.environ.get("RX_PGO", "")
 
 
@@ -634,7 +634,7 @@ def ffmpeg_version_key():
 # four: the race's replay waited ~12 ms a frame for it). Always: the guest window is not write-watched
 WRITE_TRACK = ["-DA64_WRITE_TRACK"]
 
-# (longshot) the host CPU the lifted game and the runtime are built for: x86-64-v3 (AVX2, FMA, BMI1/2, LZCNT,
+# (timelink) the host CPU the lifted game and the runtime are built for: x86-64-v3 (AVX2, FMA, BMI1/2, LZCNT,
 # MOVBE; Haswell and Zen 1 on). With FMA the FPX1 fast paths cover double-precision FMA (RECOMP_FPX_FMA64; it took
 # the exact software body on baseline x86-64), single-precision FMA, FRECPS and FRSQRTS are one fused instruction
 # (nx2/suyu_rt_fixes.py) and the bit counts are single instructions. No contraction, so a C expression is rounded as
@@ -962,7 +962,7 @@ def migrate_stamps(gen, obj_dir, fl, deps):
 PLANNED = {}   # (src, obj) -> the object key plan_jobs worked out, so compile_one does not hash every source again
 
 
-# (longshot) the order of the compile: the longest first (LPT), so no long one starts late and runs alone at the end. The lift's
+# (timelink) the order of the compile: the longest first (LPT), so no long one starts late and runs alone at the end. The lift's
 # estimate (gen/chunk_costs.txt, nx2/chunks.py fn_cost: functions cost with the square of their size) where it is there, else the size.
 # HOT_COST: how much longer the hot flags (-O2, the profile, the hot callees inlined) take for the same estimate. Fitted to a cold build
 # on a 24-thread desktop; by size alone the hot pieces (9 MB, up to 333 s) started after every 25 MB chunk (45 s)
@@ -1098,10 +1098,10 @@ def main():
     # the longest first, so the long ones do not end up alone at the end (compile_cost)
     costs = chunk_costs(gen)
     srcs.sort(key=lambda s: -compile_cost(s, costs))
-    # (longshot) code_hot.c, the lift's hot functions together (A64_HOT_FUNCS + A64_HOT_CHUNK=1): at RX_HOT_OPT
+    # (timelink) code_hot.c, the lift's hot functions together (A64_HOT_FUNCS + A64_HOT_CHUNK=1): at RX_HOT_OPT
     # (default O2), so the hot callees inline into their hot callers
     hot_fl = [("-" + os.environ.get("RX_HOT_OPT", "O2")) if f == "-" + OPT else f for f in fl]
-    # (longshot) RX_PGO=gen: code_hot.c counts its branches (host/pgo_rt.c writes them; -O1 builds much sooner, and the counters are
+    # (timelink) RX_PGO=gen: code_hot.c counts its branches (host/pgo_rt.c writes them; -O1 builds much sooner, and the counters are
     # placed before the optimiser, so a profile from it fits the -O2 build). RX_PGO=<merged .prof>: built with that profile
     if PGO == "gen":
         hot_fl = [f if f != "-O2" else "-O1" for f in hot_fl] + ["-fprofile-instr-generate", "-mllvm", "-disable-vp=true"]
@@ -1206,7 +1206,7 @@ def main():
     if build_vk:
         cxx = toolchain.need(toolchain.find("clang++"))
         vk = os.path.join(GPU, "vk")
-        # (longshot) the start-up screen's logo, assets/timeLink.png as RGBA bytes in a header of the build's own (nx2/logo_rgba.py);
+        # (timelink) the start-up screen's logo, assets/timeLink.png as RGBA bytes in a header of the build's own (nx2/logo_rgba.py);
         # its bytes are part of vk_imgui.cpp's dependencies. The AppImage carries third_party/fonts and the back end's sources for
         # it: a player's build there once stopped at the fonts (FileNotFoundError: LibertinusSans-Regular.ttf, 2026-11-10)
         logo_text = logo_rgba.write(os.path.join(gen_dir, "timeLink_logo.h")).encode()
@@ -1250,7 +1250,7 @@ def main():
                                    os.path.join(GPU, "compat"))
         vdeps = tree_headers(vk, os.path.join(GPU, "render"), os.path.join(GPU, "compat"),
                              os.path.join(GPU, "third_party", "suyu", "video_core", "textures"))
-        # (longshot) Dear ImGui (third_party/imgui) draws the overlays over the window's image (gpu/vk/vk_imgui.cpp; vk_menu.cpp
+        # (timelink) Dear ImGui (third_party/imgui) draws the overlays over the window's image (gpu/vk/vk_imgui.cpp; vk_menu.cpp
         # draws with it). Its objects see only its own headers; its headers are a dependency of the two files that include them
         imgui = os.path.normpath(os.path.join(kit.HERE, "..", "third_party", "imgui"))
         zbic = os.path.join(kit.ROOT, "third_party", "zbic")
@@ -1296,7 +1296,7 @@ def main():
                             vk_lib_deps if lib else vdeps + (logo_text if os.path.basename(src) == "vk_imgui.cpp" else b"") +
                             (ngx_deps if os.path.basename(src) == "vk_dlss.cpp" else b"") +
                             (imgui_deps if os.path.basename(src) in imgui_users else b"")))
-        # (longshot) the program cache's zstd compression (RX_VK_PROGRAM_CACHE_ZSTD): third_party/zbic's single-file
+        # (timelink) the program cache's zstd compression (RX_VK_PROGRAM_CACHE_ZSTD): third_party/zbic's single-file
         # zstd, built as C into the same DLL. Its headers are the object's dependencies.
         zstd_src = os.path.join(kit.ROOT, "third_party", "zbic", "zstd.c")
         zstd_deps = b"".join(open(os.path.join(zbic, f), "rb").read() for f in ("zstd.h", "zstd_errors.h"))
@@ -1446,13 +1446,13 @@ def main():
             dll, dst = os.path.join(WGPU, "lib", "wgpu_native.dll"), os.path.join(out, "wgpu_native.dll")
             if not os.path.exists(dst) or os.path.getsize(dst) != os.path.getsize(dll):
                 shutil.copyfile(dll, dst)
-        # (longshot) a shared FFmpeg's DLLs beside it (an LGPL shared build, as cross builds find: the static one needs none)
+        # (timelink) a shared FFmpeg's DLLs beside it (an LGPL shared build, as cross builds find: the static one needs none)
         for l in FFMPEG_LIBS if FFMPEG and os.path.isdir(os.path.join(FFMPEG, "bin")) else ():
             import shutil
             for f in os.listdir(os.path.join(FFMPEG, "bin")):
                 if f.startswith(l + "-") and f.endswith(".dll"):
                     shutil.copyfile(os.path.join(FFMPEG, "bin", f), os.path.join(out, f))
-        # (longshot) SDL2.dll beside it: host/pad_sdl.c's controllers (DualSense, DualShock 4, Switch Pro ...)
+        # (timelink) SDL2.dll beside it: host/pad_sdl.c's controllers (DualSense, DualShock 4, Switch Pro ...)
         sdl = os.path.join(kit.HERE, "..", "third_party", "sdl2", "SDL2.dll")
         sdl_dst = os.path.join(out, "SDL2.dll")
         if os.path.exists(sdl) and (not os.path.exists(sdl_dst) or os.path.getsize(sdl_dst) != os.path.getsize(sdl)):

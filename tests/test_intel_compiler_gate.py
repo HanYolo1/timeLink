@@ -109,7 +109,7 @@ def main():
     need(link.index("IntelDriverGate") < link.index("guarded_graphics"), "gpl_link's pipeline is not guarded")
     need("vkCreateGraphicsPipelines" not in link, "gpl_link still calls the driver with no guard")
     # (a pipeline cache's data fetched while another thread builds: the same crash in igvk64. main's fetch lock covers it,
-    # PcacheFetch, MagicBeanDev/Longshot#190 (tests/test_pcache_fetch_lock.py). The gate stays outside that lock: a builder
+    # PcacheFetch, MagicBeanDev/timeLink#190 (tests/test_pcache_fetch_lock.py). The gate stays outside that lock: a builder
     # takes the gate, then PcacheUse's shared side, so a fetch taking the gate inside PcacheFetch would wait for a builder
     # that waits for it)
     for fn in ("size_t play_file_write(", "void pcache_init()", "bool pcache_saved_now()", "void pipeline_cache_save(bool force)"):

@@ -14,7 +14,7 @@ async function loadRepoPages(context: LoaderContext) {
   }
 }
 
-export function longshotDocsLoader(): Loader {
+export function timelinkDocsLoader(): Loader {
   const docs = docsLoader();
   return {
     name: 'timeLink-docs',

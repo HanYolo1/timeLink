@@ -1,6 +1,6 @@
 # Investigating the Hyrule Field slowdown
 
-This is the evidence and A/B plan for [timeLink issue #348](https://git.magicbean.dev/MagicBeanDev/Longshot/issues/348).
+This is the evidence and A/B plan for [timeLink issue #348](https://github.com/HanYolo1/timeLink/issues/348).
 The original report describes adult Link riding Epona in Hyrule Field without an area transition. The run started around
 30–35 FPS and fell to about 15 FPS. The cause is still open.
 
@@ -52,10 +52,10 @@ Host-visible and host-coherent flags alone do not identify whether accesses reac
    measured, and whether the counter allocation is device-local. If a counter-placement experiment is warranted,
    preserve initialization, read-back and synchronization, and check image output on the same views.
 5. Keep the Market return as a separate residency and traversal test. If needed, compare sparse mirrors on and
-   off on the same current build and record actual mirror use. timeLink [#250](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/250)
-   made sparse mirrors the default on supported devices. [#324](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/324)
+   off on the same current build and record actual mirror use. timeLink [#250](https://github.com/HanYolo1/timeLink/pulls/250)
+   made sparse mirrors the default on supported devices. [#324](https://github.com/HanYolo1/timeLink/pulls/324)
    changed used-memory reporting and Windows heap commit. Both affect comparisons with previous builds.
-   [#326](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/326) measures the separate capture-to-mirror sync path.
+   [#326](https://github.com/HanYolo1/timeLink/pulls/326) measures the separate capture-to-mirror sync path.
 
 ## Earlier Hookshot results
 
@@ -89,5 +89,5 @@ Market return and memory pressure, but are neither timeLink measurements nor a d
   mapping and data preservation before proposing a port.
 
 Additional renderer work to check before opening code changes includes
-[restored fixes #287](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/287) and
-[restored performance work #288](https://git.magicbean.dev/MagicBeanDev/Longshot/pulls/288).
+[restored fixes #287](https://github.com/HanYolo1/timeLink/pulls/287) and
+[restored performance work #288](https://github.com/HanYolo1/timeLink/pulls/288).

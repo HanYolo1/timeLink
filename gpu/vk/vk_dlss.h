@@ -37,7 +37,7 @@ struct TemporalFrame;
 /// Whether it is asked for now: the Insert menu's Frame generation by row (Auto), RX_VK_DLSS_FG=0 / 1 over it (and the build
 /// has it)
 bool dlss_fg_wanted();
-/// (longshot) Why the last set it was asked for went to the renderer's own frame generation, for the Insert menu's Frame
+/// (timelink) Why the last set it was asked for went to the renderer's own frame generation, for the Insert menu's Frame
 /// generation by row (its texts are the menu's, to be translated): FG_SKIP_NONE when DLSS-G made it or nothing is known.
 /// most: its runtime's most made frames a set (FG_SKIP_TOO_MANY)
 enum FgSkip {

@@ -99,7 +99,7 @@ def main():
     # host/ or gpu/ only asks whether it is set: getenv(name) != NULL / == NULL, !getenv(name), getenv(name) followed by ?,
     # && or ||, or alone between ( or && / || and ) or && / || or the line's end. A line that reads the name twice reads its
     # value too (getenv(x) ? atoi(getenv(x)) : ...), and a getenv inside a call (atoi(getenv(x)), parse(getenv(x))) is a value)
-    name = r'(?:std::)?getenv\("((?:RX|HOS|LONGSHOT|EDEN|NVN)_[A-Z0-9_]+)"\)'
+    name = r'(?:std::)?getenv\("((?:RX|HOS|TIMELINK|EDEN|NVN)_[A-Z0-9_]+)"\)'
     forms = [re.compile(name + r"\s*[!=]=\s*(?:nullptr|NULL)"), re.compile(r"!\s*" + name),
              re.compile(name + r"\s*(?:\?|&&|\|\|)"),
              re.compile(r"(?:(?<![A-Za-z0-9_])\(|(?<=\bif)\(|(?<=while)\(|&&|\|\|)\s*" + name + r"\s*(?:\)|&&|\|\||$)")]

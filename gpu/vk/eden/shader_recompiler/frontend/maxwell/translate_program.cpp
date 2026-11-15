@@ -99,7 +99,7 @@ void CollectInterpolationInfo(Environment& env, IR::Program& program) {
 }
 
 void AddGlobalTables(IR::Program& program) {
-    // (longshot) task and mesh programs read through pointers kept in small storage buffers (bones, instances): memory no
+    // (timelink) task and mesh programs read through pointers kept in small storage buffers (bones, instances): memory no
     // binding names. The back end's table at c0+0x880 holds the regions those pointers reach (vk_bank.cpp pointer_table).
     // Few entries: each is searched at every read, and a program has ~150 of them (with 16, the driver took so long over each
     // pipeline that a scene never finished loading)

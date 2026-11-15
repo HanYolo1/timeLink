@@ -1,14 +1,14 @@
 # Releasing
 
-How a maintainer releases **timeLink** (MagicBeanDev/Longshot) and the **timeLink Launcher**
-(MagicBeanDev/LongshotLauncher). This file is the same in both repositories. The design (what a release is, the
+How a maintainer releases **timeLink** (MagicBeanDev/timeLink) and the **timeLink Launcher**
+(MagicBeanDev/timeLink Launcher). This file is the same in both repositories. The design (what a release is, the
 channels, signing, `tools.lock`, how the launcher reads it) is in [docs/releases.md](docs/releases.md).
 
 | | timeLink | The launcher |
 |---|---|---|
-| Repository | [MagicBeanDev/Longshot](https://git.magicbean.dev/MagicBeanDev/Longshot) | [MagicBeanDev/LongshotLauncher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher) |
+| Repository | [MagicBeanDev/timeLink](https://github.com/HanYolo1/timeLink) | [MagicBeanDev/timeLink Launcher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher) |
 | First version | `v3.0.0` (rc first: `v3.0.0-rc.1`) | `v1.0.0` (rc first: `v1.0.0-rc.1`) |
-| What a release ships | the Windows and Linux builders, `tools.lock` | the launcher: `LongshotLauncher-<v>-windows-x64-setup.exe` (installs itself or runs portable: docs/releases.md, *Installing the launcher*), `LongshotLauncher-<v>-windows-x64-portable.zip`, `LongshotLauncher-<v>-x86_64.AppImage` |
+| What a release ships | the Windows and Linux builders, `tools.lock` | the launcher: `timeLinkLauncher-<v>-windows-x64-setup.exe` (installs itself or runs portable: docs/releases.md, *Installing the launcher*), `timeLinkLauncher-<v>-windows-x64-portable.zip`, `timeLinkLauncher-<v>-x86_64.AppImage` |
 | Nightly count | commits since the fork, e2a4d45 | commits since the first commit |
 
 Both have the same three channels: **stable**, **rc** and **nightly**. In the launcher, players pick a channel for their
@@ -273,7 +273,7 @@ None of this is done yet. In order (the org secret is shared by both repositorie
    check the AppImage's size after the first build), and `[repository.release] ALLOWED_TYPES` empty, so `.AppImage`, `.exe`,
    `.lock` and `SHA256SUMS` are accepted.
 5. **Actions and runners.** Enable Actions on both repositories (*Settings* > *Units*), and register the runners in
-   [docs/forgejo-runners.md](https://git.magicbean.dev/MagicBeanDev/Longshot/src/branch/main/docs/forgejo-runners.md)
+   [docs/forgejo-runners.md](https://github.com/HanYolo1/timeLink/src/branch/main/docs/forgejo-runners.md)
    (Linux only, for both: timeLink's Windows files are cross-built on Linux).
 6. **The tools' packages and `tools.lock`.** Done (2026-11-13): `cpm` with dav1d and `third-party` assembled and added,
    llvm-mingw, python, emsdk and wgpu-native mirrored, the Linux tools added, each a generic package of the organization
