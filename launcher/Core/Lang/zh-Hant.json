@@ -567,5 +567,6 @@
   "The secure connection to {0} failed. Check that this PC's date and time are right; an antivirus or a network that inspects HTTPS can also cause this.": "與 {0} 的安全連線失敗。請檢查這台電腦的日期和時間是否正確；檢查 HTTPS 的防毒軟體或網路也可能導致此問題。",
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "無法連線至 {0}。請檢查這台電腦是否已連上網際網路，以及防火牆、VPN 或防毒軟體是否封鎖了該網站。",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "這台電腦設定為透過代理伺服器 {1} 連線，但該代理伺服器沒有回應，因此無法連線至 {0}。請檢查代理伺服器設定，或關閉代理伺服器。",
-  "No version is out on the {0} channel yet.": "{0}通道尚未推出任何版本。"
+  "No version is out on the {0} channel yet.": "{0}通道尚未推出任何版本。",
+  "Your game settings from your other versions now apply to this one too.": "你其他版本的遊戲設定現在也會套用到這個版本。"
 }

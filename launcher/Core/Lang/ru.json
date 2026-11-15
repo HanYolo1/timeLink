@@ -615,5 +615,6 @@
   "The secure connection to {0} failed. Check that this PC's date and time are right; an antivirus or a network that inspects HTTPS can also cause this.": "Не удалось установить защищённое соединение с {0}. Проверьте, что дата и время на этом ПК верны; причиной также может быть антивирус или сеть, проверяющая HTTPS.",
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "Не удалось подключиться к {0}. Проверьте, что этот ПК подключён к интернету и что брандмауэр, VPN или антивирус не блокируют сайт.",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "Этот ПК настроен работать через прокси {1}, который не ответил, поэтому {0} недоступен. Проверьте настройки прокси или отключите его.",
-  "No version is out on the {0} channel yet.": "На канале «{0}» пока нет ни одной версии."
+  "No version is out on the {0} channel yet.": "На канале «{0}» пока нет ни одной версии.",
+  "Your game settings from your other versions now apply to this one too.": "Настройки игры из других версий теперь применяются и к этой версии."
 }

@@ -583,5 +583,6 @@
   "The secure connection to {0} failed. Check that this PC's date and time are right; an antivirus or a network that inspects HTTPS can also cause this.": "De beveiligde verbinding met {0} is mislukt. Controleer of de datum en tijd van deze pc kloppen; ook een antivirusprogramma of een netwerk dat HTTPS inspecteert kan dit veroorzaken.",
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "Kan geen verbinding maken met {0}. Controleer of deze pc online is en of geen firewall, vpn of antivirusprogramma de site blokkeert.",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "Deze pc is ingesteld om via de proxy {1} te gaan, die niet antwoordde, dus {0} is niet bereikt. Controleer de proxy-instellingen of zet de proxy uit.",
-  "No version is out on the {0} channel yet.": "Er is nog geen versie uit op het kanaal {0}."
+  "No version is out on the {0} channel yet.": "Er is nog geen versie uit op het kanaal {0}.",
+  "Your game settings from your other versions now apply to this one too.": "Je spelinstellingen uit je andere versies gelden nu ook voor deze versie."
 }

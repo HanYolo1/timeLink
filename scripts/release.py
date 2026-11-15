@@ -249,7 +249,7 @@ def check_tag(tag, existing, first_major, root=ROOT, main="origin/main", product
     """The problems with releasing tag ([] when none): its form, main, every release there is, and the bump"""
     problems = []
     if not is_version(tag, first_major):
-        return ["%s is not vX.Y.Z or vX.Y.Z-rc.N of this product's numbers (from v%d.0.0)" % (tag, first_major)]
+        return ["%s is not vX.Y.Z or vX.Y.Z-rc.N of this product's numbers (from %s)" % (tag, first_version(first_major, product))]
     commit = git("rev-list", "-n", "1", tag, root=root, check=False)
     if not commit:
         return ["no tag %s here (git fetch --tags)" % tag]

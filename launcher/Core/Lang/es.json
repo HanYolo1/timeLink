@@ -599,5 +599,6 @@
   "The secure connection to {0} failed. Check that this PC's date and time are right; an antivirus or a network that inspects HTTPS can also cause this.": "La conexión segura con {0} ha fallado. Comprueba que la fecha y la hora de este PC sean correctas; un antivirus o una red que inspeccione el HTTPS también puede causarlo.",
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "No se ha podido conectar con {0}. Comprueba que este PC esté conectado a Internet y que ningún cortafuegos, VPN o antivirus bloquee el sitio.",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "Este PC está configurado para pasar por el proxy {1}, que no ha respondido, así que no se ha llegado a {0}. Revisa los ajustes del proxy o desactívalo.",
-  "No version is out on the {0} channel yet.": "Todavía no hay ninguna versión en el canal {0}."
+  "No version is out on the {0} channel yet.": "Todavía no hay ninguna versión en el canal {0}.",
+  "Your game settings from your other versions now apply to this one too.": "Los ajustes de juego de tus otras versiones ahora se aplican también a esta."
 }
