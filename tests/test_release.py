@@ -762,7 +762,7 @@ class TokenStaysHome(unittest.TestCase):
         with mock.patch.dict(os.environ, RELEASE_TOKEN="secret"):
             os.environ.pop("FORGEJO_UPLOAD_API", None)
             self.assertEqual(release.download(url), b"the sums")
-        self.assertEqual(seen, {"forge": "token secret", "store": None})
+        # (Bearer: uploads.github.com answers 404 to `token` with a GitHub App installation token, which is what\n        # GITHUB_TOKEN is - see scripts/release.py api. The point of this test is that the store gets no header at all)\n        self.assertEqual(seen, {"forge": "Bearer secret", "store": None})
 
 
 if __name__ == "__main__":

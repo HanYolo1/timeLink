@@ -516,7 +516,9 @@ def api(method, path, body=None, data=None, content_type=None, upload=False, mis
     headers = {"User-Agent": "timeLink-release", "Accept": "application/json"}
     token = os.environ.get("RELEASE_TOKEN")
     if token:
-        headers["Authorization"] = "token " + token
+        # (Bearer, not token: GitHub's API accepts either for a PAT, but uploads.github.com answers 404 to `token` with a
+        # GITHUB_TOKEN, which is a GitHub App installation token - and a 404 there reads as "no such release")
+        headers["Authorization"] = "Bearer " + token
     if body is not None:
         data, content_type = json.dumps(body).encode(), "application/json"
     if content_type:
@@ -548,13 +550,6 @@ def releases(repo, pages=1000):
     fail("%s: more than %d pages of releases" % (repo, pages))
 
 
-def multipart(name, data):
-    boundary = "timeLink%s" % hashlib.sha256(data[:4096] + name.encode()).hexdigest()[:24]
-    head = ('--%s\r\nContent-Disposition: form-data; name="attachment"; filename="%s"\r\n'
-            'Content-Type: application/octet-stream\r\n\r\n' % (boundary, name)).encode()
-    return head + data + ("\r\n--%s--\r\n" % boundary).encode(), "multipart/form-data; boundary=" + boundary
-
-
 def publish(tag, target, notes_file, files, product):
     repo = repo_of(product)
     for path in files:
@@ -582,9 +577,10 @@ def publish(tag, target, notes_file, files, product):
         name = os.path.basename(path)
         with open(path, "rb") as f:
             data = f.read()
-        form, ctype = multipart(name, data)
-        got = api("POST", "/repos/%s/releases/%d/assets?name=%s" % (repo, rel["id"], urllib.parse.quote(name)), data=form,
-                  content_type=ctype, upload=True)
+        # (GitHub takes the file's raw bytes as the request body, with the name in the query: a multipart/form-data body is
+        # stored as the asset itself, envelope and all, which is how SHA256SUMS arrived 875 bytes for 683)
+        got = api("POST", "/repos/%s/releases/%d/assets?name=%s" % (repo, rel["id"], urllib.parse.quote(name)), data=data,
+                  content_type="application/octet-stream", upload=True)
         if got.get("size") != len(data):
             fail("%s: uploaded %s bytes of %d" % (name, got.get("size"), len(data)))
         print("uploaded %s (%d MB)" % (name, len(data) >> 20))
@@ -615,7 +611,7 @@ def download(url, limit=1 << 20):
         url = urllib.parse.urlunsplit((base.scheme, base.netloc, u.path, u.query, ""))
     headers = {"User-Agent": "timeLink-release"}
     if os.environ.get("RELEASE_TOKEN"):
-        headers["Authorization"] = "token " + os.environ["RELEASE_TOKEN"]
+        headers["Authorization"] = "Bearer " + os.environ["RELEASE_TOKEN"]
     try:
         with _OPENER.open(urllib.request.Request(url, headers=headers), timeout=120) as r:
             data = r.read(limit + 1)
