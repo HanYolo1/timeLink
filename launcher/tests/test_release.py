@@ -720,7 +720,7 @@ class TokenStaysHome(unittest.TestCase):
         with mock.patch.dict(os.environ, RELEASE_TOKEN="secret"):
             os.environ.pop("FORGEJO_UPLOAD_API", None)
             self.assertEqual(release.download(url), b"the sums")
-        self.assertEqual(seen, {"forge": "token secret", "store": None})
+        self.assertEqual(seen, {"forge": "Bearer secret", "store": None})
 
 
 if __name__ == "__main__":

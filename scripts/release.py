@@ -113,6 +113,13 @@ def version_key(tag):
 
 
 def is_version(tag, first_major):
+    """Whether tag is a version of a product whose numbers start at first_major.
+
+    A floor alone is not enough once the floor is 0: `v3.0.0-rc.1` is then "a version", and upstream's own v2/v3 tags
+    came into this branch with the merge, so next_tag offered v3.0.0-rc.4 for a product whose first release is v0.1.0.
+    The tags are the problem, not the test: they are pre-fork history that a `git fetch --tags` restores, and
+    `scripts/release.py next` reads them. `tests/test_release.py` holds the case, and RELEASING.md says to delete them.
+    """
     k = version_key(tag)
     return bool(k) and k[0] >= first_major
 
@@ -179,14 +186,30 @@ def since_fork(root=ROOT):
 
 
 def after_fork(tag, root=ROOT, since=None):
-    """Whether tag is on a commit at or after the fork (a tag before it is not timeLink's)"""
+    """Whether tag is a release of this branch: on a commit at or after the fork, and reachable from main.
+
+    A tag before the fork is not timeLink's. So is a tag on a commit main cannot reach - a stale local tag from another
+    branch, or one left by a rebase - and that case used to pass: `merge-base --is-ancestor since commit` is true for any
+    commit descended from the fork point, reachable from main or not, so a local v3.0.0-rc.4 on an abandoned commit made
+    next_tag answer v3.0.0-rc.4 instead of v0.1.0-rc.1. A release is made from main (check_tag refuses one that is not),
+    so a tag main cannot reach is not one."""
     since = since if since is not None else since_fork(root)
-    if since is None:
-        return True
     commit = git("rev-list", "-n", "1", tag, root=root, check=False)
     if not commit:
         return True
-    return git("merge-base", "--is-ancestor", since, commit, root=root, check=False) is not None
+    if since is not None and git("merge-base", "--is-ancestor", since, commit, root=root, check=False) is None:
+        return False
+    # (the branch a release is made from. `origin` is the upstream repository in this fork, and its main carries upstream's
+    # own v2/v3 tags - a tag there is a real release of *that* repository, not of this one, so it must not count. The
+    # fork's main is `github/main` here, or whatever remote the caller's main is on; refs/heads/main is the local one.)
+    candidates = ["refs/heads/main"] + [r for r in
+                  git("for-each-ref", "--format=%(refname)", "refs/remotes/*/main", root=root, check=False).split()
+                  if r and not r.startswith("refs/remotes/origin/")]
+    if not candidates:
+        return True   # (no main to compare against: keep the old answer rather than refuse every tag)
+    # (git() returns "" for a command that succeeded with no output, and None for one that failed: `merge-base
+    # --is-ancestor` prints nothing either way, so only a non-None answer means "yes")
+    return any(git("merge-base", "--is-ancestor", commit, c, root=root, check=False) is not None for c in candidates)
 
 
 def last_stable(first_major, root=ROOT, ref="HEAD", below=None):
@@ -273,6 +296,10 @@ def next_tag(existing, first_major, root=ROOT, product=None):
     """The next release candidate's tag: the next rc of the current one when it is still high enough, else <required>-rc.1"""
     low = required(first_major, root, product=product)[0]
     since = since_fork(root)
+    # (an rc of the version the commits call for, or of a later one already in flight. Not of an *earlier* one: a tag
+    # below `low` is history, and continuing its series would offer a version the commits have already outgrown. And not
+    # of a much later one either - upstream's v3.0.0-rc.1..3 came in with the merge and are real releases of that
+    # repository, but this product starts at v0.1.0, so its next rc is v0.1.0-rc.1, not v3.0.0-rc.4)
     rcs = [t for t in existing if is_version(t, first_major) and not STABLE.match(t) and base_of(t) >= base_of(low)
            and after_fork(t, root, since)]
     top = max(rcs, key=version_key, default=None)
