@@ -18,6 +18,24 @@ These stop `v0.1.0` from being shippable. Nothing else on this page does.
 | 3 | ~~**No release key secret yet**~~ — **done 2026-11-15**. `RELEASE_SIGNING_KEY` is set in the repository's Actions secrets, and the keypair was checked before setting it: `release.py key-id` on the private half and the public half in `launcher/Core/ReleaseTrust.cs` both give `774f1dc88462b913`, and a sign/verify round trip of `SHA256SUMS` passes with that id. The publish job's *SHA256SUMS, signed* step will now pass | done — but `release.pem` still needs backing up: an Actions secret is write-only, so the copy on the maintainer's PC is the only one anyone can read back |
 | 4 | ~~**The release pipeline cannot run at all**~~ — **done, and it has run**. The workflows moved to `.github/workflows/` (GitHub reads nothing else), with GitHub's action refs, `github.token`, `ubuntu-latest` and the `permissions:` blocks GitHub needs. The first real run then found six defects that only Linux could show, all fixed: the launcher's assets were tracked lowercase (`timelink.png` vs `timeLink.png`); `package.sh` was not executable; the signed-release fixture's signature covered CRLF while git stores LF; a check wrote `usr/bin/timeLinkLauncher` where the AppImage ships `TimeLinkLauncher`; a `v2.9.0` fixture became a valid version when the floor went to 0; and `release.py` needed `Bearer` plus a raw-body upload for `uploads.github.com`. **`nightly-213-d5311240` is published**: five files, `SHA256SUMS`, and a signature that verifies against the key in `ReleaseTrust.cs` | done |
 
+## Verified 2026-11-15: the tag path, end to end
+
+`v0.1.0-rc.1` was tagged on `main` and the Release workflow ran every job green: **The version** (`check-tag` and
+`released-as`, which had never run), Linux AppImage, Windows builder zip, the Vulkan back end, the launcher (both
+systems, with the Wine self-check), and **Sign and publish**.
+
+The result is a published release, `v0.1.0-rc.1`, `prerelease=true`, 8 assets, whose `SHA256SUMS.sig` verifies
+against the public key in `Core/ReleaseTrust.cs` ("Verified OK", checked against that key and not the one that signed).
+
+What that exercises that a nightly does not: the tag form (`vX.Y.Z-rc.N`), `check-tag` against `main` and the
+existing releases, `released-as` finding this commit's release, `next`/`next_tag` computing the number, and
+`page_header` branching on the files a release carries - a combined release leads with the launcher buttons and then
+says "Don't download the files below", which is what the published page does.
+
+The channel logic on the live release list: `newest(stable)` is `None` (no stable yet), `newest(rc)` is
+`v0.1.0-rc.1`, `newest(nightly)` is the newest nightly. The first two are the numbers a launcher would offer.
+
+
 ## Verified 2026-11-15: the installer, end to end
 
 Run: extracted `timeLinkBuilder-v3.0.0-rc.3-100-g16ecbc19-windows-x64.zip` and ran its `timeLinkBuilder.exe --cli`.
