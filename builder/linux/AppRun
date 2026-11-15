@@ -44,7 +44,7 @@ if [ -n "${1:-}" ] && [ -d "$1" ]; then
     exec "$TIMELINK_TOOLS/builder/linux/timeLink-launch" "$1"
 fi
 # Anything else (started from the applications menu or a file manager): no window, a message
-MESSAGE="The timeLink Builder has no window of its own: the timeLink Launcher builds the game and starts it. Get the launcher from https://longshot.magicbean.dev/download"
+MESSAGE="The timeLink Builder has no window of its own: the timeLink Launcher builds the game and starts it. Get the launcher from https://github.com/HanYolo1/timeLink/blob/main/docs/getting-started.md"
 echo "$MESSAGE" >&2
 if [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ] && [ ! -t 2 ]; then
     if command -v zenity >/dev/null 2>&1; then

@@ -1,4 +1,4 @@
-"""Releases on git.magicbean.dev (docs/releases.md, RELEASING.md), for both products: timeLink (its builders, released from
+"""Releases on GitHub (docs/releases.md, RELEASING.md), for both products: timeLink (its builders, released from
 MagicBeanDev/Longshot) and the timeLink Launcher (MagicBeanDev/LongshotLauncher). The same file is in both repositories; it
 finds out which one it is in. Python's standard library, git, and the openssl command line (for keys and signatures) only.
 
@@ -322,7 +322,7 @@ def notes(tag, product, root=ROOT):
 # by their names, which is why the launcher's links are the list's rather than a per-channel address)
 SITE = "https://github.com/HanYolo1/timeLink/releases"
 # (a release file: GitHub serves it from the release itself, /<owner>/<repo>/releases/download/<tag>/<name>. It used to be
-# Cloudflare's edge in front of git.magicbean.dev; GitHub's own edge needs no such address here)
+# (the CDN that fronted MagicBeanDev's Forgejo is gone; GitHub's own edge needs no such address here)
 DOWNLOADS = "https://github.com"
 LAUNCHER_FILES = {"setup": "-windows-x64-setup.exe", "portable": "-windows-x64-portable.zip", "appimage": "-x86_64.AppImage"}
 CHANNEL_SAYS = {"stable": "This is a stable release: it builds timeLink's stable versions by default.",
