@@ -439,8 +439,13 @@ static int place_tool(const wchar_t *from, const wchar_t *to) {
     const DWORD attributes = GetFileAttributesW(from), there = GetFileAttributesW(to);
     if (attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_REPARSE_POINT)) return 0;
     if (there == INVALID_FILE_ATTRIBUTES) return MoveFileW(from, to) != 0;   /* (nothing there: moved whole, as before) */
-    if (!(attributes & FILE_ATTRIBUTE_DIRECTORY) || !(there & FILE_ATTRIBUTE_DIRECTORY) || (there & FILE_ATTRIBUTE_REPARSE_POINT))
-        return 0;   /* (a file where the other side has one, or a file and a folder: the tool would replace the builder's) */
+    if (!(attributes & FILE_ATTRIBUTE_DIRECTORY) || !(there & FILE_ATTRIBUTE_DIRECTORY) || (there & FILE_ATTRIBUTE_REPARSE_POINT)) {
+        /* (a file where the other side has one: the same bytes are the same file, and the builder's copy stays; other bytes
+           would replace the builder's, which is refused. A file and a folder is refused too) */
+        if ((attributes & FILE_ATTRIBUTE_DIRECTORY) || (there & FILE_ATTRIBUTE_DIRECTORY)) return 0;
+        char a[65], b[65];
+        return file_sha256(from, a) && file_sha256(to, b) && !strcmp(a, b);
+    }
     wchar_t pattern[MAX_PATH];
     if (!hb_home_join(pattern, MAX_PATH, from, L"*")) return 0;
     WIN32_FIND_DATAW entry;

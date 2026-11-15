@@ -1,8 +1,9 @@
 """The Windows setup (builder/setup/setup.c) installs tools.lock's third-party tool into the builder's own
 timeLinkBuilder/tools/third_party: the release zip has that folder already (the repository's third_party sources,
 scripts/builder_package.py), and the tool's archive holds only the prebuilt files that go among them (a64emit.dll,
-SDL3.dll, ..., scripts/tools.py assemble third-party). The tool's files are merged in, file by file; a file both have is
-refused and never replaced; an installed version's third_party (sources and tool together) is never moved or copied onto
+SDL3.dll, ..., scripts/tools.py assemble third-party). The tool's files are merged in, file by file; a file both have with
+other bytes is refused and never replaced, and one both have with the same bytes is the same file (the builder's copy
+stays); an installed version's third_party (sources and tool together) is never moved or copied onto
 the new one, which in a portable home used to remove the new one's sources on the failed copy.
 
 A fake builder zip (builder_package.make_zip) and a fake third-party archive (tools.assemble_third_party) are unpacked
@@ -221,8 +222,8 @@ def harness(source):
     code += source[source.rfind("typedef struct", 0, part_end):part_end] + "\n"
     code += "static HbHome g_home;\nstatic void fail(const wchar_t *format, ...);\n"
     for marker in ("static int home_path(", "static void rmtree_at(", "static void rmtree(", "static void mkdirs(", "static void read_small(",
-                   "static int part_folder(", "static int copy_tree_at(", "static int copy_part_tree(", "static int place_tool(",
-                   "static int reuse_part("):
+                   "static void hex(", "static int file_sha256(", "static int part_folder(", "static int copy_tree_at(",
+                   "static int copy_part_tree(", "static int place_tool(", "static int reuse_part("):
         code += function(source, marker) + "\n"
     return code + HARNESS.replace("static HbHome g_home;\n", "").replace("#define _wtoi(s) ((int)wcstol((s), NULL, 10))\n", "")
 
@@ -251,7 +252,9 @@ def main():
         c, exe = root / "merge.c", root / "merge.exe"
         c.write_text(harness(source), encoding="utf-8")
         flags = ["-std=c11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-function", "-I" + str(ROOT / "builder/setup")]
-        subprocess.run([args.cc, *flags, *(["-municode"] if WINDOWS else []), str(c), "-o", str(exe)], check=True)
+        # (file_sha256 hashes with Windows' bcrypt: the harness links it, as setup.c's own build line does)
+        libs = ["-lbcrypt"] if WINDOWS else []
+        subprocess.run([args.cc, *flags, *(["-municode"] if WINDOWS else []), str(c), "-o", str(exe), *libs], check=True)
 
         def run(*argv):
             r = subprocess.run([str(exe), *map(str, argv)])
@@ -290,12 +293,20 @@ def main():
         assert tree(dest) == want, sorted(tree(dest))
         assert not [p for p in (staged / ".tool-0").rglob("*") if p.is_file()], "a tool file was left behind"
 
-        # 2. a tool file the builder has already: refused, and the builder's file kept as it was
+        # 2. a tool file the builder has already with other bytes: refused, and the builder's file kept as it was
         clash = root / "clash"
         (clash / "a64-kit/lift").mkdir(parents=True)
         (clash / "a64-kit/lift/a64emit.cpp").write_bytes(b"// not the builder's\n")
         run("place", clash, dest, 0)
         assert (dest / "a64-kit/lift/a64emit.cpp").read_bytes() == sources["third_party/a64-kit/lift/a64emit.cpp"]
+        # (the same bytes on both sides: the same file, so the merge goes on and the builder's copy stays. The real
+        # third-party archive carries SDL2.dll and SDL3.dll, which the real builder zip has too, byte for byte: refusing
+        # those failed every install at tool 6 of 6)
+        same = root / "same"
+        (same / "sdl2").mkdir(parents=True)
+        (same / "sdl2/PROVENANCE.md").write_bytes(sources["third_party/sdl2/PROVENANCE.md"])
+        run("place", same, dest, 1)
+        assert (dest / "sdl2/PROVENANCE.md").read_bytes() == sources["third_party/sdl2/PROVENANCE.md"]
         # (a file where the builder has a folder, and the other way round: refused too)
         (root / "file-for-folder").mkdir()
         (root / "file-for-folder/sdl2").write_bytes(b"not a folder")
