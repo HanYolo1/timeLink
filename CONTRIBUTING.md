@@ -5,8 +5,8 @@ code is lifted to C, the Horizon OS and NVN2 are implemented natively, and the G
 emulator is involved, and the game is built on your PC from your own copy.
 
 It lives at [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink), a personal fork of the upstream
-project on the team's Forgejo. This page gets you set up, then covers what to send, how to build and test it, and the
-rules that keep the project out of trouble. The [development guide](docs/development.md) has the full pipeline; the
+project. This page gets you set up, then covers what to send, how to build and test it, and the rules that keep the
+project out of trouble. The [development guide](docs/development.md) has the full pipeline; the
 [design notes](docs/design.md) have the architecture.
 
 **This is one person's fork, kept in step with upstream by hand.** Issues are open here for problems with this fork's
@@ -202,9 +202,9 @@ output. Name part of a path to run only matching checks (`tests/run_all.py ub_`)
 compiler, `spirv-val`, the SPIR-V or Vulkan headers, `zstandard`) is skipped and says so; `--strict` fails it instead.
 Checks that can't run everywhere say so in their own file (`RUN_ALL_SKIP`); `--no-skip` runs them anyway.
 
-Forgejo doesn't run these on pull requests or on `main` for now: CI runs only the light checks (the title, the
-description, workflow lint, the third-party notes), and a maintainer can start the full checks by hand (*Actions* >
-*CI* > *Run workflow*). So run them before you open a pull request and put their results in it.
+GitHub Actions runs the light checks on every pull request (the title, the description, workflow lint, the third-party
+notes). The full checks are long, so they are not run on every pull request: run them yourself before you open one and
+put their results in it, and a maintainer can start them by hand (*Actions* > *CI* > *Run workflow*).
 
 ### Checks that need your dump or a run
 
@@ -271,27 +271,26 @@ for scripted input, screenshots, frame dumps and profiles are in the development
 ## Commits and pull requests
 
 Every pull request uses the [pull request template](.github/pull_request_template.md): its sections are the
-description, its checklist stays whole, and `forge.py pr ready` checks it before review.
+description, and its checklist stays whole.
 
-timeLink's `main` takes reviewed pull requests only. You work on a branch, push it to your fork and open the pull
-request from there. Set up pushing once: `python -I scripts/forge.py fork` makes your fork and the remote
-`forge-fork` (`pr create` does it too if you haven't).
+`main` takes reviewed pull requests only. You work on a branch, push it to your fork and open the pull request from
+there:
 
 ```
-git fetch forge && git switch -c fix/arc-walls forge/main        jj: jj git fetch --remote forge; jj new main@forge
+git switch -c fix/arc-walls
 ... change, build, test, commit ...
-git push forge-fork fix/arc-walls                                 jj: jj bookmark create fix/arc-walls -r @;
-                                                                      jj git push --remote forge-fork -b fix/arc-walls
-python -I scripts/forge.py pr create fix/arc-walls --title "fix(vk): walls missing on Intel Arc" --body-file pr.md
+git push -u origin fix/arc-walls
 ```
+
+Then open the pull request on GitHub. `scripts/check_pr_description.py` checks a description against the template and
+runs on every pull request (`.github/workflows/pr-description.yml`); run it yourself with
+`python -I scripts/check_pr_description.py --pr <n>`.
 
 1. Name the branch for the change: `fix/...`, `linux/...`, `builder/...`, `docs/...`. One topic per pull request: a fix
    doesn't carry a refactor, and two unrelated fixes are two PRs.
 2. Write the title as a Conventional Commit ([below](#pull-request-titles)).
-3. Fill in the description from [the pull request template](.github/pull_request_template.md): the web page puts it
-   in the box, and `forge.py pr create` starts from it when you give no `--body-file` (the type from the title, How to
-   reproduce only for a fix, the commits in the Measurements' columns). The comment under each heading says what a
-   good answer looks like; in short:
+3. Fill in the description from [the pull request template](.github/pull_request_template.md): GitHub puts it in the
+   box. The comment under each heading says what a good answer looks like; in short:
    - the **status line** first: type, risk, where it was tested and where it still needs testing;
    - **Why**, in plain words a player could follow, with the issues that fit linked (search the tracker first);
    - **How to reproduce**, for a fix only: where it was seen, the steps, expected against actual;
@@ -301,36 +300,27 @@ python -I scripts/forge.py pr create fix/arc-walls --title "fix(vk): walls missi
      says "None", or gives each switch, menu row, ini key or build flag added or changed: its value before and after
      this PR, its effect, where it helps, and your recommendation;
    - **Testing**: what was tested (where and how), what wasn't (and why), and what **must be tested** before merge:
-     exactly where (OS, GPU, driver, or a Test Farm tag), the steps for someone else, the result to expect, and who
-     runs it: the Test Farm (Beanstalk: a `@Beanstalk <what to test>` comment on the PR) or a person by hand ("None"
-     when you covered everything);
+     exactly where (OS, GPU, driver), the steps for someone else, the result to expect, and who runs it ("None" when
+     you covered everything);
    - **Risks**: what could break, how to turn it off, and its **Compatibility** (saves, `timeLink_options.ini`, the
      shader and pipeline caches, the vk ABI, the builder's tools);
    - **Issues**: `Fixes #123` closes the issue on merge, `See #123` links it; delete the section when there is none;
    - the **checklist**: the whole *Everyone* list, every box ticked; from *When it applies*, only the boxes that
-     apply to this PR, ticked (delete the rest: a box kept means it applies, so it must be done). `pr create` keeps
-     the ones the diff suggests, and the check warns when the diff suggests one that isn't there.
+     apply to this PR, ticked (delete the rest: a box kept means it applies, so it must be done).
      The author keeps it true: check each box against the PR as it is now, and again after every push (tick what
      holds, untick what no longer does, delete what stopped applying). An *Everyone* box that can't be true yet
-     stays unticked with the reason beside it, and the PR stays WIP.
-     Every box is the author's to settle: work it out from the diff, the tests and the runs, and ask the person you
-     work for only about what you can't settle yourself.
-4. **A pull request is work in progress until it is measured and ready for review.** On Forgejo that is a title
-   starting with `WIP:` (or `[WIP]`). `pr create` opens it so (`--ready` when the description is complete already);
-   `pr ready <n>` marks it ready once the Measurements have real numbers and every *Everyone* box is ticked, and
-   refuses until then (the same check runs on every pull request: `scripts/check_pr_description.py`). Reviewers
-   don't review a WIP pull request. One that turns out to need more work goes back to WIP (`pr wip <n>`); one without
-   measurements also gets the label `needs measurements`.
+     stays unticked with the reason beside it, and the PR stays a draft.
+4. **A pull request is work in progress until it is measured and ready for review.** Open it as a draft; mark it ready
+   once the Measurements have real numbers and every *Everyone* box is ticked. Reviewers don't review a draft.
 5. **Keep the description current.** It is the pull request's summary of record: when the change, the measurements or
-   what was tested change, edit it (`pr edit <n> --body-file F`), so that it always describes the PR as it is now.
+   what was tested change, edit it, so that it always describes the PR as it is now.
 6. **Post a comment for each new thing**: new commits after a review, new measurements, a new test run, an answer to
-   a review. A short comment says what changed and why, for the reviewers following the thread. The description
-   holds the current state, the comments the history: `pr update <n> --body-file F --comment "..."` does both.
-7. When `main` moves, rebase onto it (`git rebase forge/main`, or `jj rebase -d main@forge`) and resolve conflicts in
-   your branch; measure again, or say in the comment why the numbers still hold.
+   a review. A short comment says what changed and why. The description holds the current state, the comments the
+   history.
+7. When `main` moves, rebase onto it (`git fetch origin && git rebase origin/main`) and resolve conflicts in your
+   branch; measure again, or say in the comment why the numbers still hold.
 
-A maintainer reviews and squash-merges it. `forge.py pr status <n>`, `pr list --mine` and `pr view <n> --comments`
-follow up from the command line ([docs/forge.md](docs/forge.md)).
+A maintainer reviews and squash-merges it.
 
 ### Measurements
 
@@ -391,7 +381,7 @@ the assembled view; [tested configurations](docs/tested-configurations.md) combi
 
 A pull request is squash-merged, so its title becomes the commit on `main`, and that commit decides the next release
 and its changelog line. The title is a [Conventional Commit](https://www.conventionalcommits.org/): a type, an optional
-scope in parentheses, a colon, and a short description (`forge.py pr create` refuses anything else).
+scope in parentheses, a colon, and a short description (`scripts/check_pr_description.py` refuses anything else).
 
 | Type | For | Example |
 |---|---|---|

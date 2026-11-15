@@ -32,9 +32,9 @@ draft) is not checked: it passes with a notice listing what is left. The check a
 review; forge.py pr ready runs the same check before it takes the WIP: off (--force goes on anyway).
 
     python -I scripts/check_pr_description.py --file body.md [--title T] [--diff pr.diff] [--wip]
-    python -I scripts/check_pr_description.py --pr 12 [--repo MagicBeanDev/Longshot] [--server https://git.magicbean.dev]
+    python -I scripts/check_pr_description.py --pr 12 [--repo HanYolo1/timeLink] [--server https://github.com]
 
---pr reads the pull request, its title and its diff from the Forgejo API, with the token in FORGEJO_TOKEN or
+--pr reads the pull request, its title and its diff from the API (GitHub, or Forgejo), with the token in FORGEJO_TOKEN or
 GITHUB_TOKEN when one is set (a public repository needs none). Exit status 0 when it passes, 1 with the problems listed
 when it does not. Standard library only; .github/workflows/pr-description.yml runs it on every pull request.
 """
@@ -684,15 +684,38 @@ def is_draft(title, api_draft=False):
     return bool(api_draft) or wip_prefix(title) is not None
 
 
+def pull_url(server, repo, number, suffix=""):
+    """Where a pull request is read from: api.github.com on github.com, <server>/api/v3 on a GitHub Enterprise
+    server, and the address as given when --server already names the API (a Forgejo's .../api/v1)."""
+    server = server.rstrip("/")
+    if re.search(r"/api/v\d+$", server):
+        api = server
+    elif server == "https://github.com":
+        api = "https://api.github.com"
+    else:
+        api = server + "/api/v3"
+    return "%s/repos/%s/pulls/%d%s" % (api, repo, number, suffix)
+
+
 def fetch(server, repo, number, suffix=""):
-    req = urllib.request.Request("%s/api/v1/repos/%s/pulls/%d%s" % (server.rstrip("/"), repo, number, suffix),
-                                 headers={"Accept": "application/json", "User-Agent": "timeLink-pr-check/1"})
+    # (a .diff suffix is not enough for GitHub: without the diff media type it answers the pull request's JSON, and
+    # the Flags table would be checked against that)
+    accept = "application/vnd.github.v3.diff" if suffix == ".diff" else "application/json"
+    req = urllib.request.Request(pull_url(server, repo, number, suffix),
+                                 headers={"Accept": accept, "User-Agent": "timeLink-pr-check/1"})
     token = os.environ.get("FORGEJO_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if token:
-        req.add_header("Authorization", "token " + token)
+        req.add_header("Authorization", "Bearer " + token)
     with urllib.request.urlopen(req, timeout=30) as r:
         data = r.read()
     return data.decode("utf-8", "replace") if suffix else json.loads(data)
+
+
+def base_commit(pr):
+    """The commit the pull request is based on. Forgejo calls it merge_base and GitHub base.sha: the rebase warning
+    names it either way, and neither API gives one when the head branch has not fetched it yet."""
+    base = pr.get("base")
+    return pr.get("merge_base") or (base.get("sha") if isinstance(base, dict) else None)
 
 
 def main(argv=None):
@@ -704,8 +727,8 @@ def main(argv=None):
     p.add_argument("--diff", help="with --file: the PR's unified diff, for the Flags checks")
     p.add_argument("--wip", "--draft", dest="wip", action="store_true",
                    help="with --file: treat it as work in progress (not checked: a notice only)")
-    p.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY") or "MagicBeanDev/Longshot")
-    p.add_argument("--server", default=os.environ.get("GITHUB_SERVER_URL") or "https://git.magicbean.dev")
+    p.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY") or "HanYolo1/timeLink")
+    p.add_argument("--server", default=os.environ.get("GITHUB_SERVER_URL") or "https://github.com")
     a = p.parse_args(argv)
     merge_base, diff, title = None, None, a.title
     if a.file:
@@ -713,7 +736,7 @@ def main(argv=None):
         diff = Path(a.diff).read_text(encoding="utf-8", errors="replace") if a.diff else None
     else:
         pr = fetch(a.server, a.repo, a.pr)
-        body, wip, merge_base = pr.get("body") or "", is_draft(pr.get("title"), pr.get("draft")), pr.get("merge_base")
+        body, wip, merge_base = pr.get("body") or "", is_draft(pr.get("title"), pr.get("draft")), base_commit(pr)
         title = pr.get("title")
         try:
             diff = fetch(a.server, a.repo, a.pr, ".diff")

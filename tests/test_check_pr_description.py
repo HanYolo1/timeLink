@@ -10,17 +10,19 @@ summary and a row per flag with every cell), Testing (Tested, Not tested, Must b
 where, how, the result to expect and who runs it: the Test Farm or by hand), Risks with Compatibility, a bare "Fixes #", and the checklist (Everyone kept
 whole and ticked; When it applies trimmed to what applies, every kept box ticked). Warnings: a switch the diff adds and
 Flags doesn't list, a menu change with no flags, a rebase since the measurements, n/a, a box the diff suggests, the
-status line's type against the title's, Needs against Must be tested, something measured said untested. A work-in-progress PR passes with a notice, and the workflow runs the script on Forgejo's events.
+status line's type against the title's, Needs against Must be tested, something measured said untested. A work-in-progress PR passes with a notice, and the workflow runs the script on GitHub's pull request events.
 
 python -I -B tests/test_check_pr_description.py
 """
 import contextlib
 import importlib.util
 import io
+import os
 import re
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("check_pr_description", ROOT / "scripts" / "check_pr_description.py")
@@ -554,6 +556,76 @@ class Running(unittest.TestCase):
         self.assertRegex(wf, r"uses: actions/checkout@[0-9a-f]{40} ")   # (GitHub resolves owner/repo@ref, not a URL)
         self.assertIn("python3 -I scripts/check_pr_description.py --pr", wf)
         self.assertNotIn("${{ github.event.pull_request.title", wf)   # (nothing the PR's author writes reaches the shell)
+
+
+class Api(unittest.TestCase):
+    """--pr asks the API that answers: GitHub's api.github.com, a GitHub Enterprise server's /api/v3, or the address
+    --server gives when it already names the API. It asks for the diff as a diff, because GitHub answers a .diff
+    suffix with the pull request's JSON and the Flags table would be checked against that."""
+
+    def test_where_a_pull_request_is_read_from(self):
+        self.assertEqual("https://api.github.com/repos/o/r/pulls/7",
+                         check.pull_url("https://github.com", "o/r", 7))
+        self.assertEqual("https://api.github.com/repos/o/r/pulls/7",   # (a trailing slash on --server)
+                         check.pull_url("https://github.com/", "o/r", 7))
+        self.assertEqual("https://ghe.example.com/api/v3/repos/o/r/pulls/7",
+                         check.pull_url("https://ghe.example.com", "o/r", 7))
+        self.assertEqual("https://forge.example/api/v1/repos/o/r/pulls/7",   # (the address already names the API)
+                         check.pull_url("https://forge.example/api/v1", "o/r", 7))
+        self.assertEqual("https://api.github.com/repos/o/r/pulls/7.diff",
+                         check.pull_url("https://github.com", "o/r", 7, ".diff"))
+
+    def test_the_diff_is_asked_for_as_a_diff(self):
+        seen = []
+
+        def fake(request, timeout=None):
+            seen.append(request)
+            return Reply(b"diff --git a/x b/x" if request.full_url.endswith(".diff") else b'{"number": 7}')
+
+        with mock.patch.object(check.urllib.request, "urlopen", fake):
+            self.assertEqual(7, check.fetch("https://github.com", "o/r", 7)["number"])
+            self.assertTrue(check.fetch("https://github.com", "o/r", 7, ".diff").startswith("diff --git"))
+        self.assertEqual("application/json", seen[0].get_header("Accept"))
+        self.assertEqual("application/vnd.github.v3.diff", seen[1].get_header("Accept"))
+
+    def test_a_token_is_sent_as_bearer(self):
+        seen = []
+
+        def fake(request, timeout=None):
+            seen.append(request)
+            return Reply(b'{"number": 7}')
+
+        with mock.patch.dict(os.environ, {"FORGEJO_TOKEN": "t"}, clear=False):
+            with mock.patch.object(check.urllib.request, "urlopen", fake):
+                check.fetch("https://github.com", "o/r", 7)
+        self.assertEqual("Bearer t", seen[0].get_header("Authorization"))   # (installation tokens need Bearer)
+
+    def test_the_base_commit_whichever_api(self):
+        self.assertEqual("abc", check.base_commit({"base": {"sha": "abc"}}))   # (GitHub)
+        self.assertEqual("def", check.base_commit({"merge_base": "def"}))      # (Forgejo)
+        self.assertIsNone(check.base_commit({}))                              # (neither: no rebase warning)
+        self.assertIsNone(check.base_commit({"base": None}))
+
+    def test_the_defaults_are_this_fork(self):
+        script = (ROOT / "scripts" / "check_pr_description.py").read_text(encoding="utf-8").lower()
+        self.assertNotIn("magicbean", script)   # (neither MagicBeanDev nor git.magicbean.dev: this is this fork)
+        self.assertEqual(0, check.main(["--file", str(ROOT / "tests" / "pr_description" / "good.md")]))
+
+
+class Reply:
+    """What urlopen returns, as fetch uses it: a context manager with read()."""
+
+    def __init__(self, data):
+        self._data = data
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def read(self):
+        return self._data
 
 
 if __name__ == "__main__":
