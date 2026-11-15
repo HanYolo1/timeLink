@@ -67,12 +67,13 @@ SERVER = "https://api.github.com"
 # fork, e2a4d453 "Rename the project to timeLink"; the launcher from its repository's first commit. Both start at v0.1.0:
 # one tag names both products' releases, which ship different files)
 PRODUCTS = {
-    "timelink": {"repo": "HanYolo1/timeLink", "first_major": 0, "display": "timeLink",
+    "timelink": {"repo": "HanYolo1/timeLink", "first_major": 0, "first_version": "v0.1.0", "display": "timeLink",
                  "since": "e2a4d45398ffba162f54026bb7e708a7157bbed9"},
-    "launcher": {"repo": "HanYolo1/timeLink", "first_major": 0, "display": "timeLink Launcher", "since": None},
+    "launcher": {"repo": "HanYolo1/timeLink", "first_major": 0, "first_version": "v0.1.0", "display": "timeLink Launcher", "since": None},
 }
 CHANNELS = ("stable", "rc", "nightly")
-# (the first version of every product: a product's first release is this, not "v<first_major>.0.0", which would be v0.0.0)
+# (the first version of every product: a product's first release is this, not "v<first_major>.0.0", which would be v0.0.0.
+# The default only; a product whose first number is not 1 gives its own, below)
 FIRST_VERSION = "v0.1.0"
 # (git-cliff for the notes, Linux x86-64, pinned: its release page gives the SHA-256)
 GIT_CLIFF = ("2.14.2", "24f397c733add5390fdceee3a2088588ab0d5f944ce00d34cb7029b888cf2db4",
@@ -216,13 +217,20 @@ def bump_of(subjects_bodies):
     return level
 
 
-def required(first_major, root=ROOT, ref="HEAD", below=None):
+def first_version(first_major, product=None):
+    """The first version of a product: its own `first_version`, else FIRST_VERSION when it starts at 0, else v<major>.0.0"""
+    if product in PRODUCTS and "first_version" in PRODUCTS[product]:
+        return PRODUCTS[product]["first_version"]
+    return FIRST_VERSION if first_major <= 0 else "v%d.0.0" % first_major
+
+
+def required(first_major, root=ROOT, ref="HEAD", below=None, product=None):
     """(the lowest stable number the commits since the last stable allow, as vX.Y.Z; that stable; the bump)"""
     last = last_stable(first_major, root, ref, below)
     if last is None:
-        # (a product's first release is FIRST_VERSION, not "v<first_major>.0.0": both products start at v0.1.0. A caller
-        # asking for a product whose numbers start higher keeps the old form, so the answer is always a version of it)
-        return (FIRST_VERSION if first_major <= 0 else "v%d.0.0" % first_major), None, None
+        # (a product's first release is its first_version, not "v<first_major>.0.0", which would be v0.0.0. A caller asking
+        # for a product whose numbers start higher keeps the old form, so the answer is always a version of it)
+        return first_version(first_major, product), None, None
     level = bump_of(commits(last, root, ref))
     x, y, z = (int(n) for n in STABLE.match(last).groups())
     if level == "major":
@@ -237,7 +245,7 @@ def base_of(tag):
     return (k[0], k[1], k[2]) if k else None
 
 
-def check_tag(tag, existing, first_major, root=ROOT, main="origin/main"):
+def check_tag(tag, existing, first_major, root=ROOT, main="origin/main", product=None):
     """The problems with releasing tag ([] when none): its form, main, every release there is, and the bump"""
     problems = []
     if not is_version(tag, first_major):
@@ -251,16 +259,16 @@ def check_tag(tag, existing, first_major, root=ROOT, main="origin/main"):
               and after_fork(t, root)]
     if higher:
         problems.append("%s is not above every release there is: %s" % (tag, ", ".join(sorted(higher, key=version_key))))
-    low, last, level = required(first_major, root, commit, below=tag)
+    low, last, level = required(first_major, root, commit, below=tag, product=product)
     if base_of(tag) < base_of(low):
         problems.append("%s is lower than the commits since %s call for: at least %s (%s)"
                         % (tag, last or "the start", low, level or "a new number"))
     return problems
 
 
-def next_tag(existing, first_major, root=ROOT):
+def next_tag(existing, first_major, root=ROOT, product=None):
     """The next release candidate's tag: the next rc of the current one when it is still high enough, else <required>-rc.1"""
-    low = required(first_major, root)[0]
+    low = required(first_major, root, product=product)[0]
     since = since_fork(root)
     rcs = [t for t in existing if is_version(t, first_major) and not STABLE.match(t) and base_of(t) >= base_of(low)
            and after_fork(t, root, since)]
@@ -713,7 +721,7 @@ def main(argv=None):
     if a.cmd == "next":
         existing = product_tags(releases(repo_of(product)), product, first) if not a.tag else tags_merged()
         low, last, level = required(first)
-        tag = a.tag or next_tag(existing + tags_merged(), first)
+        tag = a.tag or next_tag(existing + tags_merged(), first, product=product)
         print("since %s: %s, so at least %s" % (last or "the start", level or "nothing a player sees", low))
         print("next release candidate: %s (then %s on the release candidate that was good)\n" % (tag, tag.split("-rc.")[0]))
         print(notes(tag, product))
@@ -724,7 +732,7 @@ def main(argv=None):
         else:
             listed = releases(repo_of(product))
         existing = product_tags(listed, product, first)
-        problems = check_tag(a.tag, existing, first, main=a.main)
+        problems = check_tag(a.tag, existing, first, main=a.main, product=product)
         for problem in problems:
             print("error: " + problem, file=sys.stderr)
         if problems:

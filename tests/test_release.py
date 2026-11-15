@@ -60,6 +60,35 @@ class Copies(unittest.TestCase):
                                     self.normalize(vendored.read_text(encoding="utf-8")).splitlines()) if a != b]
         self.assertEqual(differ[:5], [], "scripts/release.py and launcher/scripts/release.py have drifted apart")
 
+    def load(self, path):
+        """(the module at path, loaded fresh: the launcher copy is a different file with a different product key)"""
+        spec = importlib.util.spec_from_file_location("release_under_test", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_every_product_key_is_named_in_every_table(self):
+        """(the half-rename this caught: the launcher copy renamed PRODUCTS' key to timelink but left FILE_PREFIX and
+        product_of() saying longshot, so ships() raised KeyError and every product check failed. A key in one table and not
+        another is never meant, so each copy must name the same products in PRODUCTS and FILE_PREFIX)"""
+        for name in ("scripts/release.py", "launcher/scripts/release.py"):
+            module = self.load(ROOT / name)
+            with self.subTest(name):
+                self.assertEqual(sorted(module.PRODUCTS), sorted(module.FILE_PREFIX),
+                                 "%s: PRODUCTS and FILE_PREFIX name different products" % name)
+                for product in module.PRODUCTS:
+                    module.ships({"tag_name": "v0.1.0", "assets": [{"name": "x"}]}, product)
+
+    def test_a_products_first_version_comes_from_itself(self):
+        """(a product starting at v0.1.0 and one starting at v0.3.0 must not get the same first version)"""
+        for name in ("scripts/release.py", "launcher/scripts/release.py"):
+            module = self.load(ROOT / name)
+            with self.subTest(name):
+                for product, entry in module.PRODUCTS.items():
+                    self.assertEqual(module.first_version(entry["first_major"], product), entry["first_version"])
+                self.assertEqual(module.required(0, product=next(iter(module.PRODUCTS)))[0], "v0.1.0")
+                self.assertEqual(module.required(3)[0], "v3.0.0")   # (a floor above 0 keeps the old form)
+
     def test_no_release_file_starts_with_a_byte_order_mark(self):
         """(PowerShell 5.1's Set-Content -Encoding utf8 writes a BOM. A BOM on a .py is tolerated, but on a file that is read
         line by line, like tools.lock, the first line stops matching and the tool it names is invisible)"""
