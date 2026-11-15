@@ -1,14 +1,13 @@
 # A pull request's description must follow the template (.github/pull_request_template.md, CONTRIBUTING.md "Commits and
 # pull requests"): the status line, every section filled in, the measurements named by commit, every "Everyone" box
 # ticked (the rules: the opening comment of scripts/check_pr_description.py).
-# A PR in work in progress (WIP: or [WIP] at the start of the title) passes with a notice: it is checked once it is
-# marked ready. `forge.py pr ready` runs the same check before it takes the WIP: off. Only the description is read, from
-# the API, with main's script: the pull request's code is never checked out, so pull_request_target, which also runs
-# for pull requests from forks, is safe. No game data is involved.
+# A PR in progress (a draft, or WIP: or [WIP] at the start of the title) passes with a notice: it is checked once it
+# is marked ready. Only the description is read, from the API, with main's script: the pull request's code is never
+# checked out, so pull_request_target, which also runs for pull requests from forks, is safe. No game data is involved.
 #
-# Forgejo 17 has no ready_for_review event: marking a PR ready takes WIP: off its title, which is an edit.
-# (GitHub reads .github/workflows/ and nothing else, so this file runs once every
-# workflow has moved here, MagicBeanDev/timeLink#13, and a runner serves the repository.)
+# `ready_for_review` is not one of the events: GitHub sends it when a draft is marked ready, but it does not send
+# `edited` with it, so a PR whose readiness is taken from the title alone is covered by `edited`, and a draft's check
+# runs again on the next push or edit.
 name: PR description
 
 on:
