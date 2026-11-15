@@ -124,8 +124,9 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
 - **Where the archives are: the `tools` release.** Every tool is downloaded first from timeLink's own copy, an asset of the
   **`tools` release** on `HanYolo1/timeLink-tools`, named `<sha256>-<name>.zip`:
   `https://github.com/HanYolo1/timeLink-tools/releases/download/tools/<sha256>-<name>.zip`. That repository is **public**
-  and holds nothing but these archives: a private repository's release assets are not served at `releases/download/` at
-  all, not even with a token, so the builder's setup and the AppImage could not fetch them. The name carries the digest and
+  and holds nothing but these archives. They live there rather than here so that a change to this repository's visibility
+  cannot break every install: while it was private, GitHub did not serve its `releases/download/` at all, not even with a
+  token, so the builder's setup and the AppImage could not have fetched them. The name carries the digest and
   `tools.lock` checks it, so a replaced asset is caught; GitHub lets an asset be deleted and uploaded again, so never reuse
   a version string. Nothing prunes the release, so an older version's tools stay downloadable. Where an archive came from
   (upstream for llvm-mingw, NotRexed/Hookshot's `builder-parts` release for those taken from Hookshot) is its fallback URL,

@@ -106,8 +106,10 @@ All 11 archives were downloaded from MagicBeanDev's store and verified against `
 repository that holds nothing but these archives. Every `tools.lock` line names it first, keeping third-party upstream URLs
 behind it where a line had them.
 
-**Why a separate repository.** The tools could not live in `HanYolo1/timeLink`: that repository is private, and GitHub does
-not serve `releases/download/` for a private repository at all. Measured:
+**Why a separate repository.** `HanYolo1/timeLink` was **private** when the tools were re-hosted, and GitHub does not serve
+`releases/download/` for a private repository at all. It is public again now, so the tools could move here - they stay in
+`timeLink-tools` for a reason that survives the change: if this repository is ever made private again, the tools must stay
+downloadable, or every install breaks at tool 6 of 6. Measured when it was private:
 
 | Request | Result |
 |---|---|
