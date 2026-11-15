@@ -1,21 +1,22 @@
-# Forgejo Actions runners
+# CI runners
 
-timeLink's CI runs on Forgejo Actions (`.github/workflows/`), on runners the team registers with git.magicbean.dev. Every
-job runs on Linux: **no Windows runner is needed**, and none is registered. These are manual steps for an admin of the
-instance or of MagicBeanDev; nothing here needs a game.
+**This fork runs its CI on GitHub Actions, on GitHub-hosted runners.** The workflows are in `.github/workflows/`, and
+nothing has to be registered or turned on: a push to `main` or a `v*` tag starts them. Every job asks for
+`ubuntu-latest` or `ubuntu-24.04`; **no Windows runner is needed**, because the Windows build runs on a Linux runner
+under Wine. The one secret the release needs is `RELEASE_SIGNING_KEY` ([RELEASING.md](../RELEASING.md), *One-time
+setup*).
 
-## Turn Actions on
+The rest of this page is the **upstream** setup, kept because the team's own Forgejo at git.magicbean.dev still runs
+these same workflows from `.forgejo/workflows/` there. None of it applies to this fork, and none of it is needed to
+release here.
 
-Repository *Settings > Units > Actions* (or the API's `has_actions`), on MagicBeanDev/timeLink and
-MagicBeanDev/timeLink Launcher. The secrets and the variable the release workflows read are in [RELEASING.md](../RELEASING.md), *One-time setup*.
-
-## The labels the workflows ask for
+## The labels the upstream workflows ask for
 
 | Label | Used by | What it must be |
 |---|---|---|
 | `ubuntu-latest` | `release.yml`, `ci.yml` (its title check and its Linux checks run on `ubuntu-24.04`), `third-party.yml`, the launcher's `ci.yml` and `release.yml` | Linux, Docker: e.g. `ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-24.04` (Node for the actions, git, Python 3, curl, sudo and apt) |
 | `ubuntu-24.04` | `ci.yml`'s tests (with the Windows Builder's compile and --cli checks), `build-linux.yml`, `build-windows.yml` (all of it), `vulkan-dlss.yml` | the same image; the AppImage job builds inside Ubuntu 22.04 itself (`scripts/linux/deps.sh` runs in its container) and needs Docker or enough disk (about 30 GB). The Windows jobs install Wine and Xvfb with apt, and download llvm-mingw's Linux build and the .NET 8 SDK |
-| `quick` | the short jobs of 5 minutes or less: `ci.yml`'s title check and actionlint, `pr-description.yml`, `third-party.yml`'s check, `release.yml`'s *The version* and *Sign and publish*; the launcher's title check, *The version* and *Sign and publish* | the same image. A runner kept for them only (label `quick`, capacity 1) means they never wait behind a build; the other runners carry `quick` too and take them when they have room |
+| `quick` | (upstream only: this fork's ported workflows ask for `ubuntu-latest`) the short jobs of 5 minutes or less: `ci.yml`'s title check and actionlint, `pr-description.yml`, `third-party.yml`'s check, `release.yml`'s *The version* and *Sign and publish*; the launcher's title check, *The version* and *Sign and publish* | the same image. A runner kept for them only (label `quick`, capacity 1) means they never wait behind a build; the other runners carry `quick` too and take them when they have room |
 
 ### Windows files, built on Linux
 
