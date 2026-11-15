@@ -57,7 +57,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          persist-credentials: false
+          # (the job's token stays in .git/config so the `git fetch` below can read this private repository's tags and
+          # main; with it off, git asks for a username and fails: "could not read Username for 'https://github.com'")
+          persist-credentials: true
       - name: The tools
         run: |
           # (every tool the Windows and the Linux builder need is in tools.lock and its packages: before any build, not
@@ -140,7 +142,8 @@ jobs:
         with:
           ref: ${{ needs.version.outputs.ref }}
           fetch-depth: 0
-          persist-credentials: false
+          # (as in the version job: the `git fetch` below needs the job's token to read this private repository)
+          persist-credentials: true
       # (from Forgejo's public address behind Cloudflare, as the build jobs' upload: fetched once more when it failed)
       - id: download_1
         continue-on-error: true

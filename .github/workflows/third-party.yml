@@ -25,7 +25,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          persist-credentials: false
+          # (the `git fetch` below reads this private repository's base branch, so the job's token has to stay in
+          # .git/config; with it off, git asks for a username and fails)
+          persist-credentials: true
       - name: Every part
         run: python3 -I scripts/check_third_party.py
       - name: The pull request's changes
