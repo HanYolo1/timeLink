@@ -13,8 +13,8 @@
 </h4>
 
 <p align="center">
-  <a href="https://longshot.magicbean.dev/"><b>Website</b></a> |
-  <a href="https://longshot.magicbean.dev/download"><b>Download</b></a> |
+  <a href="https://github.com/HanYolo1/timeLink/releases"><b>Releases</b></a> |
+  <a href="https://github.com/HanYolo1/timeLink/releases/latest"><b>Download</b></a> |
   <a href="https://discord.gg/magicbean"><b>Discord</b></a> |
   <a href="#project-status">Status</a> |
   <a href="#install-and-play">Install and play</a> |
@@ -31,8 +31,8 @@
 > itself a continuation of [Hookshot](https://github.com/NotRexed/Hookshot). It is not the upstream project, and the
 > upstream maintainers do not maintain it. timeLink is free software under the
 > [GNU General Public License, version 3 or later](LICENSE); the license, the copyright notices and every third-party
-> notice are kept as they are. For the official builds, support and issue tracker, go to
-> [longshot.magicbean.dev](https://longshot.magicbean.dev/).
+> notice are kept as they are. For the builds, support and the issue tracker of this fork, go to
+> [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink).
 
 timeLink is a static recompilation of a supported console game. The game's code is translated to C and compiled into a Windows or Linux program, rebuilding the graphics on Vulkan, with the console's system software reimplemented. All of this happens **on your PC, from your own copy of the game**.
 
@@ -72,12 +72,12 @@ what does not yet. Open problems are collected in tracking issues, linked below.
 
 ## Install and play
 
-### [🪟 &nbsp;Download for Windows](https://longshot.magicbean.dev/download/launcher/windows)
+### [🪟 &nbsp;Download for Windows](https://github.com/HanYolo1/timeLink/releases)
 
-### [🐧 &nbsp;Download for Linux (AppImage)](https://longshot.magicbean.dev/download/launcher/linux)
+### [🐧 &nbsp;Download for Linux (AppImage)](https://github.com/HanYolo1/timeLink/releases)
 
-Windows without installing: [portable zip](https://longshot.magicbean.dev/download/launcher/windows-portable) · Not sure?
-[longshot.magicbean.dev/download](https://longshot.magicbean.dev/download) picks for your computer. These links give the
+Windows without installing: [portable zip](https://github.com/HanYolo1/timeLink/releases) · Not sure?
+[the releases page](https://github.com/HanYolo1/timeLink/releases/latest) picks for your computer. These links give the
 newest launcher (stable, or until there is one, the release candidate); for each channel's own, see
 [release channels](#release-channels).
 
@@ -87,7 +87,7 @@ you. Windows may flag the launcher as a Trojan: it isn't, it's just not code-sig
 [antivirus warnings](https://longshot.magicbean.dev/help/antivirus/).
 
 timeLink doesn't come ready to play: it is built on your PC, from your own copy of the game. The
-**[timeLink Launcher](https://longshot.magicbean.dev/download)** does all of it for you:
+**[timeLink Launcher](https://github.com/HanYolo1/timeLink/releases/latest)** does all of it for you:
 
 1. Check that your PC and your copy of the game match [what you need](#what-you-need).
 2. Download the launcher for [Windows](#on-windows) or [Linux](#on-linux) and start it.
@@ -136,10 +136,10 @@ there is nothing else to install.
 
 ### On Windows
 
-1. [Download the launcher for Windows](https://longshot.magicbean.dev/download/launcher/windows)
+1. [Download the launcher for Windows](https://github.com/HanYolo1/timeLink/releases)
    (`timeLinkLauncher-<version>-windows-x64-setup.exe`) and run it. It asks once: **Install** (for you, no administrator
    rights, with a Start menu shortcut) or **Run portable**. To skip the question, take
-   [the portable zip](https://longshot.magicbean.dev/download/launcher/windows-portable), unzip it and run
+   [the portable zip](https://github.com/HanYolo1/timeLink/releases), unzip it and run
    `timeLinkLauncher.exe`.
 2. Press **Build the game** and choose the **Stable** channel.
 3. Pick your game. The launcher finds `.nup` files in your Downloads, Desktop and Documents folders; if yours isn't
@@ -148,7 +148,7 @@ there is nothing else to install.
 5. Press **Build**, then **Play**. The launcher can also add desktop and Start menu shortcuts.
 
 The build prepares the game's shaders at its end, which takes a while; later starts are faster. To keep everything on an
-external SSD, run [the launcher's portable zip](https://longshot.magicbean.dev/download/launcher/windows-portable) from
+external SSD, run [the launcher's portable zip](https://github.com/HanYolo1/timeLink/releases) from
 there: its data stays in `timeLinkLauncher-data` beside it.
 
 #### Compile shaders
@@ -170,7 +170,7 @@ building each shader when first drawn, until that file is deleted or a build pre
 
 ### On Linux
 
-1. [Download the launcher for Linux](https://longshot.magicbean.dev/download/launcher/linux)
+1. [Download the launcher for Linux](https://github.com/HanYolo1/timeLink/releases)
    (`timeLinkLauncher-<version>-x86_64.AppImage`).
 2. Let it run as a program: in your file manager, open its **Properties** and turn on "Allow executing file as program"
    (the wording differs between desktops), or run `chmod +x timeLinkLauncher-*-x86_64.AppImage`.
@@ -235,20 +235,20 @@ does the same with `--cli --update <game folder>`.
 
 The launcher builds from one of three channels:
 
-| Channel | What it is | The launcher |
+| Channel | What it is | The version it builds |
 |---|---|---|
-| **Stable** | The released version. Choose this to play. | [Windows](https://longshot.magicbean.dev/download/launcher/stable/windows) · [portable](https://longshot.magicbean.dev/download/launcher/stable/windows-portable) · [Linux](https://longshot.magicbean.dev/download/launcher/stable/linux) |
-| **Release candidate** | The next version, before it is released. | [Windows](https://longshot.magicbean.dev/download/launcher/rc/windows) · [portable](https://longshot.magicbean.dev/download/launcher/rc/windows-portable) · [Linux](https://longshot.magicbean.dev/download/launcher/rc/linux) |
-| **Nightly** | Built from `main` after every change; the newest five stay on the releases page. Untested: it may break your saves or settings, so copy them first. | [Windows](https://longshot.magicbean.dev/download/launcher/nightly/windows) · [portable](https://longshot.magicbean.dev/download/launcher/nightly/windows-portable) · [Linux](https://longshot.magicbean.dev/download/launcher/nightly/linux) |
+| **Stable** | The released version. Choose this to play. | a `vX.Y.Z` tag |
+| **Release candidate** | The next version, before it is released. | a `vX.Y.Z-rc.N` tag |
+| **Nightly** | Built from `main` after every change; the newest five stay on the releases page. Untested: it may break your saves or settings, so copy them first. | no tag |
 
-A nightly launcher builds timeLink's nightlies by default; any launcher can build from any channel. To go back, build a
+The launcher is one program for every channel: it ships with each release, so there is nothing separate to download per channel. A nightly launcher builds timeLink's nightlies by default; any launcher can build from any channel. To go back, build a
 version from the **Stable** channel.
 
 ### Another way: RecompLauncher
 
 Each version also ships the files [RecompLauncher](https://recomplauncher.com) installs (`recomplauncher.json`, in
 `timeLinkBuilder-<version>-windows-x64.zip` and in the Linux AppImage). RecompLauncher only finds releases on GitHub, and
-timeLink's are on git.magicbean.dev, so for now add a downloaded file to it by hand
+timeLink's are there too, so it can find them by the repository it is given
 ([docs/releases.md](docs/releases.md#recomplauncher-timeLink)).
 
 ### Where the files go
@@ -284,7 +284,7 @@ The build reads your game and never changes it.
 timeLink uploads nothing about you or your PC, and reads no browser data, passwords or session keys. This is
 everything it does on the network or with other programs:
 
-- **Downloads, from git.magicbean.dev.** The launcher reads the release lists of timeLink and of the launcher, downloads a
+- **Downloads, from GitHub.** The launcher reads the release list of this repository, downloads a
   version's files, and checks each one against the SHA-256 in the release's signed `SHA256SUMS`. The Windows builder's
   tools come from the links in `tools.lock` (their makers' releases, or timeLink's `tools` release), and its compiler
   from its makers' releases (llvm-mingw, Python), all checked by SHA-256. With **DLSS** on, NVIDIA's DLSS library comes
@@ -298,9 +298,9 @@ everything it does on the network or with other programs:
   user name taken out of its logs, and **Save my pipeline list** saves a zip in your Downloads folder: you decide whether
   to send them anywhere.
 
-Only download timeLink from [the launcher's releases](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/releases)
-and [timeLink's](https://github.com/HanYolo1/timeLink/releases) on git.magicbean.dev, or through
-[longshot.magicbean.dev/download](https://longshot.magicbean.dev/download), which sends you there. Each version's files
+Only download timeLink from [the releases page](https://github.com/HanYolo1/timeLink/releases)
+and [timeLink's](https://github.com/HanYolo1/timeLink/releases), or through
+[the releases page](https://github.com/HanYolo1/timeLink/releases/latest). Each version's files
 are listed with their SHA-256 in its `SHA256SUMS`, signed by the release key, which the launcher checks. A copy from
 anywhere else may not be ours.
 
