@@ -1,6 +1,7 @@
 # Versioning
 
-timeLink follows [Semantic Versioning 2.0.0](https://semver.org/). Its first version is **v3.0.0**. Hookshot's versions
+timeLink follows [Semantic Versioning 2.0.0](https://semver.org/). Its first version is **v0.1.0**, and the timeLink
+Launcher's is too: one tag names both products' releases, which ship different files. Hookshot's versions
 (0.1.0 to 2.x, NotRexed/Hookshot) are Hookshot's history and are not timeLink versions. How a version is built, signed and
 published, and how the timeLink Launcher installs it, is in [releases.md](releases.md).
 
@@ -14,15 +15,16 @@ published, and how the timeLink Launcher installs it, is in [releases.md](releas
 
 The `v` belongs to the tag, not to the version. Build metadata is not used. A nightly's count starts at the fork, the commit
 that renamed the project (`e2a4d45`), so it says how far timeLink is past it. A build from a checkout is named by
-`git describe --tags --long` (`v3.0.0-3-g1a2b3c4`) or `dev`: it is on no channel, and the launcher never offers it as an
+`git describe --tags --long` (`v0.1.0-3-g1a2b3c4`) or `dev`: it is on no channel, and the launcher never offers it as an
 update.
 
 One version covers the game (`timeLink.exe` / `timeLink`), the Vulkan back end, the lift pipeline and its scripts, and the
-builders: they are built from the same commit and released together. The **timeLink Launcher is released apart**, from
-MagicBeanDev/timeLink Launcher, with its own numbers (from v1.0.0) on the same three channels.
+builders: they are built from the same commit and released together. The **timeLink Launcher is released from the same
+repository and the same tag**, with the same numbers (from v0.1.0) on the same three channels: a release ships both
+products' files, and each product's releases are told apart by the files they carry.
 
-The order (the launcher's `Core/Versions.cs`): stables and release candidates in semver order (`v3.1.0-rc.1` <
-`v3.1.0-rc.2` < `v3.1.0`), nightlies by their count. A nightly and a stable are not ordered: the launcher never offers one
+The order (the launcher's `Core/Versions.cs`): stables and release candidates in semver order (`v0.2.0-rc.1` <
+`v0.2.0-rc.2` < `v0.2.0`), nightlies by their count. A nightly and a stable are not ordered: the launcher never offers one
 as an update of the other, and a build stays on its channel unless the player picks another.
 
 The "public" surface the rules protect is the command line of `make_game.py` and the builders, the `RX_` and `HOS_`
@@ -40,9 +42,9 @@ There are no release pull requests: a maintainer pushes a tag, and CI does the r
 
 | Since the last stable | The next version is at least |
 |---|---|
-| any `!` or `BREAKING CHANGE:` | the next major: `v4.0.0` after `v3.2.1` |
-| a `feat` | the next minor: `v3.3.0` |
-| only `fix`, `perf` and the rest | the next patch: `v3.2.2` |
+| any `!` or `BREAKING CHANGE:` | the next major: `v1.0.0` after `v0.2.1` |
+| a `feat` | the next minor: `v0.3.0` |
+| only `fix`, `perf` and the rest | the next patch: `v0.2.2` |
 
 It also refuses a tag that is not on `main` or not above every release there is. Every stable is first a release
 candidate: `vX.Y.Z-rc.1`, then `-rc.2` and so on while fixes come in, then `vX.Y.Z` on the candidate that was good (the

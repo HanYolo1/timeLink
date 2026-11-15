@@ -34,7 +34,7 @@ A false alarm on unsigned programs: timeLink isn't code-signed yet.
    `toolchains`, and the build files) and `%LOCALAPPDATA%\Programs\timeLink Launcher` (the launcher itself). The portable
    launcher keeps its data in `timeLinkLauncher-data` beside `timeLinkLauncher.exe` instead.
 2. **Build again.** If a file is still missing, delete that version's folder in
-   `%LOCALAPPDATA%\timeLink Launcher\toolchains` (it is named after the version, such as `v3.0.0`): the next build
+   `%LOCALAPPDATA%\timeLink Launcher\toolchains` (it is named after the version, such as `v0.1.0`): the next build
    downloads it again and checks it.
 
 The [antivirus guide](https://longshot.magicbean.dev/help/antivirus/) shows each step, and how to check first that the

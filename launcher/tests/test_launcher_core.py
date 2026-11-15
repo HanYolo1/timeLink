@@ -25,30 +25,30 @@ RUN_ALL_ARGS = ["--dotnet", "{dotnet}"]
 
 
 # The version order the launcher keeps (Core/Versions.cs, docs/releases.md): (version, channel). timeLink's versions
-# start at v3.0.0: what came before is no version, on no track
+# start at v0.1.0, and the launcher's too: one tag names both products' releases
 TRACKS = [
-    ("v3.0.0", "stable"), ("v3.1.0", "stable"), ("v10.0.0", "stable"),
-    ("v3.1.0-rc.1", "rc"), ("v3.1.0-rc.12", "rc"),
+    ("v0.1.0", "stable"), ("v0.2.0", "stable"), ("v10.0.0", "stable"),
+    ("v0.2.0-rc.1", "rc"), ("v0.2.0-rc.12", "rc"),
     ("nightly-2029-c544828f", "nightly"), ("nightly-2029-c544828f-dirty", "nightly"), ("nightly-1-00000000", "nightly"),
-    # (not a nightly's name: the count, then 8 lowercase hex; nor git describe's, nor a version before 3.0.0)
+    # (not a nightly's name: the count, then 8 lowercase hex; nor git describe's, nor a name that is no version)
     ("nightly-2029", "stable"), ("nightly-2029-c544828", "stable"), ("nightly-2029-C544828F", "stable"),
     ("nightly-x-c544828f", "stable"), ("nightly-1234567890-c544828f", "stable"),
-    ("v3.1.0-rc.1-3-g1a2b3c4", "stable"), ("v2.1.0-rc.1", "stable"), ("v2.0.7", "stable"),
+    ("v0.2.0-rc.1-3-g1a2b3c4", "stable"), ("v0.1.0-rc.1", "rc"), ("v0.1.7", "stable"),
 ]
 # newer, older (semver: a release candidate before its release, rc.N by number; nightlies by their count, a changed
 # checkout after the build of its commit)
 ORDER = [
-    ("v3.1.0-rc.2", "v3.1.0-rc.1"), ("v3.1.0-rc.10", "v3.1.0-rc.9"), ("v3.1.0", "v3.1.0-rc.2"), ("v3.1.0-rc.1", "v3.0.14"),
-    ("v3.0.10", "v3.0.9"), ("v4.0.0-rc.1", "v3.9.9"), ("v10.0.0", "v9.0.0"),
+    ("v0.2.0-rc.2", "v0.2.0-rc.1"), ("v0.2.0-rc.10", "v0.2.0-rc.9"), ("v0.2.0", "v0.2.0-rc.2"), ("v0.2.0-rc.1", "v0.1.14"),
+    ("v0.1.10", "v0.1.9"), ("v1.0.0-rc.1", "v0.9.9"), ("v10.0.0", "v9.0.0"),
     ("nightly-2030-0a1b2c3d", "nightly-2029-c544828f"), ("nightly-10000-aaaaaaaa", "nightly-9999-bbbbbbbb"),
     ("nightly-2029-c544828f-dirty", "nightly-2029-c544828f"),
 ]
-# neither newer than the other: a nightly and a release or release candidate (a nightly's name has no version in it), the
-# numbers before 3.0.0 and git describe's names, and a name that is no version
+# neither newer than the other: a nightly and a release or release candidate (a nightly's name has no version in it),
+# git describe's names, and a name that is no version
 UNORDERED = [
-    ("nightly-2029-c544828f", "v3.1.0"), ("nightly-2029-c544828f", "v3.1.0-rc.3"), ("nightly-1-aaaaaaaa", "v3.0.1"),
-    ("v3.1.0", "v2.9.0"), ("v3.0.0", "v2.2.0-rc.1"), ("v3.1.0-rc.3-248-gc544828f", "v3.1.0"),
-    ("nightly-2029-c544828f", "dev"), ("v3.1.0", "dev"), ("nightly-2029-c544828f", "nightly"),
+    ("nightly-2029-c544828f", "v0.2.0"), ("nightly-2029-c544828f", "v0.2.0-rc.3"), ("nightly-1-aaaaaaaa", "v0.1.1"),
+    ("v0.2.0", "tools"), ("v0.1.0", "dev"), ("v0.2.0-rc.3-248-gc544828f", "v0.2.0"),
+    ("nightly-2029-c544828f", "dev"), ("v0.2.0", "dev"), ("nightly-2029-c544828f", "nightly"),
 ]
 
 def vectors():

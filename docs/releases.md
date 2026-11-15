@@ -5,7 +5,7 @@ them. This document is the same in both repositories, [MagicBeanDev/timeLink](ht
 and [MagicBeanDev/timeLink Launcher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher/src/branch/main/docs/releases.md).
 How to make a release, step by step, is in each repository's **RELEASING.md**.
 
-timeLink's numbers start at **v3.0.0**; the launcher's are its own and start at **v1.0.0**. Nothing here reads or writes
+timeLink's numbers start at **v0.1.0**, and the launcher's do too: one tag names both products' releases. Nothing here reads or writes
 GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot's history is Hookshot's).
 
 ## In short
@@ -110,7 +110,7 @@ They are not in the release: `tools.lock` names them.
 
 ```
 tool <name> <version> <system> <sha256> <size> <dest> <prefix> <url> [<url> ...]
-tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/llvm-mingw llvm-mingw-20261104-ucrt-x86_64 https://git-cdn.magicbean.dev/api/packages/…-llvm-mingw.zip https://git.magicbean.dev/api/packages/…-llvm-mingw.zip https://github.com/mstorsjo/…
+tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/llvm-mingw llvm-mingw-20261104-ucrt-x86_64 https://github.com/HanYolo1/timeLink/releases/download/tools/5521…40f-llvm-mingw.zip https://github.com/mstorsjo/…
 ```
 
 - **Installing.** The Windows builder's setup (`builder/setup/setup.c`), the Linux AppImage (`builder/linux/linux_tools.py`)
@@ -121,20 +121,19 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
   merged in, file by file; a file both have is refused, never replaced. A tool another installed version has, with the
   same SHA-256 and unpacked the same way, is taken from it and not downloaded again (the Windows setup excepts a merged
   tool: it comes from its archive each time). `scripts/tools.py install` does the same, for CI and developers.
-- **Where the archives are: Packages.** Every tool is downloaded first from timeLink's copy, a file of a **generic
-  package** of the MagicBeanDev organization (its *Packages* tab): the package `<name>-<system>` (`emsdk-windows-x64`,
-  `emsdk-linux-x64`: a tool's Windows and Linux builds have versions of their own), its version the tool's, the file
-  `<sha256>-<name>.zip`, at `https://git.magicbean.dev/api/packages/MagicBeanDev/generic/<name>-<system>/<version>/<file>`.
-  Forgejo keeps packages in Cloudflare R2, and `git-cdn.magicbean.dev` serves the same paths from Cloudflare's edge
-  (cached), so a tool's first URL is its `git-cdn.magicbean.dev` link and its second the same file on git.magicbean.dev
-  (`scripts/tools.py check --require` holds both, in that order). Anyone downloads them with no account. A package version's files never change (Forgejo refuses a second upload of a
-  name), and nothing prunes them, so an older version's tools stay downloadable. Where an archive came from (upstream for
-  llvm-mingw, NotRexed/Hookshot's `builder-parts` release for those taken from Hookshot) is its fallback URL, so no install
-  depends on a repository we do not control alone. An archive timeLink makes itself (the CPM cache with dav1d, the
-  prebuilt `third_party` files, the Linux tools) is only in Packages, put there by `scripts/tools.py`.
+- **Where the archives are: the `tools` release.** Every tool is downloaded first from timeLink's own copy, an asset of the
+  **`tools` release** on `HanYolo1/timeLink-tools`, named `<sha256>-<name>.zip`:
+  `https://github.com/HanYolo1/timeLink-tools/releases/download/tools/<sha256>-<name>.zip`. That repository is **public**
+  and holds nothing but these archives: a private repository's release assets are not served at `releases/download/` at
+  all, not even with a token, so the builder's setup and the AppImage could not fetch them. The name carries the digest and
+  `tools.lock` checks it, so a replaced asset is caught; GitHub lets an asset be deleted and uploaded again, so never reuse
+  a version string. Nothing prunes the release, so an older version's tools stay downloadable. Where an archive came from
+  (upstream for llvm-mingw, NotRexed/Hookshot's `builder-parts` release for those taken from Hookshot) is its fallback URL,
+  so no install depends on a repository we do not control alone. An archive timeLink makes itself (the CPM cache with dav1d,
+  the prebuilt `third_party` files, the Linux tools) has no upstream: its release asset is the only copy.
 - **Bumping a tool** is a pull request that edits `tools.lock`, with the archive uploaded by `scripts/tools.py mirror`,
-  `add` or `assemble`: a new package version, then the line (RELEASING.md, "Bump a tool"). The release workflow refuses a
-  `tools.lock` whose package files are not there with their size and SHA-256, or that lacks a tool the
+  `add` or `assemble`: a new asset in the `tools` release, then the line (RELEASING.md, "Bump a tool"). The release workflow
+  refuses a `tools.lock` whose assets are not there with their size, or that lacks a tool the
   builder needs (`tools.py check --require`), in its first job, before anything is built.
 - **Today's lock.** Windows: Python, emsdk and wgpu-native are taken as they are from Hookshot v2.1.0's Windows builder
   (NotRexed/Hookshot's `builder-parts` release), with their SHA-256; llvm-mingw is upstream's; the CPM cache is Hookshot
@@ -227,11 +226,11 @@ a tag, `scripts/release.py check-tag` (in `release.yml`, before anything is buil
 
 | Since the last stable | At least |
 |---|---|
-| a `!` after the type (`feat(vk)!:`) or a `BREAKING CHANGE:` footer | the next major (`v4.0.0` after `v3.2.1`) |
-| a `feat` | the next minor (`v3.3.0`) |
-| `fix`, `perf`, or anything else | the next patch (`v3.2.2`) |
+| a `!` after the type (`feat(vk)!:`) or a `BREAKING CHANGE:` footer | the next major (`v1.0.0` after `v0.2.1`) |
+| a `feat` | the next minor (`v0.3.0`) |
+| `fix`, `perf`, or anything else | the next patch (`v0.2.2`) |
 
-The first release of each product only needs its first number (timeLink `v3.0.0`, the launcher `v1.0.0`).
+The first release of each product only needs its first number (both `v0.1.0`).
 `python -I scripts/release.py next` prints the number and the notes before tagging.
 
 ## Release notes

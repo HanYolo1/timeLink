@@ -4,8 +4,9 @@ using System.Text.RegularExpressions;
 namespace TimeLinkLauncher.Core;
 
 /// The channels and the version order (docs/releases.md), the same for timeLink's releases and the launcher's own: a stable is
-/// vX.Y.Z, a release candidate vX.Y.Z-rc.N, a nightly nightly-&lt;commit count&gt;-&lt;commit&gt;. timeLink's numbers start at v3.0.0, the
-/// launcher's at v1.0.0 (FirstMajor). Nothing else is a version: it is on no track and never ordered.
+/// vX.Y.Z, a release candidate vX.Y.Z-rc.N, a nightly nightly-&lt;commit count&gt;-&lt;commit&gt;. timeLink's numbers start at v0.1.0, and
+/// the launcher's too (FirstMajor): one tag names both products' releases, which ship different files (ReleaseManifest's
+/// BuilderFile and LauncherFile). Nothing else is a version: it is on no track and never ordered.
 /// tests/test_launcher_core.py holds the vectors it is checked against.
 public static class Versions
 {
@@ -17,13 +18,13 @@ public static class Versions
     static readonly Regex ReleaseName = new(@"^v(\d+)\.(\d+)\.(\d+)(?:-rc\.(\d+))?$", RegexOptions.CultureInvariant);
     static readonly Regex TagName = new(@"^[0-9A-Za-z._+-]{1,128}$", RegexOptions.CultureInvariant);
 
-    /// The first major version of each product: timeLink (the game and its builder) starts at v3.0.0, the launcher at v1.0.0.
+    /// The first major version of each product: timeLink (the game and its builder) and the launcher both start at v0.1.0.
     /// A number below it is no version of that product (not the 2.x numbers timeLink was forked from)
-    public const int FirstMajor = 3, LauncherFirstMajor = 1;
+    public const int FirstMajor = 0, LauncherFirstMajor = 0;
 
     public static bool IsChannel(string? channel) => channel is Stable or Candidate or Nightly;
 
-    /// A build's track from its version: nightly-2029-c544828f (nightly-&lt;commit count&gt;-&lt;commit&gt;) is the nightly; v3.1.0-rc.1 a
+    /// A build's track from its version: nightly-2029-c544828f (nightly-&lt;commit count&gt;-&lt;commit&gt;) is the nightly; v0.2.0-rc.1 a
     /// release candidate; anything else (and no version) a release
     public static string TrackOf(string? version, int firstMajor = FirstMajor) =>
         version == null ? Stable
@@ -31,7 +32,7 @@ public static class Versions
         : IsRelease(version, firstMajor) && version.Contains('-') ? Candidate
         : Stable;
 
-    /// A release tag, vX.Y.Z or vX.Y.Z-rc.N from v3.0.0 on (not a nightly's name)
+    /// A release tag, vX.Y.Z or vX.Y.Z-rc.N from v0.1.0 on (not a nightly's name)
     public static bool IsRelease(string? tag, int firstMajor = FirstMajor) => ReleaseKey(tag, firstMajor) != null;
 
     /// A name a version folder may have (the setup lists' rule): [0-9A-Za-z._+-]{1,128}, not "." or ".."
@@ -68,7 +69,7 @@ public static class Versions
         return key[0] >= firstMajor ? key : null;
     }
 
-    /// a newer than b: both vX.Y.Z[-rc.N] in semver order (v3.1.0-rc.1 &lt; v3.1.0-rc.2 &lt; v3.1.0), or both nightlies in the
+    /// a newer than b: both vX.Y.Z[-rc.N] in semver order (v0.2.0-rc.1 &lt; v0.2.0-rc.2 &lt; v0.2.0), or both nightlies in the
     /// nightly order (NightlyKey). A nightly and a release are not ordered (a nightly's name has no version in it): false both
     /// ways, as when either is not a version
     public static bool Newer(string? a, string? b, int firstMajor = FirstMajor)

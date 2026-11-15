@@ -252,10 +252,10 @@ static partial class Program
         forge.Add("nightly-9-aaaaaaaa", key, files: Builder("nightly-9-aaaaaaaa"));
         forge.Add("nightly-12-bbbbbbbb", key, files: Builder("nightly-12-bbbbbbbb"));
         forge.Add("tools", null);
-        forge.Add("v2.9.0", key, prerelease: false, files: Builder("v2.9.0"));
+        forge.Add("v2.9.0-beta", key, prerelease: false, files: Builder("v2.9.0-beta"));
         Require(await timeLink.NewestAsync("stable") == "v3.0.0" && await timeLink.NewestAsync("rc") == "v3.1.0-rc.1"
                 && await timeLink.NewestAsync("nightly") == "nightly-12-bbbbbbbb",
-                "Each channel's newest: stable, the newest release candidate (not a draft), the nightly by its count; never 2.x or tools.");
+                "Each channel's newest: stable, the newest release candidate (not a draft), the nightly by its count; never a tag that is no version, or tools.");
         var rc = (await timeLink.ChannelAsync("rc"))!;
         Require(rc.Builder["linux-x64"].Size == image.Length && rc.Builder["linux-x64"].Sha256 == ShaOf(image) && rc.Tools.ContainsKey("windows-x64")
                 && rc.Commit == Commit && rc.Notes == "https://github.com/HanYolo1/timeLink/releases/tag/v3.1.0-rc.1",

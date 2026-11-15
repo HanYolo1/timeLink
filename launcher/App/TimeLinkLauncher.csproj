@@ -24,7 +24,7 @@
     <PackageReference Include="Avalonia.Wayland"/>
   </ItemGroup>
   <ItemGroup>
-    <!-- (the release's version, which the launcher compares with its channel's newest: -p:TimeLinkTag=v3.0.0 or nightly-<count>-<commit>,
+    <!-- (the release's version, which the launcher compares with its channel's newest: -p:TimeLinkTag=v0.1.0 or nightly-<count>-<commit>,
          set by the release workflow. Unset, a build from a checkout is "dev" and never updates itself. Core/SelfUpdate.cs) -->
     <AssemblyMetadata Include="TimeLinkTag" Value="$(TimeLinkTag)" Condition="'$(TimeLinkTag)' != ''"/>
   </ItemGroup>

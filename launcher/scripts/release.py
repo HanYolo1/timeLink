@@ -1,8 +1,8 @@
-"""Releases on GitHub (docs/releases.md, RELEASING.md), for both products: timeLink (its builders) and the timeLink Launcher.
-Both are released from one repository, HanYolo1/timeLink, told apart by the version's first number and by the files a release
-ships. Python's standard library, git, and the openssl command line (for keys and signatures) only.
+"""Releases on git.magicbean.dev (docs/releases.md, RELEASING.md), for both products: timeLink (its builders, released from
+MagicBeanDev/Longshot) and the timeLink Launcher (MagicBeanDev/LongshotLauncher). The same file is in both repositories; it
+finds out which one it is in. Python's standard library, git, and the openssl command line (for keys and signatures) only.
 
-A release is a GitHub release of the repository: a tag, a page with the notes, and the product's files, with SHA256SUMS (each
+A release is a Forgejo release of the repository: a tag, a page with the notes, and the product's files, with SHA256SUMS (each
 file's SHA-256) and SHA256SUMS.sig (an ECDSA P-256 signature of SHA256SUMS by the release key, base64 DER). The channels are
 read from the list of published releases: stable is the newest vX.Y.Z, rc the newest vX.Y.Z-rc.N or vX.Y.Z, nightly the
 newest nightly-<count>-<commit>.
@@ -37,7 +37,7 @@ this is; $FORGEJO_API, $FORGEJO_UPLOAD_API):
         a draft release (pre-release unless a stable), every file uploaded and checked, then published: until that last step
         no launcher sees it. A draft left by a failed run of the same tag is reused. The page is the notes under a header
         (release_page): the launcher's, big download links to its own files; timeLink's, "to play, get the timeLink
-        Launcher", linking the fork's release list (both products are on it)
+        Launcher", with longshot.magicbean.dev's links to the newest launcher of the same channel
     python -I scripts/release.py prune [--keep 5]
         the nightly releases and their tags past the newest <keep>; nothing else is ever deleted
     python -I scripts/release.py released-as <commit> [--not <tag>]
@@ -64,13 +64,16 @@ import urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERVER = "https://api.github.com"
 # (each product: its repository, its first version's major number, and the commit its nightlies count from: timeLink from the
-# fork, e2a4d453 "Rename the project to timeLink"; the launcher from its repository's first commit)
+# fork, e2a4d453 "Rename the project to timeLink"; the launcher from its repository's first commit. Both start at v0.1.0:
+# one tag names both products' releases, which ship different files)
 PRODUCTS = {
-    "timelink": {"repo": "HanYolo1/timeLink", "first_major": 3, "display": "timeLink",
+    "timelink": {"repo": "HanYolo1/timeLink", "first_major": 0, "display": "timeLink",
                  "since": "e2a4d45398ffba162f54026bb7e708a7157bbed9"},
-    "launcher": {"repo": "HanYolo1/timeLink", "first_major": 1, "display": "timeLink Launcher", "since": None},
+    "launcher": {"repo": "HanYolo1/timeLink", "first_major": 0, "display": "timeLink Launcher", "since": None},
 }
 CHANNELS = ("stable", "rc", "nightly")
+# (the first version of every product: a product's first release is this, not "v<first_major>.0.0", which would be v0.0.0)
+FIRST_VERSION = "v0.1.0"
 # (git-cliff for the notes, Linux x86-64, pinned: its release page gives the SHA-256)
 GIT_CLIFF = ("2.14.2", "24f397c733add5390fdceee3a2088588ab0d5f944ce00d34cb7029b888cf2db4",
              "https://github.com/orhun/git-cliff/releases/download/v2.14.2/git-cliff-2.14.2-x86_64-unknown-linux-gnu.tar.gz")
@@ -110,10 +113,10 @@ def is_version(tag, first_major):
     return bool(k) and k[0] >= first_major
 
 
-# (the prefix each product's release files carry: PackageFile in timeLink's scripts, LauncherFile in the launcher's
-# Core/ReleaseManifest.cs. Both products are released from one repository, and their version numbers alone do not tell them
-# apart: is_version reads "at least this product's first number", so the launcher's v1 and timeLink's v3 overlap. The files
-# a release ships do tell: Core/ReleaseManifest.cs's Ships is the same rule at runtime)
+# (the prefix each product's release files carry: BuilderFile and LauncherFile in the launcher's
+# Core/ReleaseManifest.cs, which the launcher reads at runtime. Both products are released from one repository, and their
+# version numbers alone do not tell them apart: is_version reads "at least this product's first number", so the launcher's
+# v0.x and timeLink's v0.x are the same numbers. The files a release ships do tell them apart)
 FILE_PREFIX = {"timelink": "timeLinkBuilder-", "launcher": "timeLinkLauncher-"}
 
 
@@ -126,7 +129,6 @@ def product_tags(releases_json, product, first_major):
     """the tags of product's releases in releases_json (the API's list), not drafts: its product's, and a version"""
     return [r["tag_name"] for r in releases_json
             if not r.get("draft") and ships(r, product) and is_version(r["tag_name"], first_major)]
-
 
 def channel_of(tag, first_major):
     """the channel a version is made for: nightly, rc (a release candidate) or stable; None when it is no version of the
@@ -164,10 +166,32 @@ def tags_merged(root=ROOT, ref="HEAD"):
     return [t for t in (git("tag", "--merged", ref, "--list", "v*", root=root) or "").split() if t]
 
 
+def since_fork(root=ROOT):
+    """The commit timeLink's own history starts at (PRODUCTS' "since"): a tag on a commit before it is Hookshot's or
+    Longshot's, not timeLink's, and is no version of this product however its number reads. None when the commit is not
+    here (a shallow clone, or a checkout without it): then nothing is filtered"""
+    since = next((p["since"] for p in PRODUCTS.values() if p["since"]), None)
+    return since if since and git("cat-file", "-e", since + "^{commit}", root=root, check=False) is not None else None
+
+
+def after_fork(tag, root=ROOT, since=None):
+    """Whether tag is on a commit at or after the fork (a tag before it is not timeLink's)"""
+    since = since if since is not None else since_fork(root)
+    if since is None:
+        return True
+    commit = git("rev-list", "-n", "1", tag, root=root, check=False)
+    if not commit:
+        return True
+    return git("merge-base", "--is-ancestor", since, commit, root=root, check=False) is not None
+
+
 def last_stable(first_major, root=ROOT, ref="HEAD", below=None):
     """The newest stable tag of the product's numbers on ref's history (lower than below, when given: the tag being checked
-    is not its own last stable)"""
+    is not its own last stable). A tag from before the fork is not one: timeLink's numbers start at v0.1.0, and the 2.x and
+    3.x tags a clone of the upstream repository carries are Hookshot's and Longshot's"""
+    since = since_fork(root)
     return max((t for t in tags_merged(root, ref) if STABLE.match(t) and is_version(t, first_major)
+                and after_fork(t, root, since)
                 and (below is None or version_key(t) < version_key(below))), key=version_key, default=None)
 
 
@@ -196,7 +220,9 @@ def required(first_major, root=ROOT, ref="HEAD", below=None):
     """(the lowest stable number the commits since the last stable allow, as vX.Y.Z; that stable; the bump)"""
     last = last_stable(first_major, root, ref, below)
     if last is None:
-        return "v%d.0.0" % first_major, None, None
+        # (a product's first release is FIRST_VERSION, not "v<first_major>.0.0": both products start at v0.1.0. A caller
+        # asking for a product whose numbers start higher keeps the old form, so the answer is always a version of it)
+        return (FIRST_VERSION if first_major <= 0 else "v%d.0.0" % first_major), None, None
     level = bump_of(commits(last, root, ref))
     x, y, z = (int(n) for n in STABLE.match(last).groups())
     if level == "major":
@@ -221,7 +247,8 @@ def check_tag(tag, existing, first_major, root=ROOT, main="origin/main"):
         return ["no tag %s here (git fetch --tags)" % tag]
     if git("merge-base", "--is-ancestor", commit, main, root=root, check=False) is None:
         problems.append("%s is not on main (%s): releases are made from main only" % (tag, main))
-    higher = [t for t in existing if t != tag and is_version(t, first_major) and version_key(t) >= version_key(tag)]
+    higher = [t for t in existing if t != tag and is_version(t, first_major) and version_key(t) >= version_key(tag)
+              and after_fork(t, root)]
     if higher:
         problems.append("%s is not above every release there is: %s" % (tag, ", ".join(sorted(higher, key=version_key))))
     low, last, level = required(first_major, root, commit, below=tag)
@@ -234,9 +261,11 @@ def check_tag(tag, existing, first_major, root=ROOT, main="origin/main"):
 def next_tag(existing, first_major, root=ROOT):
     """The next release candidate's tag: the next rc of the current one when it is still high enough, else <required>-rc.1"""
     low = required(first_major, root)[0]
-    rcs = [t for t in existing if is_version(t, first_major) and not STABLE.match(t) and base_of(t) >= base_of(low)]
+    since = since_fork(root)
+    rcs = [t for t in existing if is_version(t, first_major) and not STABLE.match(t) and base_of(t) >= base_of(low)
+           and after_fork(t, root, since)]
     top = max(rcs, key=version_key, default=None)
-    if top and not any(STABLE.match(t) and base_of(t) == base_of(top) for t in existing):
+    if top and not any(STABLE.match(t) and base_of(t) == base_of(top) and after_fork(t, root, since) for t in existing):
         return "%s-rc.%d" % (top.split("-rc.")[0], version_key(top)[4] + 1)
     return low + "-rc.1"
 
@@ -280,7 +309,7 @@ def notes(tag, product, root=ROOT):
 
 # ---- the release page ----
 
-# (the fork's own release list. There is no website in front of it any more: timeLink.magicbean.dev was MagicBeanDev's, and
+# (the fork's own release list. There is no website in front of it any more: longshot.magicbean.dev was MagicBeanDev's, and
 # nothing here may point a player at a domain this fork does not own. Both products' files sit on one releases page, told apart
 # by their names, which is why the launcher's links are the list's rather than a per-channel address)
 SITE = "https://github.com/HanYolo1/timeLink/releases"
@@ -294,24 +323,31 @@ CHANNEL_SAYS = {"stable": "This is a stable release: it builds timeLink's stable
 
 
 def page_header(tag, product, names, repo=None):
-    """The top of a release's page, above git-cliff's notes: big heading links that look like buttons, no tables. The
-    launcher's: this release's own files. timeLink's: "to play, get the timeLink Launcher", linking the fork's release list
-    (both products are there, newest first) and "don't download the files below" (above the builder files)"""
+    """The top of a release's page, above git-cliff's notes: big heading links that look like buttons, no tables.
+
+    Both products are released under one tag (docs/versioning.md), so what the page offers is decided by the files the
+    release carries, not by the product the caller names: a release with the launcher's files gets the launcher's download
+    buttons, and one that also carries the builders' says not to download those. A release of the builders alone (an older
+    one, or a nightly made before the launcher was vendored) keeps the "get the launcher" links."""
     channel = channel_of(tag, PRODUCTS[product]["first_major"]) or "nightly"
-    if product == "launcher":
-        base = "%s/%s/releases/download/%s/" % (DOWNLOADS, repo or repo_of(product), urllib.parse.quote(tag))
-        url = {k: base + urllib.parse.quote(n) for k, suffix in LAUNCHER_FILES.items() for n in sorted(names)
-               if n.startswith("timeLinkLauncher-") and n.endswith(suffix)}
+    base = "%s/%s/releases/download/%s/" % (DOWNLOADS, repo or repo_of(product), urllib.parse.quote(tag))
+    launcher = {k: base + urllib.parse.quote(n) for k, suffix in LAUNCHER_FILES.items() for n in sorted(names)
+                if n.startswith("timeLinkLauncher-") and n.endswith(suffix)}
+    builders = [n for n in sorted(names) if n.startswith(("timeLink-", "timeLinkBuilder-"))]
+    if launcher:
         lines = ["# ⬇️ Download timeLink Launcher", ""]
-        if "setup" in url:
-            lines += ["### [🪟 &nbsp;Download for Windows](%s)" % url["setup"], ""]
-        if "appimage" in url:
-            lines += ["### [🐧 &nbsp;Download for Linux (AppImage)](%s)" % url["appimage"], ""]
-        if "portable" in url:
-            lines += ["Windows without installing: [portable zip](%s)" % url["portable"], ""]
-        return "\n".join(lines + [
+        if "setup" in launcher:
+            lines += ["### [🪟 &nbsp;Download for Windows](%s)" % launcher["setup"], ""]
+        if "appimage" in launcher:
+            lines += ["### [🐧 &nbsp;Download for Linux (AppImage)](%s)" % launcher["appimage"], ""]
+        if "portable" in launcher:
+            lines += ["Windows without installing: [portable zip](%s)" % launcher["portable"], ""]
+        lines += [
             "Run it, point it at your own dump of the game (a `.nup`, or its romfs and exefs folders), and press **Build**. "
-            "It installs timeLink and keeps it and itself up to date. %s" % CHANNEL_SAYS[channel], "", "---", ""])
+            "It installs timeLink and keeps it and itself up to date. %s" % CHANNEL_SAYS[channel], ""]
+        if builders:
+            lines += ["**Don't download the files below:** they're the builder the launcher installs for you.", ""]
+        return "\n".join(lines + ["---", ""])
     return "\n".join([
         "# 🎮 To play, get the timeLink Launcher", "",
         "### [🪟 &nbsp;Download the launcher for Windows](%s)" % SITE, "",
@@ -511,6 +547,9 @@ def publish(tag, target, notes_file, files, product):
     with open(notes_file, encoding="utf-8") as f:
         body = release_page(tag, product, f.read(), [os.path.basename(p) for p in files], repo)
     title = "%s %s" % (PRODUCTS[product]["display"], tag)
+    if any(os.path.basename(p).startswith("timeLinkLauncher-") for p in files) and \
+       any(os.path.basename(p).startswith(("timeLink-", "timeLinkBuilder-")) for p in files):
+        title = "timeLink %s" % tag   # (one release, both products: docs/versioning.md)
     found = [r for r in releases(repo) if r["tag_name"] == tag]
     if found and not found[0]["draft"]:
         fail("%s is already published: a version's files never change (RELEASING.md)" % tag)

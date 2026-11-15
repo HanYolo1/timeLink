@@ -648,7 +648,7 @@ public static class Saves
         var (staging, aside) = Beside(sharedSave);
         if (!Directory.Exists(sharedSave) && Directory.Exists(aside)) Directory.Move(aside, sharedSave);
 
-        // (each one named in the backup for its game folder: "v3.0.0-rc.1", or "timeLink" for the 2.x Builder's)
+        // (each one named in the backup for its game folder: "v0.1.0-rc.1", or "timeLink" for the 2.x Builder's)
         var sides = new List<(string User, string Name)>();
         if (HasSave(shared)) sides.Add((shared, "shared"));
         foreach (var u in old)

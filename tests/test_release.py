@@ -39,6 +39,40 @@ def run(*args):
     return code, out.getvalue()
 
 
+class Copies(unittest.TestCase):
+    """scripts/release.py and launcher/scripts/release.py are one file in two places: the launcher is vendored, so a change
+    to the release script has to reach both, or a release made by hand with the other copy writes a different page. They may
+    differ only in the product key the game has (product_of() names it by where the file sits) and in their own docstring."""
+
+    def normalize(self, text):
+        for key in ("longshot", "timelink"):
+            text = text.replace('"%s": {"repo"' % key, '"PRODUCT": {"repo"')
+            text = text.replace('else "%s"' % key, 'else "PRODUCT"')
+            text = text.replace('PRODUCTS["%s"]["since"]' % key, 'PRODUCTS["PRODUCT"]["since"]')
+            text = text.replace('{"%s": "timeLinkBuilder-"' % key, '{"PRODUCT": "timeLinkBuilder-"')
+        return text
+
+    def test_the_two_copies_are_one_file(self):
+        root = ROOT / "scripts" / "release.py"
+        vendored = ROOT / "launcher" / "scripts" / "release.py"
+        self.assertTrue(root.is_file() and vendored.is_file())
+        differ = [a for a, b in zip(self.normalize(root.read_text(encoding="utf-8")).splitlines(),
+                                    self.normalize(vendored.read_text(encoding="utf-8")).splitlines()) if a != b]
+        self.assertEqual(differ[:5], [], "scripts/release.py and launcher/scripts/release.py have drifted apart")
+
+    def test_no_release_file_starts_with_a_byte_order_mark(self):
+        """(PowerShell 5.1's Set-Content -Encoding utf8 writes a BOM. A BOM on a .py is tolerated, but on a file that is read
+        line by line, like tools.lock, the first line stops matching and the tool it names is invisible)"""
+        for name in ("tools.lock", "scripts/tools.py", "scripts/release.py", "scripts/rehost_tools.py",
+                     "launcher/scripts/release.py", "tests/test_tools_lock.py", "tests/test_release.py",
+                     "docs/known-issues.md", "docs/releases.md"):
+            path = ROOT / name
+            if not path.is_file():
+                continue
+            with self.subTest(name):
+                self.assertFalse(path.read_bytes()[:3] == b"\xef\xbb\xbf", "%s starts with a UTF-8 BOM" % name)
+
+
 class Keys(unittest.TestCase):
     def setUp(self):
         self.dir = Path(tempfile.mkdtemp(prefix="release-"))
@@ -160,6 +194,14 @@ class Bump(unittest.TestCase):
         self.assertIn("is not vX.Y.Z", self.check("v2.9.0")[0])   # (Hookshot's numbers are not timeLink's)
         self.assertEqual(release.next_tag([], 3, root=str(self.dir)), "v3.0.0-rc.1")
 
+    def test_the_first_release_of_a_product_that_starts_at_zero(self):
+        """(both products start at v0.1.0: required(0) must not answer v0.0.0, which no product has)"""
+        self.commit("feat: something")
+        self.assertEqual(release.required(0, str(self.dir))[:2], ("v0.1.0", None))
+        self.assertEqual(release.required(0, str(self.dir))[0], release.FIRST_VERSION)
+        self.assertEqual(release.next_tag([], 0, root=str(self.dir)), "v0.1.0-rc.1")
+        self.assertEqual({p["first_major"] for p in release.PRODUCTS.values()}, {0}, "every product starts at v0")
+
     def test_the_bump(self):
         self.git("tag", "v3.0.0")
         self.commit("fix(vk): a fix")
@@ -257,7 +299,7 @@ class Bump(unittest.TestCase):
 
 class ReleasePage(unittest.TestCase):
     """The release page publish writes: the launcher's starts with big download links to its own files; timeLink's with "to
-    play, get the timeLink Launcher", linking longshot.magicbean.dev's newest launcher of the same channel, and "don't download the
+    play, get the timeLink Launcher", linking the fork's release list, and "don't download the
     files below" (above the builder files)"""
 
     LAUNCHER = ("timeLinkLauncher-%s-windows-x64-setup.exe", "timeLinkLauncher-%s-windows-x64-portable.zip",
@@ -266,14 +308,14 @@ class ReleasePage(unittest.TestCase):
 
     def page(self, tag, product, files):
         names = [f % tag if "%s" in f else f for f in files]
-        return release.release_page(tag, product, "## %s\n\n### Fixes\n\n- a fix\n" % tag, names, "MagicBeanDev/LongshotLauncher")
+        return release.release_page(tag, product, "## %s\n\n### Fixes\n\n- a fix\n" % tag, names, "HanYolo1/timeLink")
 
     def test_the_launcher_page_links_its_own_files(self):
         for tag, channel in (("v1.0.0", "stable"), ("v1.1.0-rc.2", "rc"), ("nightly-10-968b7963", "nightly")):
             with self.subTest(tag):
                 page = self.page(tag, "launcher", self.LAUNCHER)
                 head, notes = page.split("\n---\n", 1)
-                base = "https://git-cdn.magicbean.dev/MagicBeanDev/LongshotLauncher/releases/download/%s/timeLinkLauncher-%s" % (tag, tag)
+                base = "https://github.com/HanYolo1/timeLink/releases/download/%s/timeLinkLauncher-%s" % (tag, tag)
                 self.assertEqual(head.strip().split("\n\n")[:4], [
                     "# ⬇️ Download timeLink Launcher",
                     "### [🪟 &nbsp;Download for Windows](%s-windows-x64-setup.exe)" % base,
@@ -289,23 +331,26 @@ class ReleasePage(unittest.TestCase):
         self.assertNotIn("Download for Windows", page)
         self.assertNotIn("portable zip", page)
 
-    def test_the_longshot_page_sends_players_to_the_launcher_of_its_channel(self):
+    def test_the_longshot_page_sends_players_to_the_release_list(self):
         for tag, channel in (("v3.0.0", "stable"), ("v3.0.0-rc.1", "rc"), ("nightly-34-545618fc", "nightly")):
             with self.subTest(tag):
                 page = self.page(tag, "longshot", self.LONGSHOT)
                 head, notes = page.split("\n---\n", 1)
-                link = "https://longshot.magicbean.dev/download/launcher/" + channel
                 self.assertEqual(head.strip().split("\n\n")[:5], [
                     "# 🎮 To play, get the timeLink Launcher",
-                    "### [🪟 &nbsp;Download the launcher for Windows](%s/windows)" % link,
-                    "### [🐧 &nbsp;Download the launcher for Linux (AppImage)](%s/linux)" % link,
-                    "Windows without installing: [portable zip](%s/windows-portable) · [the launcher's newest %s release](%s)"
-                    % (link, channel, link),
+                    "### [🪟 &nbsp;Download the launcher for Windows](%s)" % release.SITE,
+                    "### [🐧 &nbsp;Download the launcher for Linux (AppImage)](%s)" % release.SITE,
+                    "The launcher's newest release is at the top of that list; its %s release is this channel's. "
+                    "Its Windows file is the one ending `-windows-x64-setup.exe`, its Linux file the `.AppImage`." % channel,
                     "**Don't download the files below:** they're the builder the launcher installs for you."])
-                for other in {"stable", "rc", "nightly"} - {channel}:
-                    self.assertNotIn("/download/launcher/" + other, page)
                 self.assertNotIn("releases/download", page)   # (no link to a builder file)
                 self.assertTrue(notes.strip().startswith("## " + tag))
+
+    def test_no_page_names_a_domain_this_fork_does_not_own(self):
+        for tag, product, files in (("v1.0.0", "launcher", self.LAUNCHER), ("v3.0.0", "longshot", self.LONGSHOT)):
+            page = self.page(tag, product, files)
+            for host in ("magicbean.dev", "git-cdn", "longshot.magicbean"):
+                self.assertNotIn(host, page)
 
 
 NIGHTLY_OF = lambda tag: release.NIGHTLY.match(tag)
@@ -428,7 +473,7 @@ class Publish(unittest.TestCase):
         run("--product", "longshot", "publish", "nightly-34-545618fc", "--target", "abc", "--notes", notes, f)
         body = FakeForgejo.releases[0]["body"]
         self.assertTrue(body.startswith("# 🎮 To play, get the timeLink Launcher\n"))
-        self.assertIn("https://longshot.magicbean.dev/download/launcher/nightly/windows", body)
+        self.assertIn(release.SITE, body)
         self.assertIn("### Fixes\n\n- a fix\n", body)
         # (the launcher's: its own files, on its repository)
         FakeForgejo.releases, FakeForgejo.uploads = [], []
@@ -437,7 +482,7 @@ class Publish(unittest.TestCase):
         run("--product", "launcher", "publish", "v1.0.0-rc.1", "--target", "abc", "--notes", notes, f)
         body = FakeForgejo.releases[0]["body"]
         self.assertTrue(body.startswith("# ⬇️ Download timeLink Launcher\n"))
-        self.assertIn("### [🪟 &nbsp;Download for Windows](https://git-cdn.magicbean.dev/MagicBeanDev/Test/releases/download/"
+        self.assertIn("### [🪟 &nbsp;Download for Windows](https://github.com/MagicBeanDev/Test/releases/download/"
                       "v1.0.0-rc.1/timeLinkLauncher-v1.0.0-rc.1-windows-x64-setup.exe)", body)
         self.assertIn(release.CHANNEL_SAYS["rc"], body)
 
@@ -454,8 +499,12 @@ class Publish(unittest.TestCase):
         self.assertEqual((FakeForgejo.releases[0]["draft"], FakeForgejo.releases[0]["prerelease"]), (False, False))
 
     def releases_of(self, *rows):
-        """FakeForgejo's releases from (tag, draft, prerelease) rows; a published one has its tag"""
-        FakeForgejo.releases = [{"id": i + 1, "tag_name": t, "draft": d, "prerelease": p, "assets": []}
+        """FakeForgejo's releases from (tag, draft, prerelease) rows; a published one has its tag, and every one a file named
+        for the product its tag belongs to (Core/ReleaseManifest.cs's Ships: a release is one of a product's by its files)"""
+        def asset(tag):
+            product = "launcher" if release.is_version(tag, 1) and not release.is_version(tag, 3) else "longshot"
+            return [{"id": 1, "name": release.FILE_PREFIX[product] + tag + "-windows-x64.zip", "size": 1}]
+        FakeForgejo.releases = [{"id": i + 1, "tag_name": t, "draft": d, "prerelease": p, "assets": asset(t)}
                                 for i, (t, d, p) in enumerate(rows)]
         FakeForgejo.tags = {t for t, d, _ in rows if not d}
 
@@ -591,7 +640,7 @@ class ReleasedAs(unittest.TestCase):
         self.release("v3.0.0-rc.1", self.b)
         self.assertEqual(self.released_as(self.b, but="v3.0.0"), "v3.0.0-rc.1")
         self.assertIsNone(self.released_as(self.b, but="v3.0.0-rc.1"))   # (never the tag itself)
-        self.release("v2.9.0", self.b)   # (no version of this product: never taken)
+        self.release("tools", self.b)   # (no version of this product: never taken)
         self.assertEqual(self.released_as(self.b, but="v3.0.0"), "v3.0.0-rc.1")
 
     def test_a_release_not_signed_or_not_whole_stops_the_run(self):
