@@ -48,7 +48,7 @@ def test_route():
     check("docs and tests build nothing", r(["docs/development.md", "tests/test_a.py", "README.md"]) is None)
     check("a renderer shader and its generated header build the renderer alone (only the renderer is kept)",
           r(["gpu/vk/shaders/fg_copy.comp", "gpu/vk/shaders/fg_copy_comp_spv.h"]) == "renderer")
-    check("the forge's workflows build nothing", r([".forgejo/workflows/ci.yml", ".forgejo/pull_request_template.md"]) is None)
+    check("the forge's workflows build nothing", r([".github/workflows/ci.yml", ".forgejo/pull_request_template.md"]) is None)
     check("an unknown path builds the game", r(["somewhere/new.c"]) == "game")
 
 

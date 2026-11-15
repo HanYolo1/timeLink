@@ -56,7 +56,7 @@ to it too.
    the squash-merged commit on `main` and a line of the next release's notes.
 3. Start the description with why the pull request is needed, in one or two plain sentences, then what changed and how it
    was tested. Include screenshots when the change shows on screen.
-4. CI (`.forgejo/workflows/launcher.yml`, which runs on a change that touches `launcher/`) compiles with warnings as errors and runs both tests.
+4. CI (`.github/workflows/launcher.yml`, which runs on a change that touches `launcher/`) compiles with warnings as errors and runs both tests.
 
 A maintainer reviews and squash-merges it. Releases are tags on `main` ([RELEASING.md](RELEASING.md)): `vX.Y.Z-rc.N`,
 then `vX.Y.Z`, and every merge makes a nightly. The title decides the next version: CI refuses a tag lower than the titles

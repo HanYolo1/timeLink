@@ -22,7 +22,7 @@ GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot
 
 ## What a release is
 
-Each version is one Forgejo release, made by `.forgejo/workflows/release.yml`:
+Each version is one Forgejo release, made by `.github/workflows/release.yml`:
 
 | timeLink (MagicBeanDev/timeLink) | The launcher (MagicBeanDev/timeLink Launcher) |
 |---|---|
@@ -198,7 +198,7 @@ There is no installer program: the launcher installs itself (the launcher's READ
 
 ## CI
 
-Both repositories have the same workflows in `.forgejo/workflows/`, on Forgejo Actions:
+Both repositories have the same workflows in `.github/workflows/`, on Forgejo Actions:
 
 | Workflow | timeLink | The launcher |
 |---|---|---|

@@ -59,7 +59,7 @@ class RecompLauncherJsonTests(unittest.TestCase):
         manifest = json.loads((ROOT / "recomplauncher.json").read_text(encoding="utf-8"))
         self.assertIn("timeLinkBuilder.exe", manifest["start"]["program"])
         self.assertIn("timeLinkBuilder.exe", manifest["prepare"]["program"])
-        workflow = (ROOT / ".forgejo" / "workflows" / "build-windows.yml").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "build-windows.yml").read_text(encoding="utf-8")
         self.assertIn('--out "dist/timeLinkBuilder-$TAG-windows-x64.zip"', workflow)
 
     def test_no_repository_it_cannot_read(self):

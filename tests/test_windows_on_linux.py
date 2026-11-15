@@ -11,7 +11,7 @@ import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOWS = ROOT / ".forgejo" / "workflows"
+WORKFLOWS = ROOT / ".github" / "workflows"
 
 
 def module(name, path):

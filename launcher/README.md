@@ -210,7 +210,7 @@ dotnet run --project App
 | `App/` | `TimeLinkLauncher`: the Avalonia window. `ViewModels/` (one per page and dialog), `Views/` (one .axaml each, compiled bindings), `Controls/` (icons, bars and spinner), `App.axaml` (the palette and the styles), `Assets/` (the timeLink logo and icon, the Inter font with its licence) |
 | `tests/` | `test_launcher_core.py` (builds `launcher_core/`, which compiles `Core/` and checks it), `test_release.py` (`scripts/release.py`), `fixtures/` (signed test releases, fake Hookshot saves) |
 | `scripts/` | `package.sh` (both release programs, from Linux), `make_icon.py` (`App/Assets/timeLink.ico` from the logo), `release.py` (the signed release files, the keys, the uploads; the same file as timeLink's), `translations.py` (the window's texts against each catalog) |
-| `.forgejo/workflows/` | `launcher.yml` (compile and test, on a change that touches `launcher/`), `build-launcher.yml` (the release programs, called by `release.yml`) |
+| `.github/workflows/` | `launcher.yml` (compile and test, on a change that touches `launcher/`), `build-launcher.yml` (the release programs, called by `release.yml`) |
 | `docs/` | [releases.md](docs/releases.md), [saves.md](docs/saves.md), and the screenshots in this README |
 
 ### Environment and command line

@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("check_pr_description", ROOT / "scripts" / "check_pr_description.py")
 check = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(check)
-TEMPLATE = (ROOT / ".forgejo" / "pull_request_template.md").read_text(encoding="utf-8")
+TEMPLATE = (ROOT / ".github" / "pull_request_template.md").read_text(encoding="utf-8")
 GOOD = (ROOT / "tests" / "pr_description" / "good.md").read_text(encoding="utf-8")
 FIX = "fix(menu): the pause menu's text fits at 4K"
 
@@ -209,7 +209,7 @@ class Status(unittest.TestCase):
 class Sections(unittest.TestCase):
     def test_why(self):
         self.assertEqual(check.problems(drop(GOOD, "Why"), title=FIX),
-                         ["no ## Why section (.forgejo/pull_request_template.md)"])
+                         ["no ## Why section (.github/pull_request_template.md)"])
         self.assertEqual(check.problems(section(GOOD, "Why", "<!-- At 4K. -->"), title=FIX), ["## Why is empty"])
         self.assertEqual(check.problems(section(GOOD, "Why", "<the reason, in plain words>"), title=FIX),
                          ["## Why still holds the template's placeholders: <the reason, in plain words>"])
@@ -252,7 +252,7 @@ class Sections(unittest.TestCase):
         self.assertEqual(check.problems(section(GOOD, "Risks", "Low: revert the commit.\n\nCompatibility: none."),
                                         title=FIX), [], "the parts in plain words")
         self.assertEqual(check.problems(drop(GOOD, "Risks"), title=FIX),
-                         ["no ## Risks section (.forgejo/pull_request_template.md)"])
+                         ["no ## Risks section (.github/pull_request_template.md)"])
 
     def test_issues(self):
         self.assertEqual(check.problems(section(GOOD, "Issues", "Fixes #"), title=FIX),
@@ -545,13 +545,13 @@ class Running(unittest.TestCase):
         self.assertIn("::warning::the diff adds RX_VK_NEW_THING", out.getvalue())
 
     def test_the_workflow(self):
-        wf = (ROOT / ".forgejo" / "workflows" / "pr-description.yml").read_text(encoding="utf-8")
+        wf = (ROOT / ".github" / "workflows" / "pr-description.yml").read_text(encoding="utf-8")
         on = wf.split("\non:")[1].split("\npermissions:")[0]
         self.assertIn("pull_request_target:", on)
         self.assertIn("types: [opened, edited, synchronize, reopened]", on)   # (edited: the title's WIP: taken off)
-        self.assertNotIn("ready_for_review", on)   # (Forgejo 17 has no such event)
-        self.assertIn("runs-on: quick", wf)   # (a quick job: the runner kept free for them, docs/forgejo-runners.md)
-        self.assertRegex(wf, r"uses: https://github.com/actions/checkout@[0-9a-f]{40} ")
+        self.assertNotIn("ready_for_review", on)   # (a draft is handled by the title's WIP: prefix, not a separate event)
+        self.assertIn("runs-on: ubuntu-latest", wf)   # (a GitHub-hosted runner: this fork has no self-hosted label)
+        self.assertRegex(wf, r"uses: actions/checkout@[0-9a-f]{40} ")   # (GitHub resolves owner/repo@ref, not a URL)
         self.assertIn("python3 -I scripts/check_pr_description.py --pr", wf)
         self.assertNotIn("${{ github.event.pull_request.title", wf)   # (nothing the PR's author writes reaches the shell)
 

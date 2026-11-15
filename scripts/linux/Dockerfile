@@ -1,5 +1,5 @@
 # The Linux AppImage's build environment, for building it on any distribution: the system CI builds it in
-# (.forgejo/workflows/build-linux.yml, Ubuntu 22.04) with the same packages. Ubuntu 22.04 is not a preference: the
+# (.github/workflows/build-linux.yml, Ubuntu 22.04) with the same packages. Ubuntu 22.04 is not a preference: the
 # sysroot tools.lock gives the builder (scripts/linux/deps.sh tools) is this system's C library, so the game it builds runs
 # on glibc 2.35 and newer, and the AppImage's Python and Tk run there too.
 # Keep the package list in step with the workflow's "System packages" step.

@@ -9,7 +9,7 @@ channels, signing, `tools.lock`, how the launcher reads it) is in [docs/releases
 | Repository | [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink) | [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink), `launcher/` |
 | Tag | `vX.Y.Z`, from `v0.1.0` (rc first: `v0.1.0-rc.1`) | the same tag: one release ships both products' files, told apart by the files a release carries, not by its number |
 | What a release ships | the Windows and Linux builders, `tools.lock` | the launcher: `timeLinkLauncher-<v>-windows-x64-setup.exe` (installs itself or runs portable: docs/releases.md, *Installing the launcher*), `timeLinkLauncher-<v>-windows-x64-portable.zip`, `timeLinkLauncher-<v>-x86_64.AppImage` |
-| Workflow | `.forgejo/workflows/release.yml` | `.forgejo/workflows/build-launcher.yml`, called by `release.yml` |
+| Workflow | `.github/workflows/release.yml` | `.github/workflows/build-launcher.yml`, called by `release.yml` |
 | Nightly count | commits since the fork, e2a4d45 | commits since the first commit |
 
 Both have the same three channels: **stable**, **rc** and **nightly**. In the launcher, players pick a channel for their

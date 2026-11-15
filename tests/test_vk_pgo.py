@@ -112,7 +112,7 @@ def check_release():
           "RX_VK_ONLY" not in appimage and "RX_VK_PGO" not in appimage)
     check("the AppImage carries assets/ (the committed profile, for every player's own renderer)",
           "cp -a nx2 host scripts LICENSE README.md assets tools.lock" in appimage)
-    flow = (ROOT / ".forgejo" / "workflows" / "build-linux.yml").read_text(encoding="utf-8")
+    flow = (ROOT / ".github" / "workflows" / "build-linux.yml").read_text(encoding="utf-8")
     step = flow[flow.index("- name: timeLink_vk.so (build check)"):flow.index("- name: timeLink_vk.so with AMD FSR 4")]
     check("CI's renderer build check takes the profile as a player's build does: the checkout's, else the committed one",
           'RX_VK_PGO="$VK_PGO" ' in step and "\n          VK_PGO=\n" in step and

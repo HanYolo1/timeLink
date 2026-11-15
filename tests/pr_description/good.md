@@ -1,5 +1,5 @@
 <!-- A sample of a good pull request description, for tests/test_check_pr_description.py and tests/test_forge_pr.py.
-     The PR and its numbers are made up; the shape is the one .forgejo/pull_request_template.md asks for. -->
+     The PR and its numbers are made up; the shape is the one .github/pull_request_template.md asks for. -->
 **Type:** fix · **Risk:** low · **Tested on:** Linux, RX 6700 XT · **Needs:** Windows, NVIDIA; Steam Deck
 
 ## Why

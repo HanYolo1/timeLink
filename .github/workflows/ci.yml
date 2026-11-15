@@ -32,10 +32,10 @@ jobs:
   title:
     name: Conventional Commit title
     if: github.event_name == 'pull_request'
-    runs-on: quick  # (a quick job: the runner kept free for these takes it, or any runner with room)
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
@@ -76,7 +76,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out source
-        uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       # (the versions scripts/linux/deps.sh builds the Vulkan back end with)
@@ -85,7 +85,7 @@ jobs:
       - name: Check out pinned Vulkan headers
         run: scripts/fetch_commit.sh https://github.com/KhronosGroup/Vulkan-Headers 74d8a6cb930c68ef617b202c3ff3c59d919e086b _deps/vulkan-headers   # v1.4.345
       - name: Set up Python
-        uses: https://github.com/actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
       # (the packages tests import: nx2/test_nup_codec.py's zstandard; tests/test_prompt_guide_lines.py's Pillow and numpy,
@@ -117,7 +117,7 @@ jobs:
           echo "key=$prefix$RECOMPILER" >> "$GITHUB_OUTPUT"
       - if: runner.os == 'Linux'
         id: ccache-restore
-        uses: https://github.com/actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/ccache
           key: ${{ steps.ccache.outputs.key }}
@@ -141,7 +141,7 @@ jobs:
       # reference packs to Linux. The --cli checks run on Linux's .NET, with Linux's Python as the child)
       - name: Set up .NET for Windows Builder checks
         if: ${{ !cancelled() && matrix.shard == '1/2' }}
-        uses: https://github.com/actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: '8.0.x'
       - name: Check Windows Builder --cli delivery
@@ -165,7 +165,7 @@ jobs:
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: ccache --show-stats
       - if: ${{ !cancelled() && runner.os == 'Linux' && github.event_name == 'push' && steps.ccache-restore.outputs.cache-hit != 'true' }}
-        uses: https://github.com/actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/ccache
           key: ${{ steps.ccache.outputs.key }}
@@ -182,7 +182,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out source
-        uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Check out pinned SPIR-V headers
@@ -203,7 +203,7 @@ jobs:
           echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
           echo "key=$prefix$RECOMPILER" >> "$GITHUB_OUTPUT"
       - id: ccache-restore
-        uses: https://github.com/actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/ccache
           key: ${{ steps.ccache.outputs.key }}
@@ -261,18 +261,18 @@ jobs:
         if: ${{ !cancelled() }}
         run: ccache --show-stats
       - if: ${{ !cancelled() && github.event_name == 'push' && steps.ccache-restore.outputs.cache-hit != 'true' }}
-        uses: https://github.com/actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/ccache
           key: ${{ steps.ccache.outputs.key }}
 
   actionlint:
     name: Workflow lint (actionlint)
-    runs-on: quick  # (a quick job: the runner kept free for these takes it, or any runner with room)
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Check out source
-        uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       # (the release's own binary, checked against its published SHA-256; shellcheck from the runner image checks the
@@ -287,4 +287,4 @@ jobs:
           echo "$SHA256  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
       - name: Lint the workflows
-        run: '"$RUNNER_TEMP/actionlint" -color -config-file .forgejo/actionlint.yaml .forgejo/workflows/*.yml'
+        run: '"$RUNNER_TEMP/actionlint" -color -config-file .github/actionlint.yaml .github/workflows/*.yml'

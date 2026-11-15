@@ -1,5 +1,5 @@
 // The Worker serving the site: the built site (dist/), with worker/index.ts answering /download (the
-// timeLink Launcher's permanent download links). Deployed from main by .forgejo/workflows/website.yml; a pull request's
+// timeLink Launcher's permanent download links). Deployed from main by .github/workflows/website.yml; a pull request's
 // preview uploads a version without deploying it.
 {
   "$schema": "node_modules/wrangler/config-schema.json",

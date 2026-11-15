@@ -101,7 +101,7 @@ jobs:
           rm -f "$node_tar"
           node --version
 
-      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # (the release's commit; with its history, git describe names a build that is no release)
           ref: ${{ inputs.ref }}
@@ -115,14 +115,14 @@ jobs:
       # runs write. Other runs take the built deps, without the downloads they were built from: deps.sh fetches only a
       # part it has not built (its .<part> marks), and the downloads were most of the cache, about 1.4 of 2.3 GB)
       - if: env.RELEASE_TAG == ''
-        uses: https://github.com/actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             build-linux/deps
             !build-linux/deps/downloads
           key: linux-deps-built-${{ hashFiles('scripts/linux/deps.sh', 'requirements.txt', 'nx2/prompt_requirements.txt') }}
       - if: env.RELEASE_TAG != ''
-        uses: https://github.com/actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build-linux/deps/downloads
           key: linux-deps-downloads-${{ hashFiles('scripts/linux/deps.sh') }}
@@ -133,7 +133,7 @@ jobs:
       # (tools.lock's linux-x64 tools, from timeLink's packages, each checked by its SHA-256: what the player's builder
       # downloads. Kept between runs by tools.lock's own hash; a release fetches them again)
       - if: env.RELEASE_TAG == ''
-        uses: https://github.com/actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build-linux/tools
           key: linux-tools-${{ hashFiles('tools.lock') }}
@@ -158,7 +158,7 @@ jobs:
           echo "prefix=linux-vk-objects-$COMPILER-$system-" >> "$GITHUB_OUTPUT"
           echo "key=linux-vk-objects-$COMPILER-$system-$SOURCES" >> "$GITHUB_OUTPUT"
       - if: env.RELEASE_TAG == '' && github.event_name == 'pull_request'
-        uses: https://github.com/actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build-linux/vk-work/objcache
           key: ${{ steps.objkey.outputs.key }}
@@ -211,7 +211,7 @@ jobs:
           left=("$W"/objcache/*.o)
           echo "objcache: ${#left[@]} objects, $(du -sh "$W/objcache" | cut -f1)"
       - if: env.RELEASE_TAG == ''
-        uses: https://github.com/actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build-linux/vk-work/objcache
           key: ${{ steps.objkey.outputs.key }}
@@ -238,13 +238,13 @@ jobs:
       # 8 MB block, "SSL alert bad record mac"). Sent once more when it failed: Forgejo takes the same name again)
       - id: upload_1
         continue-on-error: true
-        uses: https://data.forgejo.org/forgejo/upload-artifact@16871d9e8cfcf27ff31822cac382bbb5450f1e1e   # v4 (4.3.1 with the GHES check off; Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
+        uses: actions/upload-artifact@v4   # v4 (4.3.1 with the GHES check off; Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
         with:
           name: timeLink-linux-x86_64
           path: build-linux/*.AppImage
           if-no-files-found: error
       - if: steps.upload_1.outcome == 'failure'
-        uses: https://data.forgejo.org/forgejo/upload-artifact@16871d9e8cfcf27ff31822cac382bbb5450f1e1e   # v4 (4.3.1 with the GHES check off; Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
+        uses: actions/upload-artifact@v4   # v4 (4.3.1 with the GHES check off; Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
         with:
           name: timeLink-linux-x86_64
           path: build-linux/*.AppImage

@@ -1,4 +1,4 @@
-"""Check a pull request's description against the template (.forgejo/pull_request_template.md, CONTRIBUTING.md
+"""Check a pull request's description against the template (.github/pull_request_template.md, CONTRIBUTING.md
 "Commits and pull requests"). Each problem fails it; none of the template's <...> stand-ins may be left.
 
   - the status line, the first line: "**Type:** fix · **Risk:** low · **Tested on:** <OS, GPU> · **Needs:** <OS, GPU,
@@ -36,7 +36,7 @@ review; forge.py pr ready runs the same check before it takes the WIP: off (--fo
 
 --pr reads the pull request, its title and its diff from the Forgejo API, with the token in FORGEJO_TOKEN or
 GITHUB_TOKEN when one is set (a public repository needs none). Exit status 0 when it passes, 1 with the problems listed
-when it does not. Standard library only; .forgejo/workflows/pr-description.yml runs it on every pull request.
+when it does not. Standard library only; .github/workflows/pr-description.yml runs it on every pull request.
 """
 import argparse
 import json
@@ -46,7 +46,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-TEMPLATE = Path(__file__).resolve().parents[1] / ".forgejo" / "pull_request_template.md"
+TEMPLATE = Path(__file__).resolve().parents[1] / ".github" / "pull_request_template.md"
 # Forgejo's default WORK_IN_PROGRESS_PREFIXES ([repository.pull-request] in app.ini), matched at the start of the title
 # whatever the case. The first is the one forge.py adds.
 WIP_PREFIXES = ("WIP:", "[WIP]")
@@ -498,7 +498,7 @@ def keep_applicable(body, keep):
     text = "\n".join(lines).strip("\n")
     if not wanted:
         text = ("<!-- Nothing in the diff suggested one when this PR was opened. Add the boxes that apply from the template\n"
-                "     (.forgejo/pull_request_template.md), ticked once done. -->")
+                "     (.github/pull_request_template.md), ticked once done. -->")
     return body[:m.start(1)] + "\n" + text + "\n\n" + body[m.end(1):].lstrip("\n")
 
 
@@ -591,7 +591,7 @@ def review(body, diff=None, merge_base=None, template=None, title=None):
                 out.append("## How to reproduce is for a fix: delete it, or fill it in")
                 continue
         if text is None:
-            out.append("no ## %s section (.forgejo/pull_request_template.md)" % name)
+            out.append("no ## %s section (.github/pull_request_template.md)" % name)
             continue
         part = before_subsections(text) if name == "Measurements" else text
         left = placeholders("## " + name, part)
@@ -732,7 +732,7 @@ def main(argv=None):
         print("The description is complete: the status line, every section filled in, the measurements named by "
               "commit, every Everyone box ticked.")
         return 0
-    print("The description is not complete (the template is .forgejo/pull_request_template.md; a PR without "
+    print("The description is not complete (the template is .github/pull_request_template.md; a PR without "
           "measurements goes back to WIP with the label '%s'):" % NEEDS_MEASUREMENTS)
     for f in found:
         print("::error::" + f)

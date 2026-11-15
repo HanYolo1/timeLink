@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out source
-        uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Check out pinned Vulkan headers
@@ -41,13 +41,13 @@ jobs:
       - name: Check out pinned VulkanMemoryAllocator
         run: scripts/fetch_commit.sh https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator 1d8f600fd424278486eade7ed3e877c99f0846b1 _deps/cpm/vulkanmemoryallocator/v3.3.0   # v3.3.0
       - name: Set up Python
-        uses: https://github.com/actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
       - name: llvm-mingw version
         id: llvm
         run: echo "name=$(python -I scripts/builder_package.py llvm-mingw --name --host linux)" >> "$GITHUB_OUTPUT"
-      - uses: https://github.com/actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/llvm
           key: ${{ steps.llvm.outputs.name }}

@@ -19,10 +19,10 @@ jobs:
   check:
     name: As their notes say
     if: github.event_name != 'schedule'
-    runs-on: quick  # (a quick job: the runner kept free for these takes it, or any runner with room)
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - run: python3 -I scripts/check_third_party.py --upstream

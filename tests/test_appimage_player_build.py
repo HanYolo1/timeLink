@@ -116,7 +116,7 @@ class PlayerBuildFromTheAppImage(unittest.TestCase):
 
 class TheChecksAreWired(unittest.TestCase):
     def test_the_workflow_checks_the_image_it_made(self):
-        flow = (ROOT / ".forgejo/workflows/build-linux.yml").read_text(encoding="utf-8")
+        flow = (ROOT / ".github/workflows/build-linux.yml").read_text(encoding="utf-8")
         self.assertLess(flow.index("run: scripts/linux/appimage.sh"), flow.index("run: scripts/linux/check_player_build.sh"))
 
     def test_apprun_sets_up_before_python(self):
@@ -137,7 +137,7 @@ class TheChecksAreWired(unittest.TestCase):
         # way to build it. Nothing sets or reads TIMELINK_VK_PREBUILT, appimage.sh builds no renderer and copies none into the
         # image, and the image still carries what a player's build compiles it from: gpu/vk, and assets/ with its profile)
         for folder, suffixes in (("nx2", (".py",)), ("scripts", (".py", ".sh")), ("builder", (".py", ".sh", ".cs")),
-                                 (".forgejo/workflows", (".yml",))):
+                                 (".github/workflows", (".yml",))):
             for f in (ROOT / folder).rglob("*"):
                 if f.is_file() and f.suffix in suffixes:
                     self.assertNotIn("TIMELINK_VK_PREBUILT", f.read_text(encoding="utf-8", errors="replace"), f)

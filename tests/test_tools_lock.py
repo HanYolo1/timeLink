@@ -334,7 +334,7 @@ class Assemble(unittest.TestCase):
         self.assertNotIn("profile", [t.name for t in tools.load(tools.LOCK)])
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             tools.main(["assemble", "profile", "--work", str(self.dir), "--out", str(self.dir / "p.zip")])
-        self.assertNotIn("--only profile", (ROOT / ".forgejo" / "workflows" / "build-linux.yml").read_text(encoding="utf-8"))
+        self.assertNotIn("--only profile", (ROOT / ".github" / "workflows" / "build-linux.yml").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

@@ -43,7 +43,7 @@ namespace {
 // device and the options are, and its last 9 MB, where the problem usually is: an hour of play logs about 10 MB)
 constexpr uint64_t kLogCap = 10ull << 20, kLogHead = 1ull << 20;
 constexpr const char* kIssues = "https://github.com/HanYolo1/timeLink/issues/new/choose";
-constexpr const char* kForm = "https://github.com/HanYolo1/timeLink/issues/new?template=.forgejo/ISSUE_TEMPLATE/1-game-problem.yml";
+constexpr const char* kForm = "https://github.com/HanYolo1/timeLink/issues/new?template=.github/ISSUE_TEMPLATE/1-game-problem.yml";
 // (the link's longest: a player who is not signed in is sent to the sign-in page, and the address waits for them in a cookie,
 // about 4 KB at most; GitHub's sign-in page, where the form lived first, failed from links of 3500 characters of escaped text
 // on. 2000 passes both, and every browser and chat program takes it)

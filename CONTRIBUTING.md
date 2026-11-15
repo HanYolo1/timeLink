@@ -255,7 +255,7 @@ for scripted input, screenshots, frame dumps and profiles are in the development
   fixes apply as a patch; each sync names its mkw-recomp base commit in the commit message.
 - Don't modify `third_party/`: its parts are upstream copies with their notices in `PROVENANCE.md` (a64-kit's note lists
   the changes Hookshot and timeLink made to it). Add a new folder and a provenance note instead. CI checks it
-  (`scripts/check_third_party.py`, `.forgejo/workflows/third-party.yml`): every part's files against the `tree-sha256`
+  (`scripts/check_third_party.py`, `.github/workflows/third-party.yml`): every part's files against the `tree-sha256`
   line its note ends with, a part with no note, and a pull request that changes a part without changing its note. For a
   deliberate refresh from upstream, say so in the part's note and run `python -I scripts/check_third_party.py --update
   <part>` in the same commit.
@@ -277,7 +277,7 @@ for scripted input, screenshots, frame dumps and profiles are in the development
 
 ## Commits and pull requests
 
-Every pull request uses the [pull request template](.forgejo/pull_request_template.md): its sections are the
+Every pull request uses the [pull request template](.github/pull_request_template.md): its sections are the
 description, its checklist stays whole, and `forge.py pr ready` checks it before review.
 
 timeLink's `main` takes reviewed pull requests only. You work on a branch, push it to your fork and open the pull
@@ -295,7 +295,7 @@ python -I scripts/forge.py pr create fix/arc-walls --title "fix(vk): walls missi
 1. Name the branch for the change: `fix/...`, `linux/...`, `builder/...`, `docs/...`. One topic per pull request: a fix
    doesn't carry a refactor, and two unrelated fixes are two PRs.
 2. Write the title as a Conventional Commit ([below](#pull-request-titles)).
-3. Fill in the description from [the pull request template](.forgejo/pull_request_template.md): the web page puts it
+3. Fill in the description from [the pull request template](.github/pull_request_template.md): the web page puts it
    in the box, and `forge.py pr create` starts from it when you give no `--body-file` (the type from the title, How to
    reproduce only for a fix, the commits in the Measurements' columns). The comment under each heading says what a
    good answer looks like; in short:
@@ -342,7 +342,7 @@ follow up from the command line ([docs/forge.md](docs/forge.md)).
 ### Measurements
 
 Every pull request shows its effect with numbers or proof, `main` against this PR, in the Measurements section of
-the [pull request template](.forgejo/pull_request_template.md):
+the [pull request template](.github/pull_request_template.md):
 
 | Change | What counts as its measurement |
 |---|---|

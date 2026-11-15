@@ -1,4 +1,4 @@
-"""The Windows timeLink Builder's release zip (docs/releases.md), made in CI (.forgejo/workflows/release.yml, ci.yml). No game
+"""The Windows timeLink Builder's release zip (docs/releases.md), made in CI (.github/workflows/release.yml, ci.yml). No game
 data is involved. Python's standard library only.
 
     python -I scripts/builder_package.py llvm-mingw <folder> [--name] [--host windows|linux]

@@ -21,15 +21,20 @@
 #    nightlies past the newest 5. Nothing is committed back to the repository.
 #
 # Secret (RELEASING.md, One-time setup): RELEASE_SIGNING_KEY (the release key's private PEM). Releases are made with the job's
-# own token (forgejo.token, passed to scripts/release.py as RELEASE_TOKEN; no secret, no bot account): on a push to this repository Forgejo gives it write access to this repository's every
-# unit (routers/api/v1/permissions/repo_access.go), so it may make, upload to, publish and delete releases and delete tags
-# here, and nowhere else. No `permissions:` key: Forgejo 17 ignores it (with a warning). Variable: RELEASE_UPLOAD_API (passed to release.py as FORGEJO_UPLOAD_API; Forgejo reserves the FORGEJO_ prefix for variables), the
-# API's address without Cloudflare in front, when a file is larger than its 100 MB upload limit.
+# own token (secrets.GITHUB_TOKEN, passed to scripts/release.py as RELEASE_TOKEN; no secret to create, no bot account): the
+# `permissions:` block below gives it `contents: write` on this repository and nothing else, so it may make, upload to,
+# publish and delete releases and delete tags here, and nowhere else. GitHub takes a release asset up to 2 GB directly, so
+# there is no separate upload address to configure (Forgejo needed one behind Cloudflare's 100 MB limit).
 name: Release
 on:
   push:
     branches: [main]
     tags: ['v*']
+
+# (GitHub's GITHUB_TOKEN is read-only unless a workflow asks: `contents: write` is what makes, uploads to and publishes a
+# release. Forgejo ignored this key, so it was absent; on GitHub its absence would fail the publish job.)
+permissions:
+  contents: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -42,14 +47,14 @@ defaults:
 jobs:
   version:
     name: The version
-    runs-on: quick  # (a quick job: the runner kept free for these takes it, or any runner with room)
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
       tag: ${{ steps.name.outputs.tag }}
       ref: ${{ steps.name.outputs.ref }}
       checked: ${{ steps.name.outputs.checked }}
     steps:
-      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -63,8 +68,7 @@ jobs:
           fi
       - id: name
         env:
-          RELEASE_TOKEN: ${{ forgejo.token }}
-          FORGEJO_UPLOAD_API: ${{ vars.RELEASE_UPLOAD_API }}
+          RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git fetch -q --tags origin main
           ref=$(git rev-parse HEAD)
@@ -96,7 +100,7 @@ jobs:
     name: Linux builder
     needs: version
     if: needs.version.outputs.tag != ''
-    uses: ./.forgejo/workflows/build-linux.yml
+    uses: ./.github/workflows/build-linux.yml
     with:
       tag: ${{ needs.version.outputs.tag }}
       ref: ${{ needs.version.outputs.ref }}
@@ -106,7 +110,7 @@ jobs:
     name: Windows builder
     needs: version
     if: needs.version.outputs.tag != ''
-    uses: ./.forgejo/workflows/build-windows.yml
+    uses: ./.github/workflows/build-windows.yml
     with:
       tag: ${{ needs.version.outputs.tag }}
       ref: ${{ needs.version.outputs.ref }}
@@ -116,7 +120,7 @@ jobs:
     name: Launcher
     needs: version
     if: needs.version.outputs.tag != ''
-    uses: ./.forgejo/workflows/build-launcher.yml
+    uses: ./.github/workflows/build-launcher.yml
     with:
       tag: ${{ needs.version.outputs.tag }}
       ref: ${{ needs.version.outputs.ref }}
@@ -125,15 +129,14 @@ jobs:
     name: Sign and publish
     needs: [version, linux, windows, launcher]
     if: needs.version.outputs.tag != ''
-    runs-on: quick  # (a short job: it starts as the builds end, never behind them; the same machine and secrets)
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
       TAG: ${{ needs.version.outputs.tag }}
       REF: ${{ needs.version.outputs.ref }}
-      RELEASE_TOKEN: ${{ forgejo.token }}
-      FORGEJO_UPLOAD_API: ${{ vars.RELEASE_UPLOAD_API }}
+      RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.version.outputs.ref }}
           fetch-depth: 0
@@ -141,36 +144,36 @@ jobs:
       # (from Forgejo's public address behind Cloudflare, as the build jobs' upload: fetched once more when it failed)
       - id: download_1
         continue-on-error: true
-        uses: https://data.forgejo.org/forgejo/download-artifact@d8d0a99033603453ad2255e58720b460a0555e1e   # v4 (4.1.4 with the GHES check off)
+        uses: actions/download-artifact@v4   # v4 (4.1.4 with the GHES check off)
         with:
           name: timeLink-linux-x86_64
           path: files
       - if: steps.download_1.outcome == 'failure'
-        uses: https://data.forgejo.org/forgejo/download-artifact@d8d0a99033603453ad2255e58720b460a0555e1e   # v4 (4.1.4 with the GHES check off)
+        uses: actions/download-artifact@v4   # v4 (4.1.4 with the GHES check off)
         with:
           name: timeLink-linux-x86_64
           path: files
       # (from Forgejo's public address behind Cloudflare, as the build jobs' upload: fetched once more when it failed)
       - id: download_2
         continue-on-error: true
-        uses: https://data.forgejo.org/forgejo/download-artifact@d8d0a99033603453ad2255e58720b460a0555e1e   # v4 (4.1.4 with the GHES check off)
+        uses: actions/download-artifact@v4   # v4 (4.1.4 with the GHES check off)
         with:
           name: timeLinkBuilder-windows
           path: files
       - if: steps.download_2.outcome == 'failure'
-        uses: https://data.forgejo.org/forgejo/download-artifact@d8d0a99033603453ad2255e58720b460a0555e1e   # v4 (4.1.4 with the GHES check off)
+        uses: actions/download-artifact@v4   # v4 (4.1.4 with the GHES check off)
         with:
           name: timeLinkBuilder-windows
           path: files
       # (from Forgejo's public address behind Cloudflare, as the build jobs' upload: fetched once more when it failed)
       - id: download_3
         continue-on-error: true
-        uses: https://data.forgejo.org/forgejo/download-artifact@d8d0a99033603453ad2255e58720b460a0555e1e   # v4 (4.1.4 with the GHES check off)
+        uses: actions/download-artifact@v4   # v4 (4.1.4 with the GHES check off)
         with:
           name: timeLinkLauncher
           path: files
       - if: steps.download_3.outcome == 'failure'
-        uses: https://data.forgejo.org/forgejo/download-artifact@d8d0a99033603453ad2255e58720b460a0555e1e   # v4 (4.1.4 with the GHES check off)
+        uses: actions/download-artifact@v4   # v4 (4.1.4 with the GHES check off)
         with:
           name: timeLinkLauncher
           path: files

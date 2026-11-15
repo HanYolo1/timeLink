@@ -39,7 +39,7 @@ this script as "forge.py credential get|store|erase".
 
 A pull request is work in progress until it is measured and ready for review (CONTRIBUTING.md, Commits and pull
 requests): a title starting with "WIP: ", Forgejo's draft mark. pr create opens it so, with the description started
-from .forgejo/pull_request_template.md when no --body or --body-file is given (the status line's type from the title,
+from .github/pull_request_template.md when no --body or --body-file is given (the status line's type from the title,
 How to reproduce only for a fix, the commits the Measurements' columns name: main's the merge base, this PR's the
 branch's head); --ready opens it ready, when the description is complete already. pr ready takes WIP: off after the
 same check as the PR description workflow (check_pr_description.py: the status line, every section filled in, the
@@ -85,7 +85,7 @@ BASE = auth.FORGE
 REPO = "MagicBeanDev/Longshot"
 HELPER_KEY = "credential.%s.helper" % BASE
 # A pull request is squash-merged, so its title is the commit on main: a Conventional Commit, as CONTRIBUTING.md and the
-# PR title check (the CI workflow, .forgejo/workflows/ci.yml) want it.
+# PR title check (the CI workflow, .github/workflows/ci.yml) want it.
 TITLE_TYPES = ("feat", "fix", "perf", "refactor", "docs", "test", "ci", "build", "chore", "revert")
 TITLE = re.compile(r"^(%s)(\([\w./-]+\))?!?: \S" % "|".join(TITLE_TYPES))
 WIP = desc.WIP_PREFIXES[0] + " "   # (the title prefix Forgejo reads as work in progress: "WIP: ")
@@ -338,7 +338,7 @@ def complete_or_refuse(body, force, number=None, diff=None, merge_base=None, tit
         print("forge.py: warning: marked ready with an incomplete description (--force):\n" + listed, file=sys.stderr)
         return
     fix = ("python -I scripts/forge.py pr edit %d --body-file F" % number) if number else "fill in the --body-file"
-    raise ForgeError("the description is not ready for review (.forgejo/pull_request_template.md; CONTRIBUTING.md, "
+    raise ForgeError("the description is not ready for review (.github/pull_request_template.md; CONTRIBUTING.md, "
                      "Commits and pull requests):\n%s\nComplete it (%s), then try again; --force goes on anyway."
                      % (listed, fix))
 
@@ -939,7 +939,7 @@ def main(argv=None):
     s = pr.add_parser("create", help="open a pull request from a branch of your fork, as work in progress (WIP: title)",
                       description="Opens a pull request from BRANCH on your fork into timeLink's main. It opens as work "
                       "in progress (a 'WIP: ' title) unless --ready; without --body or --body-file, the description "
-                      "starts from .forgejo/pull_request_template.md.")
+                      "starts from .github/pull_request_template.md.")
     s.add_argument("branch")
     s.add_argument("--title", required=True, help="a Conventional Commit, type(scope): description")
     g = s.add_mutually_exclusive_group()

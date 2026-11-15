@@ -52,12 +52,12 @@ sees or that names a repository, a file or an install path is timeLink's:
 
 It is a directory of timeLink, not a repository of its own:
 
-- `.forgejo/workflows/launcher.yml` compiles it and runs `launcher/tests/` when a
+- `.github/workflows/launcher.yml` compiles it and runs `launcher/tests/` when a
   change touches `launcher/`. Its core tests check what the launcher copies from
   timeLink (make_game.py's languages, the SDK commits the licence texts name, the
   first-import save's player ID) against the checkout `launcher/` sits in, so they
   need no separate clone.
-- `.forgejo/workflows/build-launcher.yml` builds it for a release, called by
+- `.github/workflows/build-launcher.yml` builds it for a release, called by
   `release.yml` beside the builders: one tag, one release, both products' files.
 
 ## What is deliberately unchanged

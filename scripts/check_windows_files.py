@@ -1,5 +1,5 @@
 """The Windows timeLink Builder's release zip, checked as Windows files on the Linux runner that makes it
-(.forgejo/workflows/build-windows.yml): what a build on Windows gave, and a build elsewhere could quietly lose. No game data is
+(.github/workflows/build-windows.yml): what a build on Windows gave, and a build elsewhere could quietly lose. No game data is
 involved. Python's standard library, and llvm-mingw's llvm-objdump and llvm-readobj.
 
     python -I scripts/check_windows_files.py --objdump <llvm-objdump> --readobj <llvm-readobj> <zip>

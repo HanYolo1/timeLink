@@ -22,7 +22,7 @@ GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot
 
 ## What a release is
 
-Each version is one Forgejo release, made by `.forgejo/workflows/release.yml`:
+Each version is one Forgejo release, made by `.github/workflows/release.yml`:
 
 | timeLink (HanYolo1/timeLink) | The launcher (HanYolo1/TimeLinkLauncher) |
 |---|---|
@@ -202,7 +202,7 @@ There is no installer program: the launcher installs itself (the launcher's READ
 
 ## CI
 
-Both products are now released from this one repository, so its workflows in `.forgejo/workflows/` cover both, on Forgejo
+Both products are now released from this one repository, so its workflows in `.github/workflows/` cover both, on Forgejo
 Actions. The launcher's are scoped to `launcher/` by path:
 
 | Workflow | Covers |

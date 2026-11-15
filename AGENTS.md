@@ -91,7 +91,7 @@ Never push to `forge`: timeLink's `main` takes reviewed pull requests only. `pr 
 
 - **The title is a Conventional Commit** ([CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles)): it becomes the
   commit on `main` and decides the release. `pr create` refuses anything else.
-- **The description follows the [pull request template](.forgejo/pull_request_template.md)**, every section, the
+- **The description follows the [pull request template](.github/pull_request_template.md)**, every section, the
   whole *Everyone* list and only the *When it applies* boxes that apply, all ticked
   ([CONTRIBUTING.md](CONTRIBUTING.md#commits-and-pull-requests)); `pr create` starts from it. The comments in the
   template say what each part needs; in short:

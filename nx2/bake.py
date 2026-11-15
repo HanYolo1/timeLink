@@ -338,7 +338,7 @@ def verify_bank(bank_dir: str, strict: bool = False):
     reports (gpu/vk/vk_main.cpp:253,256,360 — f12 chained into
     VkDeviceCreateInfo, never cleared), which includes
     uniformBufferStandardLayout, and CI validates the back end's own modules
-    the same way (.forgejo/workflows/ci.yml). Strict
+    the same way (.github/workflows/ci.yml). Strict
     (no-flag) validity is NOT the gate; --strict additionally records the
     strict count for information only. Returns (summary, ok). Writes
     verify.json next to the manifest."""

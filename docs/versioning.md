@@ -36,7 +36,7 @@ switches, the files a build writes into a game folder (`timeLink_options.ini`, `
 
 There are no release pull requests: a maintainer pushes a tag, and CI does the rest
 ([RELEASING.md](../RELEASING.md)). Pull requests are squash-merged and their titles are
-[Conventional Commits](https://www.conventionalcommits.org/) (`.forgejo/workflows/ci.yml`,
+[Conventional Commits](https://www.conventionalcommits.org/) (`.github/workflows/ci.yml`,
 [CONTRIBUTING.md](../CONTRIBUTING.md#pull-request-titles)), so the commits on `main` say what changed, and CI
 (`scripts/release.py check-tag`) refuses a tag lower than they call for:
 

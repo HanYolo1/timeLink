@@ -16,19 +16,27 @@
 #
 # No game data is involved.
 #
-# Secrets (organisation or repository, Actions, Secrets): CLOUDFLARE_API_TOKEN (Account, Workers Scripts: Edit; Zone,
-# Workers Routes: Edit on magicbean.dev for the custom domain) and CLOUDFLARE_ACCOUNT_ID. Optional:
-# PREVIEW_COMMENT_TOKEN, a Forgejo token with write:issue: a fork's run gets a read-only job token, so without it the
-# link is only in the run's log and the label stays on.
+# Secrets (repository, Settings > Secrets and variables > Actions): CLOUDFLARE_API_TOKEN (Account, Workers Scripts: Edit;
+# Zone, Workers Routes: Edit on the domain the Worker is deployed to) and CLOUDFLARE_ACCOUNT_ID. Optional:
+# PREVIEW_COMMENT_TOKEN, a token with issues: write: a fork's run gets a read-only job token, so without it the link is
+# only in the run's log and the label stays on.
+#
+# This workflow cannot run until those two Cloudflare secrets exist, and until the Worker's route names a domain this
+# fork controls (website/wrangler.jsonc still routes longshot.magicbean.dev, which is MagicBeanDev's).
 name: Website
+
+# (a PR comment and a label removal need issues: write; the deploy itself needs nothing from GITHUB_TOKEN)
+permissions:
+  contents: read
+  issues: write
 
 on:
   push:
     branches: [main]
-    paths: ['website/**', 'docs/tested-configurations.md', 'docs/tested/**', '.forgejo/workflows/website.yml']
+    paths: ['website/**', 'docs/tested-configurations.md', 'docs/tested/**', '.github/workflows/website.yml']
   pull_request:
     types: [opened, synchronize, reopened]
-    paths: ['website/**', 'docs/tested-configurations.md', 'docs/tested/**', '.forgejo/workflows/website.yml']
+    paths: ['website/**', 'docs/tested-configurations.md', 'docs/tested/**', '.github/workflows/website.yml']
   pull_request_target:
     types: [labeled]
   schedule:
@@ -49,7 +57,7 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.number && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}

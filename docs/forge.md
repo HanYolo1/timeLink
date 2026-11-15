@@ -53,7 +53,7 @@ python -I scripts/forge.py pr ready 12
 `pr create` prints the pull request's link. Title and description follow
 [CONTRIBUTING.md](../CONTRIBUTING.md#commits-and-pull-requests). It opens the PR as **work in progress** (a `WIP: `
 title, Forgejo's draft mark), with the description started from
-[the template](../.forgejo/pull_request_template.md) when you give no `--body-file`: the status line's type from the
+[the template](../.github/pull_request_template.md) when you give no `--body-file`: the status line's type from the
 title, How to reproduce kept only for a `fix`, main's and the branch's commits in the Measurements' `Before: main @` and
 `After: this PR @` columns, and *When it applies* down to the boxes the diff suggests. `--ready` opens it ready, when the description is complete already
 (`--draft`, the earlier flag, is now the default and still accepted).
@@ -72,7 +72,7 @@ python -I scripts/forge.py pr review 12 (--approve | --comment | --request-chang
 
 - `pr ready` runs the PR description check (`scripts/check_pr_description.py`, the same one the `PR description`
   workflow runs; its opening comment lists every rule) on the description, the title and the diff, and refuses while
-  a part of [the template](../.forgejo/pull_request_template.md) is missing, empty or still holds its `<...>`: the
+  a part of [the template](../.github/pull_request_template.md) is missing, empty or still holds its `<...>`: the
   status line, How to reproduce for a `fix`, the Measurements' verdict and columns named by commit (or one line
   saying why there is nothing to measure), *Flags and settings*, Testing's Must be tested (each item where, how and
   who runs it: the Test Farm or by hand), Risks' Compatibility, and every *Everyone* box ticked. It prints what is missing;
