@@ -87,6 +87,22 @@ class CaseSensitivePaths(unittest.TestCase):
                               "%s names Assets/%s, but the tracked file is %s: Windows finds it, Linux does not"
                               % (rel, name, sorted(a for a in assets if a.lower() == name.lower()) or "absent"))
 
+    def test_the_self_check_line_is_spelled_one_way(self):
+        """(SelfUpdate.CheckLine prints it and build-launcher.yml greps for it: a case difference fails the release)"""
+        code = (ROOT / "launcher/Core/SelfUpdate.cs").read_text(encoding="utf-8", errors="replace")
+        m = re.search(r'CheckLine\(string tag\)\s*=>\s*"([^"]+)"', code)
+        self.assertIsNotNone(m, "SelfUpdate.CheckLine no longer returns a literal")
+        printed = m.group(1)
+        for rel in ("build-launcher.yml", "release.yml"):
+            path = ROOT / ".github" / "workflows" / rel
+            if not path.is_file():
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            for grepped in re.findall(r'grep -qxF "([^"$]+)\$', text):
+                self.assertEqual(grepped, printed,
+                                 ".github/workflows/%s greps for %r but the launcher prints %r: the release job fails "
+                                 "with 'does not answer --self-check'" % (rel, grepped, printed))
+
     def test_no_tracked_path_differs_from_itself_only_by_case(self):
         """(two files whose names differ only by case cannot both exist on Windows, and confuse a Linux checkout)"""
         clashes = {k: v for k, v in self.by_lower.items() if len(v) > 1}

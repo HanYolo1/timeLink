@@ -69,7 +69,7 @@ jobs:
           "$wine" wineboot --init >/dev/null 2>&1 || true
           out=$("$wine" "$RUNNER_TEMP/wine-check/timeLinkLauncher.exe" --self-check | tr -d '\r')
           echo "$out"
-          grep -qxF "timeLinkLauncher $TAG" <<<"$out" || { echo "::error::the Windows launcher does not answer --self-check with $TAG"; exit 1; }
+          grep -qxF "TimeLinkLauncher $TAG" <<<"$out" || { echo "::error::the Windows launcher does not answer --self-check with $TAG (it said: $out)"; exit 1; }
       - uses: actions/upload-artifact@v4 # v4 (Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
         with:
           name: timeLinkLauncher
