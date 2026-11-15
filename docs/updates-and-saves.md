@@ -14,7 +14,7 @@ The launcher updates itself the same way. What changed in each version is on
 
 1. **Save and quit** the game from its own menu.
 2. **Back up your saves.** Copy the save folder somewhere safe: an update keeps it, but a copy costs nothing. See
-   [where timeLink keeps them](saves.md#where-timeLink-keeps-them).
+   [where timeLink keeps them](saves.md#where-timelink-keeps-them).
 3. **After updating, load your slot** to check your adventure. If something is wrong, stop and put your backup back
    ([undo a copy](saves.md#undo-a-copy)).
 

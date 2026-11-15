@@ -1287,7 +1287,7 @@ Row rows[] = {
     {TAB_GRAPHICS, "Custom output size", nullptr, 0, 0, 0, nullptr,   // (timeLink: a text field, field_rows)
      "An Output resolution of your own, typed as width x height: your monitor's size, such as 3440x1440, 2560x1080 or "
      "2560x1600. Each side is rounded down to a multiple of 8; a size the Output resolution offers is chosen there. Empty: "
-     "none. Docked only. Applies after a restart."},
+     "none. Docked only. Applies after a restart.", nullptr, true},
     {TAB_GRAPHICS, "Profile", &opts.handheld, 0, 1, 1, tx_profile,
      "Runs the game as the console docked or handheld. Applies after a restart.", hn_handheld, true},
     {TAB_GRAPHICS, "Upscaler", &opts.dlss, 0, ur::kUpscalers - 1, 1, tx_upscaler, "What scales the 3D up to the Output resolution.",

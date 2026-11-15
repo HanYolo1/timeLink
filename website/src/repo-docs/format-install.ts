@@ -24,7 +24,8 @@ export function formatInstallHub(source) {
 }
 
 function downloadButtons(body) {
-  return body.replace(/^(?:- \[[^\]]+\]\(\/download\/[^)\s]+\)\n)+/m, (list) => {
+  // (the site's own /download/launcher/ links, or this fork's releases page: either way the list becomes buttons)
+  return body.replace(/^(?:- \[[^\]]+\]\((?:https:\/\/github\.com\/HanYolo1\/timeLink\/releases|\/download\/[^)\s]+)\)\n)+/m, (list) => {
     const links = [...list.matchAll(/- \[([^\]]+)\]\(([^)\s]+)\)/g)];
     const buttons = `<div class="download-buttons">\n${links.map(([, text, url], i) =>
       `<a class="button${i < 2 ? ' primary' : ''}" href="${url}">${text}</a>`).join('\n')}\n</div>\n`;

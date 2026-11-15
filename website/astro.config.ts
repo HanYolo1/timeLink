@@ -6,7 +6,8 @@ import { repoAssets } from './src/repo-docs/assets.ts';
 import { remarkTestedConfigurations } from './src/repo-docs/tested-configurations.ts';
 
 export default defineConfig({
-  site: siteUrl,
+  // (no `site` until this fork has a domain: Astro would emit a canonical link and a sitemap naming it on every page)
+  ...(siteUrl ? { site: siteUrl } : {}),
   trailingSlash: 'always',
   markdown: { processor: unified({ remarkPlugins: [remarkTestedConfigurations] }) },
   integrations: [repoAssets(), starlight({

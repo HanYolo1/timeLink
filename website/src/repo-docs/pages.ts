@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 import { contentPages, pageForSource } from '../content-pages.ts';
-import { editUrl, siteUrl, sourceUrl } from '../site.ts';
+import { editUrl, siteBase, siteUrl, sourceUrl } from '../site.ts';
 import { formatInstallHub } from './format-install.ts';
 import { formatGraphicsSettings } from './graphics-settings.ts';
 import { formatCommonIssues } from './format-common-issues.ts';
@@ -28,7 +28,7 @@ export function isSourceFile(file: string): boolean {
 
 function urlFor(value: string, source: string) {
   // The documents link to the site with its full address, which also works on Forgejo; on the site itself, a path.
-  if (value.startsWith(siteUrl + '/')) return value.slice(siteUrl.length);
+  if (siteUrl && value.startsWith(siteUrl + '/')) return value.slice(siteUrl.length);
   if (!value || value.startsWith('/') || /^(?:[a-z]+:|\/\/|#)/i.test(value)) return value;
   const hashAt = value.indexOf('#');
   const fragment = hashAt < 0 ? '' : value.slice(hashAt);

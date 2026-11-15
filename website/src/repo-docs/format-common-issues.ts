@@ -23,7 +23,8 @@ export const legacyAnchors = new Map([
   ['a-download-is-flagged', 'windows-defender-or-the-browser-flags-the-download'],
 ]);
 // A problem ends with one line of searches of the reports: [Search ...](.../progress/#problem-search?q=...) · ...
-const searchLink = String.raw`\[Search [^\]]+\]\((?:https://timeLink\.magicbean\.dev)?/progress/#problem-search\?q=[^)\s]+\)`;
+// (the search line under each problem: this fork's issue search, or the upstream report board's)
+const searchLink = String.raw`\[Search [^\]]+\]\((?:https://(?:github\.com/HanYolo1/timeLink/issues\?q=is%3Aissue[^)\s]*|timeLink\.magicbean\.dev/progress/#problem-search\?q=[^)\s]+))\)`;
 const searchLine = new RegExp(`^${searchLink}(?: · ${searchLink})*$`);
 
 const escape = text => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');

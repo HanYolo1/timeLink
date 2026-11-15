@@ -162,7 +162,7 @@ the driver's limit itself.
 the game folder: it turns off the culling pass that runs for seconds there, and every model is still drawn
 ([#817](https://github.com/NotRexed/Hookshot/issues/817)).
 
-[Search Steam Deck reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+Steam Deck)
+[Search Steam Deck reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+Steam%20Deck)
 
 ## In game: controls, saves and language
 

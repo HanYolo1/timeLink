@@ -2,7 +2,7 @@
 // "Edit page" link names a file that exists in the repository.
 import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { editUrl, siteUrl } from '../src/site.ts';
+import { editUrl, siteBase, siteUrl } from '../src/site.ts';
 import { readProblemSearchHash } from '../src/lib/problem-search.ts';
 import { validateFeed } from '../src/lib/progress.ts';
 
@@ -22,14 +22,14 @@ for (const [file, text] of html) {
   const prose = text.replace(/<(script|style|code|pre)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
     .replace(/<!--[^]*?-->/g, '').replace(/<[^>]+>/g, ' ');
   if (gameBranding.test(prose)) errors.push(`${route}: game branding remains in published text`);
-  for (const [, url] of text.matchAll(/href="(https:\/\/git\.magicbean\.dev\/[^"]+\/_edit\/[^"]+)"/g)) {
+  for (const [, url] of text.matchAll(/href="(https:\/\/github\.com\/[^"]+\/edit\/[^"]+)"/g)) {
     if (!url.startsWith(editBase)) errors.push(`${route}: edit link to another repository or branch: ${url}`);
     else await stat(path.join('..', url.slice(editBase.length))).catch(() => errors.push(`${route}: edit link to a missing file: ${url}`));
   }
   for (const [, tag, raw] of text.matchAll(/<(a|img|script|link)\b[^>]*?\b(?:href|src)="([^"]+)"/g)) {
     if (/^(?:data:|mailto:|tel:|javascript:)/.test(raw)) continue;
-    const url = new URL(raw.replaceAll('&amp;', '&'), siteUrl + route);
-    if (url.origin !== siteUrl) continue;
+    const url = new URL(raw.replaceAll('&amp;', '&'), siteBase + route);
+    if (url.origin !== new URL(siteBase).origin) continue;
     // The Worker answers /download (worker/index.ts): it isn't a file of the build.
     if (url.pathname === '/download' || url.pathname.startsWith('/download/')) { links++; continue; }
     // Astro emits a /404/ canonical link, but the page is 404.html.

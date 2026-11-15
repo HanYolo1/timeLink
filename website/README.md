@@ -15,9 +15,10 @@ npm run preview -- --host 127.0.0.1 --port 4321
 ```
 
 Open http://127.0.0.1:4321/. `npm run dev` provides live editing.
-The project base is `/`, for its own domain (longshot.magicbean.dev).
-`DOCS_SITE_URL` sets the canonical HTTPS origin; its default is `https://magicbean.dev`,
-which is metadata, not an enabled deployment or a claim that this site is hosted there.
+The project base is `/`, for its own domain.
+`DOCS_SITE_URL` sets the canonical HTTPS origin. It is unset by default, and then the build emits no canonical link and
+no sitemap: this fork has no domain of its own, and the upstream one is not ours to claim. Set it to the origin the site
+is deployed to, and set the same domain in `wrangler.jsonc`'s `routes`, before deploying.
 
 `npm run build:preview` builds and checks with edit links to this fork's
 `docs/timeLink-website` branch. Normal `npm run build` and `npm run check` also accept

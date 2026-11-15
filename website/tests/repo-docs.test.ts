@@ -21,17 +21,22 @@ test('installation hub retains source sections and links', () => {
 });
 
 test('the launcher download buttons get a channel picker, hidden until a script runs it', async () => {
+  // (the picker is for the site's own /download/launcher/ links, which this fork does not have: its buttons go to
+  // GitHub's releases page, where every channel's files are listed. A source with those links still gets the picker.)
   const source = await readFile(new URL('../../docs/getting-started.md', import.meta.url), 'utf8');
-  const page = source.replace(/https:\/\/timeLink\.magicbean\.dev\//g, '/');
-  const formatted = formatInstallHub(page);
-  assert.equal((formatted.match(/data-launcher-channel /g) || []).length, 1);
-  assert.match(formatted, /<div class="launcher-channel" role="radiogroup" aria-labelledby="launcher-channel-label" data-launcher-channel hidden>[\s\S]*<\/p>\n<\/div>\n<div class="download-buttons">/);
-  for (const c of launcherChannels) assert(formatted.includes(`value="${c.value}"`), `Missing channel: ${c.name}`);
-  assert.equal((formatted.match(/ checked>/g) || []).length, 1);
-  assert(formatted.includes('value="rc" data-note="The next version, to try before it is stable." checked>'));
-  assert(formatted.includes('value="" data-note="For playing." disabled> Stable <small>coming soon</small>'));
+  const formatted = formatInstallHub(source);
+  assert.equal((formatted.match(/data-launcher-channel /g) || []).length, 0);
+  assert(formatted.includes('class="download-buttons"'));
+  const withSiteLinks = '## 2. Download\n\n- [Download for Windows](/download/launcher/windows)\n- [Download for Linux](/download/launcher/linux)\n';
+  const picked = formatInstallHub(withSiteLinks);
+  assert.equal((picked.match(/data-launcher-channel /g) || []).length, 1);
+  assert.match(picked, /<div class="launcher-channel" role="radiogroup" aria-labelledby="launcher-channel-label" data-launcher-channel hidden>[\s\S]*<\/p>\n<\/div>\n<div class="download-buttons">/);
+  for (const c of launcherChannels) assert(picked.includes(`value="${c.value}"`), `Missing channel: ${c.name}`);
+  assert.equal((picked.match(/ checked>/g) || []).length, 1);
+  assert(picked.includes('value="rc" data-note="The next version, to try before it is stable." checked>'));
+  assert(picked.includes('value="" data-note="For playing." disabled> Stable <small>coming soon</small>'));
   // (no blank line inside, so Markdown keeps it one HTML block)
-  assert(!/data-launcher-channel[\s\S]*\n\n[\s\S]*class="download-buttons"/.test(formatted));
+  assert(!/data-launcher-channel[\s\S]*\n\n[\s\S]*class="download-buttons"/.test(picked));
   assert(!formatInstallHub('## Elsewhere\n- [Other](/download/other)\n').includes('launcher-channel'));
 });
 

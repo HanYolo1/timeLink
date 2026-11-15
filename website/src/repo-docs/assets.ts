@@ -2,6 +2,7 @@
 // (ignored by Git) when Astro starts, for dev and build alike, unchanged.
 import { copyFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
 import { repoRoot } from './pages.ts';
 
@@ -17,8 +18,11 @@ export function repoAssets(): AstroIntegration {
     name: 'timeLink-repo-assets',
     hooks: {
       'astro:config:setup': async ({ config }) => {
+        // (fileURLToPath, not new URL(...).pathname: on Windows the latter is "/C:/...", which path.join turns into
+        // "C:\C:\...", so the build could not run there at all)
+        const publicDir = fileURLToPath(config.publicDir);
         for (const [from, to] of Object.entries(files)) {
-          const target = path.join(new URL(config.publicDir).pathname, to);
+          const target = path.join(publicDir, to);
           await mkdir(path.dirname(target), { recursive: true });
           await copyFile(path.join(repoRoot, from), target);
         }

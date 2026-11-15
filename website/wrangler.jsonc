@@ -14,5 +14,7 @@
   },
   "workers_dev": false,
   "preview_urls": true,
-  "routes": [{ "pattern": "longshot.magicbean.dev", "custom_domain": true }]
+  // (no route until this fork has a domain of its own: the upstream one is not ours to serve. Set the pattern to the
+  // domain the Worker is deployed to, and DOCS_SITE_URL to the same origin, before deploying.)
+  "routes": []
 }

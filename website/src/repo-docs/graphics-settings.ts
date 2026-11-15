@@ -132,7 +132,8 @@ export function readGraphicsSettings(readme, menu) {
       groups.push({ name: row.name, settings: [] });
       continue;
     }
-    if (!row.value.startsWith('&opts.')) throw new Error(`README/menu graphics coverage mismatch at ${row.name}`);
+    // (a text field's row has no int* value: it is driven by field_rows, and its size lives in custom_output)
+    if (row.value !== 'nullptr' && !row.value.startsWith('&opts.')) throw new Error(`README/menu graphics coverage mismatch at ${row.name}`);
     const setting = settings[at++];
     if (setting?.name !== row.name) throw new Error(`README/menu graphics order mismatch at ${row.name}`);
     groups.at(-1).settings.push({ ...withSource(setting, 'Graphics'), id: `setting-${slug(row.name)}` });
