@@ -60,7 +60,7 @@ Discord: the timeLink community server.
 # ⬇️ Download timeLink Launcher
 
 Every release is on [the releases page](https://github.com/HanYolo1/timeLink/releases): the launcher's and the builder's,
-told apart by the version's first number (the launcher's are `v1.Y.Z`, timeLink's `v3.Y.Z` and up). The launcher's files:
+told apart by the files a release carries, not by its number (both products' numbers start at `v0.1.0`). The launcher's files:
 
 - **Windows 10 and 11 (x64):** `timeLinkLauncher-<version>-windows-x64-setup.exe`. Start it, then choose *Install* or
   *Run portable* ([Installing](#installing)).
@@ -76,8 +76,8 @@ own updates.
 This is the one download: the launcher installs timeLink's builder for you. The builder files on
 [timeLink's builder releases](https://github.com/HanYolo1/timeLink/releases) are for the launcher, not for you.
 
-All of them are in the release's signed `SHA256SUMS`. After that the launcher updates itself. Its numbers are its own:
-timeLink's start at v3.0.0, the launcher's at v1.0.0.
+All of them are in the release's signed `SHA256SUMS`. After that the launcher updates itself. Its numbers are timeLink's:
+both start at v0.1.0, and one tag names both products' releases.
 
 > [!TIP]
 > Windows may warn about an unknown program on its first start (the program is not code-signed yet). Choose *More info*,
@@ -210,7 +210,7 @@ dotnet run --project App
 | `App/` | `TimeLinkLauncher`: the Avalonia window. `ViewModels/` (one per page and dialog), `Views/` (one .axaml each, compiled bindings), `Controls/` (icons, bars and spinner), `App.axaml` (the palette and the styles), `Assets/` (the timeLink logo and icon, the Inter font with its licence) |
 | `tests/` | `test_launcher_core.py` (builds `launcher_core/`, which compiles `Core/` and checks it), `test_release.py` (`scripts/release.py`), `fixtures/` (signed test releases, fake Hookshot saves) |
 | `scripts/` | `package.sh` (both release programs, from Linux), `make_icon.py` (`App/Assets/timeLink.ico` from the logo), `release.py` (the signed release files, the keys, the uploads; the same file as timeLink's), `translations.py` (the window's texts against each catalog) |
-| `.forgejo/workflows/` | `launcher.yml` (compile and test, on a change that touches `launcher/`), `launcher-release.yml` (a release from a `v1.*` tag) |
+| `.forgejo/workflows/` | `launcher.yml` (compile and test, on a change that touches `launcher/`), `build-launcher.yml` (the release programs, called by `release.yml`) |
 | `docs/` | [releases.md](docs/releases.md), [saves.md](docs/saves.md), and the screenshots in this README |
 
 ### Environment and command line

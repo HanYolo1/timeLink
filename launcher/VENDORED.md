@@ -57,9 +57,8 @@ It is a directory of timeLink, not a repository of its own:
   timeLink (make_game.py's languages, the SDK commits the licence texts name, the
   first-import save's player ID) against the checkout `launcher/` sits in, so they
   need no separate clone.
-- `.forgejo/workflows/launcher-release.yml` releases it from the same repository
-  and the same `v*` tag namespace as the builder, told apart by the version's first
-  number: the launcher's are `v1.Y.Z`, the builder's `v3.Y.Z` and up.
+- `.forgejo/workflows/build-launcher.yml` builds it for a release, called by
+  `release.yml` beside the builders: one tag, one release, both products' files.
 
 ## What is deliberately unchanged
 

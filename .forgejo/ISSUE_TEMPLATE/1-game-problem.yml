@@ -14,7 +14,7 @@ body:
     attributes:
       label: timeLink version
       description: The first line of `timeLink_log.txt` (after `timeLink`), or the version the launcher shows.
-      placeholder: v3.0.0
+      placeholder: v0.1.0
     validations:
       required: true
   - type: dropdown

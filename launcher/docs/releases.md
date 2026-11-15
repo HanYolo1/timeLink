@@ -5,7 +5,7 @@ them. Both are released from one repository, [HanYolo1/timeLink](https://github.
 is `launcher/` there (vendored, [VENDORED.md](../VENDORED.md)). How to make a release, step by step, is in **RELEASING.md**
 (one file, covering both products).
 
-timeLink's numbers start at **v3.0.0**; the launcher's are its own and start at **v1.0.0**. Nothing here reads or writes
+timeLink's numbers start at **v0.1.0**, and the launcher's do too: one tag names both products' releases. Nothing here reads or writes
 GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot's history is Hookshot's).
 
 ## In short
@@ -214,14 +214,13 @@ Actions. The launcher's are scoped to `launcher/` by path:
 |---|---|
 | `ci.yml` | timeLink: every pull request and push to main, the PR title and every game-free check (`tests/run_all.py`, on Linux) |
 | `launcher.yml` | the launcher, on pull requests and pushes that touch `launcher/`: compile, `tests/test_launcher_core.py`, `tests/test_release.py` |
-| `release.yml` | timeLink's builders: tags `v*`, the version, the two builders (`build-linux.yml`, `build-windows.yml`), sign and publish |
-| `launcher-release.yml` | the launcher itself: tags `v1.*` (and by hand), the version, `scripts/package.sh`, sign and publish |
+| `release.yml` | timeLink's release: tags `v*`, the version, the two builders (`build-linux.yml`, `build-windows.yml`) and the launcher (`build-launcher.yml`), sign and publish |
+| `build-launcher.yml` | the launcher's release programs (`scripts/package.sh`), called by `release.yml` |
 | `third-party.yml` | the `third_party` rule (`scripts/check_third_party.py`) |
 
-Neither release workflow takes a push to main: the builder's releases the nightly, and the launcher is released by its tags,
-so one commit does not produce two nightlies. Nothing tells the two `v*` workflows apart by tag prefix: both take `v*`, and
-`scripts/release.py` refuses a tag whose number is not the product's (the launcher's from `v1.0.0`, the builder's from
-`v3.0.0`), then tells the two products' releases apart by the files each ships.
+One release, one tag, both products: `release.yml` builds the builders and the launcher and publishes every file together.
+A product's releases are told apart by the files they carry, not by the tag's number (`launcher/Core/ReleaseManifest.cs`,
+`Ships`). Only `release.yml` takes a push to main, so one commit produces one nightly.
 
 timeLink also keeps `build-linux.yml` and `build-windows.yml` (also run on pull requests that change code) and
 `vulkan-dlss.yml` (the upscalers' build checks). A tag on a commit CI has released already (its nightly, or a stable's
@@ -247,7 +246,7 @@ a tag, `scripts/release.py check-tag` (in `release.yml`, before anything is buil
 | a `feat` | the next minor (`v3.3.0`) |
 | `fix`, `perf`, or anything else | the next patch (`v3.2.2`) |
 
-The first release of each product only needs its first number (timeLink `v3.0.0`, the launcher `v1.0.0`).
+The first release of each product only needs its first number (both `v0.1.0`).
 `python -I scripts/release.py next` prints the number and the notes before tagging.
 
 ## Release notes

@@ -61,7 +61,7 @@ to it too.
 A maintainer reviews and squash-merges it. Releases are tags on `main` ([RELEASING.md](RELEASING.md)): `vX.Y.Z-rc.N`,
 then `vX.Y.Z`, and every merge makes a nightly. The title decides the next version: CI refuses a tag lower than the titles
 since the last stable call for (a `!` or `BREAKING CHANGE:`: the next major; a `feat`: the next minor; anything else: the
-next patch), and git-cliff turns the titles into the release notes. The launcher's numbers start at v1.0.0 and are its own.
+next patch), and git-cliff turns the titles into the release notes. The launcher's numbers are timeLink's: both start at v0.1.0.
 
 ## Licensing
 

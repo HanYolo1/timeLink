@@ -23,7 +23,7 @@ body:
     attributes:
       label: Version
       description: The launcher's or the builder's version, and the timeLink version it was installing.
-      placeholder: Launcher v1.0.0, timeLink v3.0.0
+      placeholder: Launcher v0.1.0, timeLink v0.1.0
     validations:
       required: true
   - type: dropdown

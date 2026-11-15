@@ -1,9 +1,10 @@
-# timeLink's releases (docs/releases.md; how to make one: RELEASING.md). The same workflow as MagicBeanDev/timeLink Launcher's,
-# but for what is built: here the two builders.
+# timeLink's releases (docs/releases.md; how to make one: RELEASING.md). One release, one tag, both products: the builders
+# (build-linux.yml, build-windows.yml) and the launcher (build-launcher.yml). What tells a product's releases apart is the
+# files they carry, not the tag (launcher/Core/ReleaseManifest.cs, Ships).
 #
 #   a push to main       the nightly: nightly-<commits since the fork>-<commit>, a pre-release
 #   a tag vX.Y.Z-rc.N    a release candidate, a pre-release (the rc channel)
-#   a tag vX.Y.Z         a stable (the stable channel, and rc too). timeLink's first is v3.0.0
+#   a tag vX.Y.Z         a stable (the stable channel, and rc too). Both products' first is v0.1.0
 #
 # 1. version: tools.lock is checked first (scripts/tools.py check --require: every tool the Windows and the Linux builder
 #    need is in timeLink's packages), then the version's name; a tag is checked too (scripts/release.py check-tag: its form, on main, above
@@ -13,8 +14,9 @@
 #    every file; one that is not stops the run). Its run passed every check of the commit, so the build checks that ship
 #    no file are not run again. Its files are not reused: each carries its version (the AppImage's VERSION, the zip's
 #    VERSION and builder), and a release never ships a file that names another version.
-# 2. linux, windows: timeLink-<v>-x86_64.AppImage and timeLinkBuilder-<v>-windows-x64.zip (build-linux.yml, build-windows.yml).
-# 3. publish: SHA256SUMS over the files and tools.lock, SHA256SUMS.sig (the release key), the notes (git-cliff, cliff.toml),
+# 2. linux, windows, launcher: timeLink-<v>-x86_64.AppImage, timeLinkBuilder-<v>-windows-x64.zip, and the launcher's
+#    timeLinkLauncher-<v>-windows-x64-setup.exe, -windows-x64-portable.zip and -x86_64.AppImage.
+# 3. publish: SHA256SUMS over every file and tools.lock, SHA256SUMS.sig (the release key), the notes (git-cliff, cliff.toml),
 #    then a draft release with every file, published last: until then no launcher sees it. A nightly also prunes the
 #    nightlies past the newest 5. Nothing is committed back to the repository.
 #
@@ -110,9 +112,18 @@ jobs:
       ref: ${{ needs.version.outputs.ref }}
       checked: ${{ needs.version.outputs.checked }}
 
+  launcher:
+    name: Launcher
+    needs: version
+    if: needs.version.outputs.tag != ''
+    uses: ./.forgejo/workflows/build-launcher.yml
+    with:
+      tag: ${{ needs.version.outputs.tag }}
+      ref: ${{ needs.version.outputs.ref }}
+
   publish:
     name: Sign and publish
-    needs: [version, linux, windows]
+    needs: [version, linux, windows, launcher]
     if: needs.version.outputs.tag != ''
     runs-on: quick  # (a short job: it starts as the builds end, never behind them; the same machine and secrets)
     timeout-minutes: 60
@@ -151,12 +162,26 @@ jobs:
         with:
           name: timeLinkBuilder-windows
           path: files
+      # (from Forgejo's public address behind Cloudflare, as the build jobs' upload: fetched once more when it failed)
+      - id: download_3
+        continue-on-error: true
+        uses: https://data.forgejo.org/forgejo/download-artifact@d8d0a99033603453ad2255e58720b460a0555e1e   # v4 (4.1.4 with the GHES check off)
+        with:
+          name: timeLinkLauncher
+          path: files
+      - if: steps.download_3.outcome == 'failure'
+        uses: https://data.forgejo.org/forgejo/download-artifact@d8d0a99033603453ad2255e58720b460a0555e1e   # v4 (4.1.4 with the GHES check off)
+        with:
+          name: timeLinkLauncher
+          path: files
       - name: The files
         run: |
           git fetch -q --tags origin
           cp tools.lock files/
           ls -l files
           test -f "files/timeLink-$TAG-x86_64.AppImage" && test -f "files/timeLinkBuilder-$TAG-windows-x64.zip"
+          test -f "files/timeLinkLauncher-$TAG-windows-x64-setup.exe" && test -f "files/timeLinkLauncher-$TAG-windows-x64-portable.zip" \
+            && test -f "files/timeLinkLauncher-$TAG-x86_64.AppImage"
       - name: SHA256SUMS, signed
         env:
           KEY: ${{ secrets.RELEASE_SIGNING_KEY }}

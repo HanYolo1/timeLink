@@ -1,0 +1,77 @@
+# The timeLink Launcher as a release ships it (launcher/docs/releases.md; how to make one: launcher/RELEASING.md), both systems
+# from Linux with the .NET 10 SDK (launcher/scripts/package.sh):
+#   timeLinkLauncher-<tag>-windows-x64-setup.exe     a self-contained single-file program, which offers to install itself
+#   timeLinkLauncher-<tag>-windows-x64-portable.zip  the same program as timeLinkLauncher.exe, with its "portable" file
+#   timeLinkLauncher-<tag>-x86_64.AppImage           the same for Linux and the Steam Deck
+# The tag is stamped into the program (-p:TimeLinkTag), which compares it with its channel's newest (Core/SelfUpdate.cs).
+#
+# Both products are released from one repository under one tag (docs/versioning.md): release.yml calls this workflow beside
+# build-linux.yml and build-windows.yml, and its publish job puts these files in the same release as the builders'. What tells
+# a product's releases apart is the files they carry, not the tag (Core/ReleaseManifest.cs, Ships).
+#
+# The Windows program is started under Wine before it is kept: Wine cannot load the shipped one, whose code .NET maps from the
+# uncompressed file ("Incorrect alignment (0x8007046C)"), so package.sh also writes a copy built to unpack itself to disk, and
+# that copy is what runs here. Whether the shipped file starts is a Windows tester's.
+name: Launcher
+on:
+  # (no pull_request trigger: release.yml calls this one for a tag; build a branch by hand with Run workflow)
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      tag:
+        description: the version's name (v0.1.0, v0.1.0-rc.1, nightly-<count>-<commit>); its files are uploaded
+        type: string
+        required: true
+      ref:
+        description: the commit to build
+        type: string
+        required: true
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+    working-directory: launcher
+concurrency:
+  group: launcher-${{ inputs.tag || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: The launcher, both systems
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: https://github.com/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+      - uses: https://github.com/actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.0.x'
+      - name: The Windows setup, the portable zip and the AppImage
+        env:
+          WINE_CHECK_EXE: ${{ runner.temp }}/wine-check/timeLinkLauncher.exe
+        run: scripts/package.sh "${{ inputs.tag }}" "$RUNNER_TEMP/dist"
+      # (the same code built to unpack itself to disk: Wine cannot load the shipped program, whose code .NET maps from the
+      # uncompressed file, "Incorrect alignment (0x8007046C)". The shipped file is not started here: launcher/RELEASING.md)
+      - name: The Windows program starts (--self-check, under Wine)
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo=; [[ $(id -u) == 0 ]] || sudo=sudo
+          $sudo dpkg --add-architecture i386 || true
+          $sudo apt-get update -qq
+          $sudo apt-get install -y -qq --no-install-recommends wine wine64 >/dev/null
+          wine=$(command -v wine64 || command -v wine)
+          export WINEDEBUG=-all WINEPREFIX="$RUNNER_TEMP/wine"
+          "$wine" wineboot --init >/dev/null 2>&1 || true
+          out=$("$wine" "$RUNNER_TEMP/wine-check/timeLinkLauncher.exe" --self-check | tr -d '\r')
+          echo "$out"
+          grep -qxF "timeLinkLauncher $TAG" <<<"$out" || { echo "::error::the Windows launcher does not answer --self-check with $TAG"; exit 1; }
+      - uses: https://data.forgejo.org/forgejo/upload-artifact@16871d9e8cfcf27ff31822cac382bbb5450f1e1e # v4 (Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
+        with:
+          name: timeLinkLauncher
+          path: ${{ runner.temp }}/dist/timeLinkLauncher-*
+          if-no-files-found: error

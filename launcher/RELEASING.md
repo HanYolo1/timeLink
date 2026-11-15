@@ -7,9 +7,9 @@ channels, signing, `tools.lock`, how the launcher reads it) is in [docs/releases
 | | timeLink | The launcher |
 |---|---|---|
 | Repository | [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink) | [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink), `launcher/` |
-| Tag | `v3.Y.Z`, from `v3.0.0` (rc first: `v3.0.0-rc.1`) | `v1.Y.Z`, from `v1.0.0` (rc first: `v1.0.0-rc.1`). One `v*` namespace: `release.py` tells them apart by the version's first number, then by the files a release ships |
+| Tag | `vX.Y.Z`, from `v0.1.0` (rc first: `v0.1.0-rc.1`) | the same tag: one release ships both products' files, told apart by the files a release carries, not by its number |
 | What a release ships | the Windows and Linux builders, `tools.lock` | the launcher: `timeLinkLauncher-<v>-windows-x64-setup.exe` (installs itself or runs portable: docs/releases.md, *Installing the launcher*), `timeLinkLauncher-<v>-windows-x64-portable.zip`, `timeLinkLauncher-<v>-x86_64.AppImage` |
-| Workflow | `.forgejo/workflows/release.yml` | `.forgejo/workflows/launcher-release.yml` |
+| Workflow | `.forgejo/workflows/release.yml` | `.forgejo/workflows/build-launcher.yml`, called by `release.yml` |
 | Nightly count | commits since the fork, e2a4d45 | commits since the first commit |
 
 Both have the same three channels: **stable**, **rc** and **nightly**. In the launcher, players pick a channel for their
@@ -64,8 +64,8 @@ Players on the nightly channel keep the last good nightly until then.
 1. **Preview.** Run `python -I scripts/release.py next` on an up-to-date `main` (`jj git fetch --remote forge` and
    `jj new main@forge`, or `git fetch forge` and `git switch --detach forge/main`). It prints:
    - the number the commits since the last stable call for (feat: minor, fix and perf: patch, `!` or `BREAKING CHANGE:`:
-     major; the first release: `v3.0.0` for timeLink, `v1.0.0` for the launcher);
-   - the next tag, e.g. `v3.1.0-rc.1` (or `-rc.2` when `-rc.1` is out);
+     major; the first release: `v0.1.0` for both products);
+   - the next tag, e.g. `v0.2.0-rc.1` (or `-rc.2` when `-rc.1` is out);
    - the notes git-cliff will write.
 
    Read the notes: a wrong title is a wrong line. Fix it before tagging. A title can be edited on the merged pull request
@@ -283,7 +283,7 @@ None of this is done yet. In order (one repository now, so one secret for both p
    job, before any build, until it does.
 7. **Try it** on a fork, or with a throwaway key first: `TIMELINK_LAUNCHER_TRUST=<test .pub.pem>` makes a launcher accept a
    release signed with it.
-8. **The first releases.** The launcher `v1.0.0-rc.1` and timeLink `v3.0.0-rc.1`, then their stables.
+8. **The first release.** `v0.1.0-rc.1`, then `v0.1.0`: one tag, both products' files.
 
 ## Troubleshooting
 
