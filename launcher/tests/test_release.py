@@ -625,7 +625,9 @@ class ReleasedAs(unittest.TestCase):
         self.release("v3.0.0-rc.1", self.b)
         self.assertEqual(self.released_as(self.b, but="v3.0.0"), "v3.0.0-rc.1")
         self.assertIsNone(self.released_as(self.b, but="v3.0.0-rc.1"))   # (never the tag itself)
-        self.release("v2.9.0", self.b)   # (no version of this product: never taken)
+        # (a tag that is not a version of this product at all: never taken. v2.9.0 used to serve here, but with the
+        # floor at 0 it is a valid stable of this product, so it would be taken - correctly. "tools" is not a version)
+        self.release("tools", self.b)
         self.assertEqual(self.released_as(self.b, but="v3.0.0"), "v3.0.0-rc.1")
 
     def test_a_release_not_signed_or_not_whole_stops_the_run(self):
