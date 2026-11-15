@@ -41,7 +41,8 @@ public static class ReleaseKeys
     /// launcher does not list is refused (SignedSums.Open), which is the safe way round until a key is made here.
     public static readonly IReadOnlyList<ReleaseKey> BuiltIn = new ReleaseKey[]
     {
-        // RELEASING.md, One-time setup: ReleaseKey.FromSpki("<the public key scripts/release.py keygen printed>")
+        // the release key, id 774f1dc88462b913 (scripts/release.py keygen, 2026-11-15; RELEASING.md, One-time setup)
+        ReleaseKey.FromSpki("MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwiAKNv2Kxx/NRD2qXVcddhA5Trrrg/w31Cfu6Ndyc8vG/VUN5N+nxZ3kLMfHzKioxmE55PzD6SAbIlmZqMuQ+w=="),
     };
 
     /// A PEM public key file trusted too, for trying out a release signed with a test key (scripts/release.py keygen); never

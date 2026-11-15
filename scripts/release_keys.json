@@ -1,4 +1,6 @@
 {
-  "comment": "The public keys the timeLink Launcher trusts (its Core/ReleaseTrust.cs, ReleaseKeys.BuiltIn): the same list. scripts/release.py verify checks a release with them. Empty until a maintainer makes one (launcher/RELEASING.md, One-time setup): the key this fork was vendored with was MagicBeanDev's and is not trusted here.",
-  "keys": []
+  "comment": "The public key the timeLink Launcher trusts (its launcher/Core/ReleaseTrust.cs, ReleaseKeys.BuiltIn): the same one. scripts/release.py verify checks a release with it. docs/releases.md, One-time setup.",
+  "keys": [
+    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwiAKNv2Kxx/NRD2qXVcddhA5Trrrg/w31Cfu6Ndyc8vG/VUN5N+nxZ3kLMfHzKioxmE55PzD6SAbIlmZqMuQ+w=="
+  ]
 }
