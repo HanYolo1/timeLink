@@ -63,6 +63,9 @@ import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERVER = "https://api.github.com"
+# (a release asset is uploaded to this host, not the API host: GitHub's release upload_url names it, and the same path on
+# api.github.com answers 404)
+UPLOAD_SERVER = "https://uploads.github.com"
 # (each product: its repository, its first version's major number, and the commit its nightlies count from: timeLink from the
 # fork, e2a4d453 "Rename the project to timeLink"; the launcher from its repository's first commit. Both start at v0.1.0:
 # one tag names both products' releases, which ship different files)
@@ -506,7 +509,10 @@ def repo_of(product):
 def api(method, path, body=None, data=None, content_type=None, upload=False, missing_ok=False):
     # (every caller passes a path that already starts with /repos/<owner>/<repo>, so the base is the API root: appending
     # "/repos" here made it /repos/repos/..., which GitHub answers 404)
-    base = (os.environ.get("FORGEJO_UPLOAD_API") if upload else None) or os.environ.get("FORGEJO_API") or SERVER
+    # (a release asset is uploaded to uploads.github.com, not api.github.com: the same path on the API host answers 404,
+    # which is what the release's upload_url names)
+    base = ((os.environ.get("FORGEJO_UPLOAD_API") if upload else None) or os.environ.get("FORGEJO_API")
+            or (UPLOAD_SERVER if upload else SERVER))
     headers = {"User-Agent": "timeLink-release", "Accept": "application/json"}
     token = os.environ.get("RELEASE_TOKEN")
     if token:
