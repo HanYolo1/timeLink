@@ -24,8 +24,8 @@ will. That includes:
   its `.idx`, `timeLink_pipelines.bin`, `timeLink_vk_pipelines.bin`);
 - saves (`user/`), `timeLink_options.ini`, `timeLink_env.txt` and `language.txt`.
 
-Don't ask in an issue, a pull request or the chat where to get the game, how to decrypt it, or for someone else's
-files. A screenshot, a video and `timeLink_log.txt` are fine and often necessary: the log holds no game data.
+Don't ask in an issue or a pull request where to get the game, how to decrypt it, or for someone else's files. A
+screenshot, a video and `timeLink_log.txt` are fine and often necessary: the log holds no game data.
 `.gitignore` covers most of this, but check `git status` (or `jj status`) before you commit. If you aren't sure whether
 a file is game data, leave it out.
 
@@ -43,9 +43,9 @@ Five minutes, then a first build.
    (jj users: `jj git clone --colocate --depth 1 https://github.com/HanYolo1/timeLink.git`.)
 
    `--depth 1` fetches the newest commit only, not the whole history: about half the download. `git pull`, branches and
-   pull requests work as usual. What needs the history: `git log` and
-   `git blame` past your clone, a version name from the tags (a shallow build calls itself by its commit, `2331f46`),
-   and cutting a release (`scripts/release.py`). For those, `git fetch --unshallow --tags` once.
+   pull requests work as usual. What needs the history: `git log` and `git blame` past your clone, a version name from
+   the tags (a shallow build calls itself by its commit, `2331f46`), and cutting a release (`scripts/release.py`). For
+   those, `git fetch --unshallow --tags` once.
 
 2. **Check the game-free tests run** (no game needed):
 
@@ -68,7 +68,7 @@ break.
 | **Test on other hardware** | NVIDIA cards are the most tested; the README's [status table](README.md#project-status) says what works where, and the [tested configurations catalogue](docs/tested-configurations.md) lists the runs behind it. Reports from AMD and Intel cards, other drivers, other distributions and SteamOS help even when everything works. |
 | **Play further** | The tested area is the start of the game. Reaching new areas, cutscenes, menus and items finds problems nobody has seen. |
 | **Report what is broken** | Use the [issue forms](https://github.com/HanYolo1/timeLink/issues/new/choose): game problem, install or build problem, save problem or idea. Include the version, your hardware, where you were and `timeLink_log.txt`. |
-| **Send a fix** | Branch, fix, test, and open a pull request ([how](#commits-and-pull-requests)). Small, focused changes are the easiest to review. A fix that belongs upstream should go there |
+| **Send a fix** | Branch, fix, test, and open a pull request ([how](#commits-and-pull-requests)). Small, focused changes are the easiest to review. A fix that belongs upstream should go there. |
 | **Improve the docs** | The README, the development guide and the design notes are part of the project. |
 
 ## Before you open an issue or a PR
