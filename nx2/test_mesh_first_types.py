@@ -11,7 +11,7 @@ import tempfile
 # (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/timeLink_env.h)
 ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "timeLink_env.h")
 
-RUN_ALL_ARGS = ["--headers", "{spirv_headers}"]
+RUN_ALL_ARGS = ["--cxx", "{cxx}", "--headers", "{spirv_headers}"]
 
 ROOT=Path(__file__).resolve().parents[1]
 

@@ -55,7 +55,7 @@ class Keys(unittest.TestCase):
     def test_sums_sign_verify(self):
         files = self.dir / "files"
         files.mkdir()
-        (files / "LongshotLauncher-v1.0.0-x86_64.AppImage").write_bytes(b"launcher")
+        (files / "timeLinkLauncher-v1.0.0-x86_64.AppImage").write_bytes(b"launcher")
         (files / "timeLink-v3.0.0-x86_64.AppImage").write_bytes(b"builder")
         run("sums", *files.iterdir(), "--out", files / "SHA256SUMS")
         sums = (files / "SHA256SUMS").read_text()
@@ -260,8 +260,8 @@ class ReleasePage(unittest.TestCase):
     play, get the timeLink Launcher", linking longshot.magicbean.dev's newest launcher of the same channel, and "don't download the
     files below" (above the builder files)"""
 
-    LAUNCHER = ("LongshotLauncher-%s-windows-x64-setup.exe", "LongshotLauncher-%s-windows-x64-portable.zip",
-                "LongshotLauncher-%s-x86_64.AppImage", "SHA256SUMS", "SHA256SUMS.sig")
+    LAUNCHER = ("timeLinkLauncher-%s-windows-x64-setup.exe", "timeLinkLauncher-%s-windows-x64-portable.zip",
+                "timeLinkLauncher-%s-x86_64.AppImage", "SHA256SUMS", "SHA256SUMS.sig")
     LONGSHOT = ("timeLinkBuilder-%s-windows-x64.zip", "timeLink-%s-x86_64.AppImage", "tools.lock", "SHA256SUMS", "SHA256SUMS.sig")
 
     def page(self, tag, product, files):
@@ -273,7 +273,7 @@ class ReleasePage(unittest.TestCase):
             with self.subTest(tag):
                 page = self.page(tag, "launcher", self.LAUNCHER)
                 head, notes = page.split("\n---\n", 1)
-                base = "https://git-cdn.magicbean.dev/MagicBeanDev/LongshotLauncher/releases/download/%s/LongshotLauncher-%s" % (tag, tag)
+                base = "https://git-cdn.magicbean.dev/MagicBeanDev/LongshotLauncher/releases/download/%s/timeLinkLauncher-%s" % (tag, tag)
                 self.assertEqual(head.strip().split("\n\n")[:4], [
                     "# ⬇️ Download timeLink Launcher",
                     "### [🪟 &nbsp;Download for Windows](%s-windows-x64-setup.exe)" % base,
@@ -432,13 +432,13 @@ class Publish(unittest.TestCase):
         self.assertIn("### Fixes\n\n- a fix\n", body)
         # (the launcher's: its own files, on its repository)
         FakeForgejo.releases, FakeForgejo.uploads = [], []
-        f = self.dir / "LongshotLauncher-v1.0.0-rc.1-windows-x64-setup.exe"
+        f = self.dir / "timeLinkLauncher-v1.0.0-rc.1-windows-x64-setup.exe"
         f.write_bytes(b"MZ setup")
         run("--product", "launcher", "publish", "v1.0.0-rc.1", "--target", "abc", "--notes", notes, f)
         body = FakeForgejo.releases[0]["body"]
         self.assertTrue(body.startswith("# ⬇️ Download timeLink Launcher\n"))
         self.assertIn("### [🪟 &nbsp;Download for Windows](https://git-cdn.magicbean.dev/MagicBeanDev/Test/releases/download/"
-                      "v1.0.0-rc.1/LongshotLauncher-v1.0.0-rc.1-windows-x64-setup.exe)", body)
+                      "v1.0.0-rc.1/timeLinkLauncher-v1.0.0-rc.1-windows-x64-setup.exe)", body)
         self.assertIn(release.CHANNEL_SAYS["rc"], body)
 
     def test_a_draft_left_by_a_failed_run_is_reused(self):

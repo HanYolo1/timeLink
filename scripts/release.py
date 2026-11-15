@@ -282,7 +282,7 @@ def page_header(tag, product, names, repo=None):
     if product == "launcher":
         base = "%s/%s/releases/download/%s/" % (CDN, repo or repo_of(product), urllib.parse.quote(tag))
         url = {k: base + urllib.parse.quote(n) for k, suffix in LAUNCHER_FILES.items() for n in sorted(names)
-               if n.startswith("LongshotLauncher-") and n.endswith(suffix)}
+               if n.startswith("timeLinkLauncher-") and n.endswith(suffix)}
         lines = ["# ⬇️ Download timeLink Launcher", ""]
         if "setup" in url:
             lines += ["### [🪟 &nbsp;Download for Windows](%s)" % url["setup"], ""]

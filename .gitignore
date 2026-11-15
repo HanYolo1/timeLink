@@ -18,6 +18,7 @@ gamefile/
 
 # ---- build output and caches ----
 build/
+build-tools-cache/
 __pycache__/
 *.pyc
 *.o

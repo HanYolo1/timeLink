@@ -52,6 +52,7 @@ STARTED = time.time()   # (the build's total time, kept in build_times.json and 
 sys.path[:0] = [HERE, os.path.join(ROOT, "third_party", "a64-kit", "tools")]   # (python -I leaves the script folder off)
 import toolchain as _toolchain
 import disk as _disk
+import kit as _kit
 import object_store as _object_store
 import lift_store as _lift_store
 # (timelink) RX_TARGET=windows on Linux: the Windows game, with llvm-mingw's Linux release (TIMELINK_MINGW, or llvm-mingw
@@ -589,6 +590,10 @@ def check(a, work):
         bid = build_id(os.path.join(probe, "exefs", "main"))
         shutil.rmtree(probe, ignore_errors=True)
     else:
+        # (no --nup and no --game: the dump recorded in work/dump.txt or OOT_DUMP/OOT_EXEFS. Without one there is
+        # nothing to check, and saying so is the whole point of --check: it used to crash on a.exefs being None)
+        if not a.exefs:
+            a.exefs = _kit.need_exefs()
         bid = build_id(os.path.join(a.exefs, "main"))
     if bid.startswith(BUILD_ID):
         say("check", "ok", "This is the version timeLink supports (build %s)." % bid[:8])
