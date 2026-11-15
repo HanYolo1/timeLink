@@ -9,10 +9,9 @@ project on the team's Forgejo. This page gets you set up, then covers what to se
 rules that keep the project out of trouble. The [development guide](docs/development.md) has the full pipeline; the
 [design notes](docs/design.md) have the architecture.
 
-**This fork takes no pull requests and no issues.** Issues and pull requests are switched off on the repository, and
-nothing is merged back here: it is one person's fork, kept in step with upstream by hand. Everything below still
-applies to work on your own copy, and a fork of your own is welcome under the GPL - it just will not be merged into
-this one. Send fixes upstream, or ask on Discord.
+**This is one person's fork, kept in step with upstream by hand.** Issues are open here for problems with this fork's
+builds; pull requests are welcome but nothing is merged back automatically, and a fix that belongs upstream should go
+there. A fork of your own is welcome under the GPL. Everything below applies to work on your own copy.
 
 ## The rule with no exceptions
 
@@ -43,31 +42,20 @@ Five minutes, then a first build.
 
    (jj users: `jj git clone --colocate --depth 1 https://github.com/HanYolo1/timeLink.git`.)
 
-   `--depth 1` fetches the newest commit only, not the whole history: about half the download, and half the work for
-   git.magicbean.dev. `git pull`, branches and pull requests work as usual. What needs the history: `git log` and
+   `--depth 1` fetches the newest commit only, not the whole history: about half the download. `git pull`, branches and
+   pull requests work as usual. What needs the history: `git log` and
    `git blame` past your clone, a version name from the tags (a shallow build calls itself by its commit, `2331f46`),
    and cutting a release (`scripts/release.py`). For those, `git fetch --unshallow --tags` once.
 
-2. **Sign in:**
-
-   ```
-   python -I scripts/forge.py login
-   ```
-
-   Click **Sign in with Discord** (or sign in with the email account you made on git.magicbean.dev) and approve. That
-   one sign-in covers git.magicbean.dev (git signs in by itself from then on, and the remote `forge` points at
-   timeLink), the team chat and [test requests](docs/test-requests.md). The first time creates your account.
-   [docs/forge.md](docs/forge.md) has the details and the other commands.
-
-3. **Check the game-free tests run** (no game needed):
+2. **Check the game-free tests run** (no game needed):
 
    ```
    python -I -B tests/run_all.py
    ```
 
-4. **Build the game** from your own dump: [Development setup](#development-setup) below, then [Building](#building).
+3. **Build the game** from your own dump: [Development setup](#development-setup) below, then [Building](#building).
 
-Then say hello in Discord and claim something in `#dev-work` before you start on it.
+Then open an issue if you find something broken, and say what you are working on so it is not duplicated.
 
 ## Ways to help
 
@@ -77,10 +65,10 @@ break.
 
 | | What |
 |---|---|
-| **Test on other hardware** | NVIDIA cards are the most tested; the README's [status table](README.md#project-status) says what works where, and the [tested configurations catalogue](https://longshot.magicbean.dev/tested-configurations/) lists the runs behind it. Reports from AMD and Intel cards, other drivers, other distributions and SteamOS help even when everything works. Pull requests that need a run on your hardware are queued as [test requests](docs/test-requests.md). |
+| **Test on other hardware** | NVIDIA cards are the most tested; the README's [status table](README.md#project-status) says what works where, and the [tested configurations catalogue](docs/tested-configurations.md) lists the runs behind it. Reports from AMD and Intel cards, other drivers, other distributions and SteamOS help even when everything works. |
 | **Play further** | The tested area is the start of the game. Reaching new areas, cutscenes, menus and items finds problems nobody has seen. |
 | **Report what is broken** | Use the [issue forms](https://github.com/HanYolo1/timeLink/issues/new/choose): game problem, install or build problem, save problem or idea. Include the version, your hardware, where you were and `timeLink_log.txt`. |
-| **Send a fix** | Branch, fix, test, and open a pull request **upstream** ([how](#commits-and-pull-requests)). Small, focused changes are easiest to review. This fork does not take them: see the note at the top |
+| **Send a fix** | Branch, fix, test, and open a pull request ([how](#commits-and-pull-requests)). Small, focused changes are the easiest to review. A fix that belongs upstream should go there |
 | **Improve the docs** | The README, the development guide and the design notes are part of the project. |
 
 ## Before you open an issue or a PR
@@ -397,7 +385,7 @@ How to reproduce: a save in that same outdoor area, Ultra preset, the FPS counte
 
 followed by the log lines themselves. Add one self-contained file under `docs/tested/` for each new run you measured,
 following [tested configurations](docs/tested-configurations.md). Leave the existing table frozen and do not commit
-the assembled view; the [website catalogue](https://longshot.magicbean.dev/tested-configurations/) combines both for readers.
+the assembled view; [tested configurations](docs/tested-configurations.md) combines both for readers.
 
 ### Pull request titles
 
@@ -456,10 +444,9 @@ SDK is not one of them: it is never in the repository ([NVIDIA DLSS](#nvidia-dls
 
 ## Where to talk
 
-- **Discord:** https://discord.gg/magicbean. Claim work and discuss pull requests in `#dev-work`; `#prs` shows every
-  open pull request, kept up to date.
-- **Issues:** [the forms on git.magicbean.dev](https://github.com/HanYolo1/timeLink/issues/new/choose).
-- **Agents:** [AGENTS.md](AGENTS.md); they post progress to the team chat (`scripts/team_chat.py`).
+- **Issues:** [the forms on GitHub](https://github.com/HanYolo1/timeLink/issues/new/choose). Report a problem, or say
+  what you are working on so it is not duplicated.
+- **Agents:** [AGENTS.md](AGENTS.md).
 
 Thanks for testing, reporting and sending fixes. Every report from a different GPU and every area played further than
 before moves the port forward.
