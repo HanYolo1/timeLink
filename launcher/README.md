@@ -41,7 +41,7 @@ separate project; see [VENDORED.md](VENDORED.md)), and its releases are its own.
 > Nothing of the game is in the launcher or downloaded by it. It downloads timeLink's builder, which builds the game from
 > the copy you own. Don't ask where to get the game.
 
-Discord: the timeLink community server.
+Report problems on the project's [issues](https://github.com/HanYolo1/timeLink/issues).
 
 ## What it does
 
