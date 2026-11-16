@@ -1,6 +1,6 @@
 # timeLink website preview
 
-Astro/Starlight front page and player documentation for timeLink by Team MagicBean.
+Astro/Starlight front page and player documentation for timeLink.
 The game build is independent of this directory. This branch adds source only: there
 is no automatic deployment or publishing workflow.
 
@@ -22,7 +22,7 @@ is deployed to, and set the same domain in `wrangler.jsonc`'s `routes`, before d
 
 `npm run build:preview` builds and checks with edit links to this fork's
 `docs/timeLink-website` branch. Normal `npm run build` and `npm run check` also accept
-`DOCS_SOURCE_REPOSITORY` and `DOCS_SOURCE_BRANCH` for another Forgejo fork/branch.
+`DOCS_SOURCE_REPOSITORY` and `DOCS_SOURCE_BRANCH` for another fork or branch.
 Project and issue links use https://github.com/HanYolo1/timeLink.
 
 ## Design and interaction
@@ -62,7 +62,7 @@ fonts are used.
 ## Team page
 
 The team page (`/about/team/`) lists the people with the most commits in timeLink (Hookshot's history included),
-collected from Forgejo when the site is built (`src/lib/contributors.ts`). There is nothing to add by hand: a merged
+collected from GitHub when the site is built (`src/lib/contributors.ts`). There is nothing to add by hand: a merged
 change puts you there at the next build.
 
 ## Content and source guards
@@ -70,13 +70,13 @@ change puts you there at the next build.
 `content-sources.ts` lists the imported pages, each site path with the file it is made from. Edit their original files in `docs/`,
 `README.md` or `CONTRIBUTING.md`, not `src/content/docs/generated/`. Content preparation
 copies only the explicitly selected pages and artwork. Other relative references
-link to the team's Forgejo source tree; website instructions link to this fork branch. New internal documents are not automatically
+link to this fork's source tree on GitHub; website instructions link to this fork branch. New internal documents are not automatically
 published.
 
 The System requirements page (`src/content/docs/compatibility.mdx`) is a copy of the root README's "What you need":
 when one changes, change the other to match.
 
-The progress board and the front page's release and activity panels are collected from Forgejo when the site is
+The progress board and the front page's release and activity panels are collected from GitHub when the site is
 built; see `PROGRESS.md`.
 
 The reference manual, contributor guide and saves guide are generated directly from
@@ -111,7 +111,7 @@ The tested-configurations catalogue (`/tested-configurations/`) is assembled by 
 in their original order; only new runs are fragments. Assembly reads local files and uses the existing Markdown
 pipeline, with no generated source page, extra package or network request. Development watches fragment additions,
 edits and removals. The site's existing neutral-prose policy changes displayed wording only, not links, inline code or
-the source records; the source page remains available on Forgejo.
+the source records; the source page remains available on GitHub.
 
 Common issues uses seven symptom cards with short checklists and a nested “Still stuck?”
 disclosure for reporting details, issue search and Discord. The steps and links remain

@@ -1,4 +1,4 @@
-# The player website (website/, Astro) on Cloudflare: longshot.magicbean.dev, the Worker timeLink-website.
+# The player website (website/, Astro) on Cloudflare: the Worker timeLink-website. Its address is not this
 # - A push to main that changes website/ or the tested-run sources (or Run workflow) builds it, runs its checks and
 #   deploys it. It is also rebuilt every hour, since the build collects progress data from Forgejo (website/PROGRESS.md).
 # - A pull request that changes those sources gets a preview: the build is uploaded as a new version of the Worker
@@ -22,7 +22,7 @@
 # only in the run's log and the label stays on.
 #
 # This workflow cannot run until those two Cloudflare secrets exist, and until the Worker's route names a domain this
-# fork controls (website/wrangler.jsonc still routes longshot.magicbean.dev, which is MagicBeanDev's).
+# fork's to claim until DOCS_SITE_URL is set (website/wrangler.jsonc routes nothing).
 name: Website
 
 # (a PR comment and a label removal need issues: write; the deploy itself needs nothing from GITHUB_TOKEN)
@@ -81,6 +81,11 @@ jobs:
       - name: Build and check
         if: steps.site.outputs.present == 'true'
         working-directory: website
+        env:
+          # (the progress board and the team page read this repository's GitHub API. Unauthenticated allows 60 requests
+          # an hour, which one build exceeds, so the build is given the job token: contents: read is enough to read
+          # this repository's issues, pulls, releases and commits.)
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           node --version
           npm ci --no-audit --no-fund

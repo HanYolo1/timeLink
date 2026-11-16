@@ -29,12 +29,12 @@ export async function progressRequest(url, { fetcher = fetch, headers = {}, allo
       failure = error.name === 'SyntaxError' ? 'invalid JSON' : error.name || 'request failed';
     }
     if (!retry || attempt === 3) {
-      throw new Error(`Forgejo progress request failed: ${endpoint}, ${failure} (attempt ${attempt}/3).`);
+      throw new Error(`Progress request failed: ${endpoint}, ${failure} (attempt ${attempt}/3).`);
     }
     const retryAfter = response?.headers.get('retry-after');
     const requested = retryAfter && (/^\d+$/.test(retryAfter) ? Number(retryAfter) * 1000 : Date.parse(retryAfter) - Date.now());
     const pause = Math.min(30000, Math.max(attempt * 1000, Number.isFinite(requested) ? requested : 0));
-    console.warn(`Retrying Forgejo progress request: ${endpoint}, ${failure} (attempt ${attempt}/3).`);
+    console.warn(`Retrying progress request: ${endpoint}, ${failure} (attempt ${attempt}/3).`);
     await wait(pause);
   }
 }

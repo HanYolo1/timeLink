@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { progressRequest } from '../src/lib/progress-request.ts';
 
-const url = 'https://git.magicbean.dev/api/v1/repos/MagicBeanDev/Longshot/issues';
+const url = 'https://api.github.com/repos/HanYolo1/timeLink/issues';
 const ok = () => new Response('{"ok":true}');
 
 test('transient HTTP failures back off, honor bounded Retry-After and use fresh timeout signals', async () => {

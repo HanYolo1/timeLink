@@ -1,19 +1,17 @@
-// The people behind timeLink, for the team page: the authors of timeLink's commits on Forgejo (Hookshot's history
-// included), most commits first. Collected once per build, like the progress feed; if Forgejo can't be reached, the
-// page says so. Merge commits are left out: they credit whoever merged, not who wrote the change.
-import { REPOSITORY } from './progress.ts';
-
-const API = `https://git.magicbean.dev/api/v1/repos/${REPOSITORY}`;
+// The people behind timeLink, for the team page: the authors of this repository's commits on GitHub, most commits
+// first. Collected once per build, like the progress feed; if GitHub can't be reached, the page says so. Merge
+// commits are left out: they credit whoever merged, not who wrote the change.
+import { API } from './progress.ts';
 const PER_PAGE = 50;
 
 export interface Contributor { name: string; avatar: string | null; profile: string | null; commits: number }
 
-/** A Forgejo account if the commit's email belongs to one, else a GitHub account from its noreply address. */
+/** A GitHub account if the commit carries one, else one from its noreply address. */
 function identify(commit: any): Omit<Contributor, 'commits'> & { key: string } {
   const user = commit.author;
   if (user?.login) {
-    return { key: `forgejo:${user.login.toLowerCase()}`, name: user.full_name || user.login, avatar: user.avatar_url,
-      profile: `https://git.magicbean.dev/${encodeURIComponent(user.login)}` };
+    return { key: `github:${user.login.toLowerCase()}`, name: user.name || user.login, avatar: user.avatar_url,
+      profile: `https://github.com/${encodeURIComponent(user.login)}` };
   }
   const { name = 'Unknown', email = '' } = commit.commit?.author ?? {};
   const github = email.match(/^(?:(\d+)\+)?([A-Za-z0-9-]+)@users\.noreply\.github\.com$/i);
@@ -25,15 +23,17 @@ function identify(commit: any): Omit<Contributor, 'commits'> & { key: string } {
   return { key: `email:${email.toLowerCase() || name}`, name, avatar: null, profile: null };
 }
 
-export async function collectContributors({ fetcher = fetch, maxPages = 200 } = {}): Promise<Contributor[]> {
+export async function collectContributors({ fetcher = fetch, maxPages = 200, token = '' } = {}): Promise<Contributor[]> {
   const people = new Map<string, Contributor>();
   for (let page = 1; page <= maxPages; page++) {
-    const url = `${API}/commits?limit=${PER_PAGE}&page=${page}&stat=false&verification=false&files=false`;
-    const response = await fetcher(url, { headers: { Accept: 'application/json', 'User-Agent': 'timeLink-website' },
+    const url = `${API}/commits?per_page=${PER_PAGE}&page=${page}`;
+    // (unauthenticated GitHub allows 60 requests an hour, far short of a page per 50 commits: the build passes a token)
+    const headers = { Accept: 'application/json', 'User-Agent': 'timeLink-website', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+    const response = await fetcher(url, { headers,
       signal: AbortSignal.timeout(20000), redirect: 'error' });
-    if (!response.ok) throw new Error(`Forgejo commits: HTTP ${response.status}`);
+    if (!response.ok) throw new Error(`GitHub commits: HTTP ${response.status}`);
     const commits = await response.json();
-    if (!Array.isArray(commits)) throw new Error('Unexpected Forgejo response.');
+    if (!Array.isArray(commits)) throw new Error('Unexpected commits response.');
     for (const commit of commits) {
       if ((commit.parents?.length ?? 1) > 1) continue;
       const { key, ...person } = identify(commit);
@@ -43,7 +43,7 @@ export async function collectContributors({ fetcher = fetch, maxPages = 200 } = 
     }
     if (commits.length < PER_PAGE) break;
   }
-  // One person can appear under two identities (a Forgejo account and a GitHub address): join them by name, keeping
+  // One person can appear under two identities (a GitHub account and a noreply address): join them by name, keeping
   // the one with a profile and picture.
   const byName = new Map<string, Contributor>();
   for (const person of people.values()) {
@@ -59,7 +59,7 @@ export async function collectContributors({ fetcher = fetch, maxPages = 200 } = 
 let built: Promise<Contributor[] | null> | undefined;
 /** One collection per build (or dev server). */
 export function buildContributors() {
-  built ??= collectContributors().catch((error) => {
+  built ??= collectContributors({ token: process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '' }).catch((error) => {
     console.warn(`Contributors unavailable for this build: ${error.message}`);
     return null;
   });

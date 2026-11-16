@@ -88,7 +88,7 @@ export class ProgressBoard extends HTMLElement {
     } catch {
       this.failed = true;
       if (!this.feed) {
-        this.region('overview').replaceChildren(element('p', 'Development totals are unavailable. Use the linked Forgejo pages for current activity.'));
+        this.region('overview').replaceChildren(element('p', 'Development totals are unavailable. Use the linked GitHub pages for current activity.'));
         this.region('watch').replaceChildren(element('p', 'Current-version reports are unavailable. Open the issue tracker below for the latest information.'));
         this.region('count').textContent = 'Progress data is unavailable. This does not mean there are no reported issues.';
       }
@@ -102,8 +102,8 @@ export class ProgressBoard extends HTMLElement {
     const feed = this.feed;
     this.region('freshness').textContent = feed ? `Data checked ${date(feed.generatedAt)}. Checks automatically every 5 minutes while this page is open.` : 'No progress snapshot available.';
     const old = feed && Date.now() - Date.parse(feed.generatedAt) > 2 * 60 * 60 * 1000;
-    const warning = this.failed ? feed ? 'Update unavailable. Your previous results are still shown.' : 'Could not load progress data. Use the Forgejo links below or try again.' :
-      feed?.warning || (old ? 'This snapshot is over 2 hours old. Check the linked Forgejo pages for newer activity.' : '');
+    const warning = this.failed ? feed ? 'Update unavailable. Your previous results are still shown.' : 'Could not load progress data. Use the GitHub links below or try again.' :
+      feed?.warning || (old ? 'This snapshot is over 2 hours old. Check the linked GitHub pages for newer activity.' : '');
     this.region('warning').textContent = warning;
     this.region('warning').hidden = !warning;
   }
@@ -190,15 +190,15 @@ export class ProgressBoard extends HTMLElement {
       const details = element('details') as HTMLDetailsElement;
       details.open = expanded.has(item.id);
       details.append(element('summary', 'Evidence and developer details'));
-      details.append(element('p', STATUSES[item.status][1]), element('p', `Original Forgejo title: ${item.originalTitle}`));
-      if (item.labels.length) details.append(element('p', `Forgejo labels: ${item.labels.join(', ')}`));
+      details.append(element('p', STATUSES[item.status][1]), element('p', `Original title: ${item.originalTitle}`));
+      if (item.labels.length) details.append(element('p', `Labels: ${item.labels.join(', ')}`));
       details.append(element('p', `Platform: ${item.platforms.join(', ') || 'Unspecified'} · Area: ${item.area}`));
       if (item.reviewedAt) details.append(element('p', `Plain-language summary reviewed ${date(item.reviewedAt)}.`));
       else details.append(element('p', 'Original title with an automatic status explanation; no reviewed workaround is available here.'));
-      for (const url of item.sources) { const p = element('p'); p.append(link('Reviewed source on Forgejo', url)); details.append(p); }
+      for (const url of item.sources) { const p = element('p'); p.append(link('Reviewed source on GitHub', url)); details.append(p); }
       row.append(details); results.append(row);
     }
-    this.region('count').textContent = items.length ? `Showing ${Math.min(this.limit, items.length)} of ${items.length} matching items, most recently updated first.` : 'No matching items. Try fewer filters or search the complete Forgejo tracker below.';
+    this.region('count').textContent = items.length ? `Showing ${Math.min(this.limit, items.length)} of ${items.length} matching items, most recently updated first.` : 'No matching items. Try fewer filters or search the complete GitHub tracker below.';
     this.region('more').hidden = this.limit >= items.length;
     if (focusedId) {
       const target = [...results.querySelectorAll<HTMLElement>('[data-item]')].find(row => row.dataset.item === focusedId);

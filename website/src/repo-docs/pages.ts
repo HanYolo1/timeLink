@@ -27,7 +27,7 @@ export function isSourceFile(file: string): boolean {
 }
 
 function urlFor(value: string, source: string) {
-  // The documents link to the site with its full address, which also works on Forgejo; on the site itself, a path.
+  // The documents link to the site with its full address, which also works as a plain link; on the site itself, a path.
   if (siteUrl && value.startsWith(siteUrl + '/')) return value.slice(siteUrl.length);
   if (!value || value.startsWith('/') || /^(?:[a-z]+:|\/\/|#)/i.test(value)) return value;
   const hashAt = value.indexOf('#');

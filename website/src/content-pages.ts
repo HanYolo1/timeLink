@@ -1,5 +1,5 @@
 // The pages published from the repository's own documents: the site path, then the file it is made from.
-// Only these are published; other notes stay on Forgejo until they are added here.
+// Only these are published; other notes are not published here yet.
 export const contentPages: Record<string, string> = {
   'install': 'docs/getting-started.md',
   'settings': 'docs/graphics-and-controls.md',

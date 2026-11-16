@@ -42,7 +42,7 @@ function compareKeys(a, b) {
   return 0;
 }
 
-/** The release a channel offers, from Forgejo's release list, or null */
+/** The release a channel offers, from GitHub's release list, or null */
 export function newest(releases, channel) {
   const published = releases.filter((r) => !r.draft);
   if (channel === "nightly") {

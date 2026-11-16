@@ -94,7 +94,7 @@ test('search combines query terms and every filter, including source numbers and
 
 test('feed validation rejects unsafe URLs, duplicate IDs and malformed records', () => {
   validateFeed(feed());
-  for (const url of ['javascript:alert(1)', 'https://git.magicbean.dev.evil/MagicBeanDev/Longshot/issues/1', `${ROOT}/issues/2`, 'https://git.magicbean.dev/MagicBeanDev/Longshot/pull/1']) {
+  for (const url of ['javascript:alert(1)', 'https://api.github.com.evil/HanYolo1/timeLink/issues/1', `${ROOT}/issues/2`, 'https://github.com/HanYolo1/timeLink/pull/1']) {
     const data = feed(); data.items[0].url = url;
     assert.throws(() => validateFeed(data));
   }
@@ -108,14 +108,14 @@ test('collector paginates open items, stops old closed history and keeps PRs sep
     assert.equal(options.redirect, 'error');
     assert.equal(options.headers.Authorization, 'Bearer test-only');
     const u = new URL(url); calls.push(u);
-    if (u.pathname === `/api/v1/repos/${REPOSITORY}`) return response(repository);
-    if (u.pathname.endsWith('/releases/latest')) return response(release);
+    if (u.pathname === `/repos/${REPOSITORY}`) return response(repository);
+
     if (u.pathname.endsWith('/releases')) return response([{ ...release, id: 101, draft: true }, release]);
     const page = Number(u.searchParams.get('page') || 1);
     if (u.searchParams.get('state') === 'closed') return response([raw(999, { state: 'closed', updated_at: '2020-01-01T00:00:00Z' })]);
     if (u.pathname.endsWith('/pulls')) return response([raw(500, { merged_at: null })]);
     if (page === 1) return response(Array.from({ length: 100 }, (_, i) => raw(i + 1, { body: body('v2.1.0'), ...(i === 0 ? { pull_request: {} } : {}) })), 200,
-      { link: '<https://git.magicbean.dev/api/v1/repos/MagicBeanDev/Longshot/issues?state=open&page=2>; rel="next"' });
+      { link: '<https://api.github.com/repos/HanYolo1/timeLink/issues?state=open&page=2>; rel="next"' });
     return response([raw(123, { html_url: 'https://evil.invalid', user: { login: 'not-published' }, body: 'not-published' })]);
   };
   const data = await collectFeed({ fetcher, token: 'test-only', now: Date.parse(time) });
@@ -128,9 +128,9 @@ test('collector paginates open items, stops old closed history and keeps PRs sep
 });
 
 test('failed or truncated collection never returns a partial feed', async () => {
-  await assert.rejects(collectFeed({ wait: async () => {}, fetcher: async url => url.endsWith('/latest') ? response(release) : response({}, 503) }));
-  await assert.rejects(collectFeed({ maxPages: 1, now: Date.parse(time), fetcher: async url => url.endsWith(REPOSITORY) ? response(repository) : url.endsWith('/latest') ? response(release) : response(Array.from({ length: 100 }, (_, i) => raw(i + 1)), 200,
-    { link: '<https://git.magicbean.dev/api/v1/repos/MagicBeanDev/Longshot/issues?state=closed&after=cursor>; rel="next"' }) }), /pagination limit/);
+  await assert.rejects(collectFeed({ wait: async () => {}, fetcher: async url => url.endsWith('/releases') ? response(release) : response({}, 503) }));
+  await assert.rejects(collectFeed({ maxPages: 1, now: Date.parse(time), fetcher: async url => url.endsWith(REPOSITORY) ? response(repository) : url.endsWith('/releases') ? response(release) : response(Array.from({ length: 100 }, (_, i) => raw(i + 1)), 200,
+    { link: '<https://api.github.com/repos/HanYolo1/timeLink/issues?state=closed&after=cursor>; rel="next"' }) }), /pagination limit/);
 });
 
 test('pagination never forwards the token to another host or endpoint', async () => {
@@ -138,9 +138,9 @@ test('pagination never forwards the token to another host or endpoint', async ()
   await assert.rejects(collectFeed({ token: 'test-only', now: Date.parse(time), fetcher: async url => {
     calls++;
     if (url.endsWith(REPOSITORY)) return response(repository);
-    if (url.endsWith('/latest')) return response(release);
+    if (url.endsWith('/releases')) return response(release);
     return response([raw()], 200, { link: '<https://evil.invalid/steal>; rel="next"' });
-  } }), /Unsafe Forgejo/);
+  } }), /Unsafe pagination/);
   assert.equal(calls, 3);
 });
 
@@ -158,26 +158,27 @@ test('a private repository cannot be exposed through the public feed', async () 
   await assert.rejects(collectFeed({ fetcher: async () => response({ ...repository, private: true }) }), /public repository/);
 });
 
-test('Forgejo collection uses its query contract and supports no published releases', async () => {
+test('collection uses the GitHub query contract and supports no published releases', async () => {
   const data = await collectFeed({ fetcher: async (url, options) => {
     assert.equal(options.headers.Accept, 'application/json');
     const u = new URL(url);
-    if (u.pathname === `/api/v1/repos/${REPOSITORY}`) return response(repository);
-    if (u.pathname.endsWith('/latest')) return response({}, 404);
-    assert.equal(u.searchParams.get('limit'), '100');
-    assert.equal(u.searchParams.has('per_page'), false);
-    if (!u.pathname.endsWith('/releases')) assert.equal(u.searchParams.get('sort'), 'recentupdate');
-    if (u.pathname.endsWith('/issues')) assert.equal(u.searchParams.get('type'), 'issues');
+    if (u.pathname === `/repos/${REPOSITORY}`) return response(repository);
+    // (GitHub names the page size per_page and the order sort=updated; 'limit', 'recentupdate' and 'type=issues' are
+    // other servers' names, and GitHub ignores all three)
+    assert.equal(u.searchParams.has('limit'), false);
+    assert.equal(u.searchParams.has('type'), false);
+    assert.equal(u.searchParams.get('per_page'), '100');
+    if (!u.pathname.endsWith('/releases')) assert.equal(u.searchParams.get('sort'), 'updated');
     return response([]);
   } });
   assert.equal(data.stableRelease, null);
   assert.deepEqual(data.items, []);
 });
 
-test('pagination rejects another endpoint even on the trusted Forgejo host', async () => {
+test('pagination rejects another endpoint even on the trusted GitHub host', async () => {
   await assert.rejects(collectFeed({ fetcher: async url => {
     if (url.endsWith(REPOSITORY)) return response(repository);
-    if (url.endsWith('/latest')) return response({}, 404);
-    return response([raw()], 200, { link: '<https://git.magicbean.dev/api/v1/user>; rel="next"' });
-  }, now: Date.parse(time) }), /Unsafe Forgejo/);
+    if (url.endsWith('/releases')) return response({}, 404);
+    return response([raw()], 200, { link: '<https://api.github.com/user>; rel="next"' });
+  }, now: Date.parse(time) }), /Unsafe pagination/);
 });

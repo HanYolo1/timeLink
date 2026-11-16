@@ -1,12 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { REPOSITORY, normalizeItem, validateCuration, validateFeed } from './progress.ts';
+import { API, REPOSITORY, normalizeItem, validateCuration, validateFeed } from './progress.ts';
 import { publicProgressItem } from './public-copy.ts';
 import { progressRequest } from './progress-request.ts';
 
-// Collects the public progress feed from Forgejo. The site's build calls buildFeed() once, and publishes the result
-// as /progress-feed.json and on the front page: the data is as fresh as the last build.
-const API = `https://git.magicbean.dev/api/v1/repos/${REPOSITORY}`;
+// Collects the public progress feed from this repository's GitHub. The site's build calls buildFeed() once, and
+// publishes the result as /progress-feed.json and on the front page: the data is as fresh as the last build.
 // Astro bundles this module into dist/ when it builds, so the file is found from website/, where the build runs.
 const curationPath = path.resolve('progress-curation.json');
 
@@ -22,18 +21,24 @@ export async function collectFeed({ fetcher = fetch, token = '', curation = {}, 
   async function page(endpoint, query, next) {
     const url = new URL(next || `${API}/${endpoint}`);
     if (!next) url.search = new URLSearchParams(query).toString();
-    // Only follow Forgejo's same-endpoint pagination links, never forward credentials elsewhere.
-    if (url.origin !== 'https://git.magicbean.dev' || url.pathname !== `/api/v1/repos/${REPOSITORY}/${endpoint}` || url.username || url.password) {
-      throw new Error('Unsafe Forgejo pagination link.');
+    // Only follow this endpoint's own pagination links on api.github.com, never forward credentials elsewhere.
+    if (url.origin !== 'https://api.github.com' || url.pathname !== `/repos/${REPOSITORY}/${endpoint}` || url.username || url.password) {
+      throw new Error('Unsafe pagination link.');
     }
     const { data, headers: responseHeaders } = await request(url.href);
-    if (!Array.isArray(data)) throw new Error('Unexpected Forgejo response.');
+    if (!Array.isArray(data)) throw new Error('Unexpected progress response.');
     const link = responseHeaders.get('link') || '';
     const nextPage = link.split(',').map(part => part.match(/<([^>]+)>;\s*rel="next"/)).find(Boolean)?.[1] || null;
     return { data, next: nextPage };
   }
-  const { data: latest } = await request(`${API}/releases/latest`, true);
-  if (latest && (latest.draft !== false || latest.prerelease !== false)) throw new Error('Invalid latest stable release.');
+  // (GitHub has a /releases/latest endpoint, but it answers whatever release is newest and not a prerelease, and this
+  // repository publishes the build tools as one: it names `tools`, not a version of the game. So the stable release is
+  // found in the release list instead, by the shape of its tag: a version, not the tools' name or a nightly.)
+  const { data: published } = await request(`${API}/releases?per_page=100`, true);
+  const stable = Array.isArray(published)
+    ? published.find(r => r.draft === false && r.prerelease === false && /^v\d+\.\d+\.\d+$/.test(String(r.tag_name || '')))
+    : null;
+  const latest = stable || null;
   const latestItem = latest ? normalizeItem(latest, 'release', curation) : null;
   if (latest && !latestItem) throw new Error('Invalid latest stable release.');
   async function list(endpoint, state) {
@@ -41,12 +46,14 @@ export async function collectFeed({ fetcher = fetch, token = '', curation = {}, 
     let next;
     const visited = new Set();
     for (let n = 1; n <= maxPages; n++) {
-      const batch = await page(endpoint, { state, sort: 'recentupdate', limit: '100', page: '1', ...(endpoint === 'issues' ? { type: 'issues' } : {}) }, next);
+      // (GitHub's query, not Forgejo's: 'per_page' rather than 'limit', and 'sort=updated'. It returns pull
+      // requests from /issues too, which the caller drops by their pull_request field.)
+      const batch = await page(endpoint, { state, sort: 'updated', per_page: '100', page: '1' }, next);
       const { data } = batch;
-      if (data.some(i => !Number.isFinite(Date.parse(i.updated_at)))) throw new Error('Missing Forgejo update date.');
+      if (data.some(i => !Number.isFinite(Date.parse(i.updated_at)))) throw new Error('Missing progress update date.');
       result.push(...data.filter(i => state === 'open' || Date.parse(i.updated_at) >= Date.parse(closedSince)));
       if (!batch.next || !data.length || (state === 'closed' && Date.parse(data.at(-1).updated_at) < Date.parse(closedSince))) return result;
-      if (visited.has(batch.next)) throw new Error('Repeated Forgejo pagination cursor.');
+      if (visited.has(batch.next)) throw new Error('Repeated pagination cursor.');
       visited.add(batch.next);
       next = batch.next;
     }
@@ -68,7 +75,7 @@ export async function collectFeed({ fetcher = fetch, token = '', curation = {}, 
   let releases = 0;
   let nextRelease;
   for (let n = 1; n <= maxPages; n++) {
-    const batch = await page('releases', { limit: '100', page: '1' }, nextRelease);
+    const batch = await page('releases', { per_page: '100', page: '1' }, nextRelease);
     const { data } = batch;
     for (const raw of data) {
       if (raw.draft !== false) continue;
@@ -92,7 +99,7 @@ let built;
 export function buildFeed() {
   built ??= (async () => {
     const curation = JSON.parse(await readFile(curationPath, 'utf8'));
-    return collectFeed({ token: process.env.FORGEJO_TOKEN || '', curation });
+    return collectFeed({ token: process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '', curation });
   })().catch((error) => {
     console.warn(`Progress feed unavailable for this build: ${error.message}`);
     return null;

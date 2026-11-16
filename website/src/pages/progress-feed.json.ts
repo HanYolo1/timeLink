@@ -1,4 +1,4 @@
-// The progress feed the progress board loads, collected from Forgejo when the site is built.
+// The progress feed the progress board loads, collected from GitHub when the site is built.
 import { buildFeed } from '../lib/progress-feed.ts';
 
 export async function GET() {

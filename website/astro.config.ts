@@ -12,7 +12,7 @@ export default defineConfig({
   markdown: { processor: unified({ remarkPlugins: [remarkTestedConfigurations] }) },
   integrations: [repoAssets(), starlight({
     title: 'timeLink',
-    description: 'timeLink by Team MagicBean. Guides, project updates, and practical help for your PC adventure.',
+    description: 'timeLink: a static recompilation of a supported console game, running natively on Windows and Linux. Guides, project updates and practical help.',
     favicon: '/branding/timeLink.png',
     customCss: ['./src/styles/theme.css', './src/styles/content.css'],
     components: {

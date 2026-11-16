@@ -32,7 +32,7 @@ const escape = text => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').rep
 const display = title => escape(title.replace(/"([^"]*)"/g, '“$1”').replaceAll("'", '’'));
 // A group's name as shown under its label: "In game: graphics" reads "Graphics" under "While playing".
 const groupName = title => display(title.replace(/^In game: (.)/, (_, first) => first.toUpperCase()));
-/** The anchor Starlight and Forgejo give a heading: lower case, punctuation dropped, spaces as hyphens. */
+/** The anchor a Markdown renderer gives a heading: lower case, punctuation dropped, spaces as hyphens. */
 export const headingId = title => title.toLowerCase().replace(/[^a-z0-9 -]/g, '').replaceAll(' ', '-');
 const anchorsFor = id => [...legacyAnchors].filter(([, target]) => target === id)
   .map(([legacy]) => `<span class="issue-anchor" id="${legacy}"></span>`).join('');

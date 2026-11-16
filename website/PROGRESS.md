@@ -1,7 +1,7 @@
 # timeLink progress feed
 
-The public source is `MagicBeanDev/timeLink` on MagicBean's Forgejo instance.
-The collector uses its `/api/v1/repos/MagicBeanDev/timeLink` API and follows only
+The public source is this repository, `HanYolo1/timeLink`, through GitHub's REST API.
+The collector uses its `/repos/HanYolo1/timeLink` API and follows only
 same-endpoint pagination links. It includes all open issues and pull requests,
 closed items updated within 90 days, up to 20 published releases and the latest
 stable release. No stable release is represented explicitly, without borrowing
@@ -22,7 +22,7 @@ before uploading a deployment, leaving the existing deployed site in place if it
 if any required page fails or a pagination limit is hit; partial results are never published. Check the collection
 log for the endpoint, failure and attempt count, then rebuild after recovery. No extra API permission is required.
 
-`FORGEJO_TOKEN` is optional and build-only: it is never sent to browsers or written to the feed. The collector rejects
+`GITHUB_TOKEN` is build-only and strongly recommended: unauthenticated GitHub allows 60 requests an hour, which one build exceeds: it is never sent to browsers or written to the feed. The collector rejects
 private repositories and redirects. Public collection needs no account token. The progress board refetches
 `/progress-feed.json` every five minutes while visible, which picks up a newer build.
 
