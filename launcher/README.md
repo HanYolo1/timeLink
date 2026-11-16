@@ -318,7 +318,8 @@ Calls made here, most of them the design mockup's; each can be changed:
 
 ## Credits
 
-The timeLink Launcher is for [timeLink](https://github.com/HanYolo1/timeLink), a fork of NotRexed's
+The timeLink Launcher is for [timeLink](https://github.com/HanYolo1/timeLink), developed by HanYolo1. timeLink is a
+hard fork of Longshot, developed by MagicBean, which is a hard fork of NotRexed's
 [Hookshot](https://github.com/NotRexed/Hookshot).
 
 - **HumanBean** (hckrman101 on GitHub): wrote the launcher as Hookshot's 3.0 launcher, then ported it here and renamed it to

@@ -78,7 +78,8 @@ says it again, briefly, when you go back to it.
 
 ### From Hookshot
 
-[Hookshot](https://github.com/NotRexed/Hookshot) is the project timeLink was forked from. Its game writes the same save
+[Hookshot](https://github.com/NotRexed/Hookshot) is where timeLink's lineage starts: timeLink is a hard fork of
+Longshot, which is a hard fork of Hookshot. Its game writes the same save
 files in the same layout, so a Hookshot save carries on in timeLink. `Core/HookshotSaves.cs` does the save import.
 Compatible game settings have their own import below; the launcher's settings, channels, versions, caches and updates
 are not brought over.

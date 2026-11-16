@@ -24,11 +24,12 @@
   <a href="#license">License + Credits</a>
 </p>
 
-<p align="center">A personal fork of timeLink, hosted on GitHub.</p>
+<p align="center">Developed by HanYolo1. A hard fork of Longshot.</p>
 
 > [!NOTE]
-> **This is a personal fork.** It is a copy of timeLink, which is itself a continuation of Hookshot. It is not the
-> upstream project, and the upstream maintainers do not maintain it. timeLink is free software under the
+> **timeLink is developed by HanYolo1.** It is a hard fork of **Longshot**, which is developed by **MagicBean** and is
+> itself a hard fork of **Hookshot**, developed by **NotRexed**. It is not the upstream project, and the upstream
+> maintainers do not maintain it. timeLink is free software under the
 > [GNU General Public License, version 3 or later](LICENSE); the license, the copyright notices and every third-party
 > notice are kept as they are.
 >
@@ -36,7 +37,8 @@
 
 timeLink is a static recompilation of a supported console game. The game's code is translated to C and compiled into a Windows or Linux program, rebuilding the graphics on Vulkan, with the console's system software reimplemented. All of this happens **on your PC, from your own copy of the game**.
 
-timeLink is a continuation of Hookshot. The top maintainers have moved to this project.
+timeLink is a hard fork of Longshot, which is a hard fork of Hookshot. It exists thanks to the work of everyone in that
+chain.
 
 **[Report a problem](https://github.com/HanYolo1/timeLink/issues)!**
 <br>
@@ -1238,10 +1240,12 @@ Time are trademarks of Nintendo.
 
 ## Credits
 
-timeLink is a fork of NotRexed's Hookshot, and exists thanks to the work of many
-people:
+timeLink is developed by HanYolo1. It is a hard fork of Longshot, developed by MagicBean, which is a hard fork of
+Hookshot, developed by NotRexed. It exists thanks to the work of many people:
 
-- **NotRexed**: Hookshot, which timeLink is a fork of, BlueShell (Mario Kart World),
+- **HanYolo1**: timeLink, the fork this repository is.
+- **MagicBean**: Longshot, which timeLink is a hard fork of, and the Longshot Launcher vendored here.
+- **NotRexed**: Hookshot, which Longshot is a hard fork of, BlueShell (Mario Kart World),
   Skybound (Tears of the Kingdom) and the a64-kit tools.
 - **[Eden](https://git.eden-emu.dev/eden-emu/eden)** and **Eglantine**: the shader recompiler and Switch 2 shader work.
 - **suyu**: the graphics decoders and the AArch64 translator.

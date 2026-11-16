@@ -83,7 +83,8 @@ that its own folder exists.
 
 ## From Hookshot
 
-[Hookshot](https://github.com/NotRexed/Hookshot) is the project timeLink was forked from. Its game writes the same files
+[Hookshot](https://github.com/NotRexed/Hookshot) is where timeLink's lineage starts: timeLink is a hard fork of
+Longshot, which is a hard fork of Hookshot. Its game writes the same files
 in the same layout, with the same user id, so a Hookshot save carries on in timeLink as it is: the files are copied byte
 for byte.
 

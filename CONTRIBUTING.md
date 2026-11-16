@@ -4,14 +4,15 @@ timeLink is a static recompilation of a supported console game: the game's AArch
 code is lifted to C, the Horizon OS and NVN2 are implemented natively, and the GPU work is replayed on Vulkan. No
 emulator is involved, and the game is built on your PC from your own copy.
 
-It lives at [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink), a personal fork of the upstream
-project. This page gets you set up, then covers what to send, how to build and test it, and the rules that keep the
-project out of trouble. The [development guide](docs/development.md) has the full pipeline; the
+It lives at [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink), a hard fork of Longshot. This page
+gets you set up, then covers what to send, how to build and test it, and the rules that keep the project out of
+trouble. The [development guide](docs/development.md) has the full pipeline; the
 [design notes](docs/design.md) have the architecture.
 
-**This is one person's fork, kept in step with upstream by hand.** Issues are open here for problems with this fork's
-builds; pull requests are welcome but nothing is merged back automatically, and a fix that belongs upstream should go
-there. A fork of your own is welcome under the GPL. Everything below applies to work on your own copy.
+**timeLink is developed by HanYolo1.** It is a hard fork of Longshot, developed by MagicBean, which is a hard fork of
+Hookshot, developed by NotRexed. Issues are open here for problems with this fork's builds; pull requests are welcome
+but nothing is merged back automatically, and a fix that belongs upstream should go there. A fork of your own is
+welcome under the GPL. Everything below applies to work on your own copy.
 
 ## The rule with no exceptions
 
