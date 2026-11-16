@@ -1234,9 +1234,8 @@ It includes code from Eden and suyu, which are under the GPL too. Third-party pa
 work with the GPL (Sirit, the Vulkan Memory Allocator, SDL, Opus, Dear ImGui, zstd, the Libertinus fonts, zbic and the
 a64-kit tools) keep their own notices in their folders.
 
-The GPL covers the code. The start-up screen's logo and the launcher's icon are Longshot's artwork, inherited through
-the fork and renamed, with no licence granted for them; [assets/PROVENANCE.md](assets/PROVENANCE.md) records where they
-came from and what replacing them takes. They are not covered by the GPL grant above.
+The GPL covers the code. The start-up screen's logo and the launcher's icon are timeLink's own artwork, supplied by
+HanYolo1; [assets/PROVENANCE.md](assets/PROVENANCE.md) records where they came from and what replacing them takes.
 
 timeLink is an unofficial fan project, not affiliated with or endorsed by Nintendo. The Legend of Zelda and Ocarina of
 Time are trademarks of Nintendo.

@@ -3,9 +3,9 @@
 Vendored from `MagicBeanDev/LongshotLauncher` at commit `1fba5f397594fc316f9f7c3b1cf8fd7874735b9a`, 2026-11-15.
 GPL-3.0-or-later. Modified for timeLink: see the git history of `launcher/`.
 
-`App/Assets/timeLink.png` and `App/Assets/timeLink.ico` are Longshot's logo, renamed, not redrawn. They came with the
-vendored launcher and no licence was granted for them; the repository's `assets/PROVENANCE.md` records where the
-picture came from and what replacing it takes. The GPL above covers the code, not that artwork.
+`App/Assets/timeLink.png` and `App/Assets/timeLink.ico` are timeLink's own artwork, supplied by HanYolo1 on
+2026-11-16 and replacing the Longshot logo that came with the vendored launcher. The repository's
+`assets/PROVENANCE.md` records where the picture came from and what replacing it takes.
 
 ## What this is
 

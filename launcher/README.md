@@ -339,11 +339,10 @@ The timeLink Launcher is free software under the [GNU General Public License, ve
 
     Copyright (C) 2026 the timeLink contributors
 
-The Inter font keeps its own licence. The launcher's window icon and its Windows executable icon are Longshot's
-artwork, inherited through the fork and renamed, with no licence granted for them; the repository's
-[assets/PROVENANCE.md](../assets/PROVENANCE.md) records where they came from. The launcher is an unofficial fan
-project, not affiliated with or endorsed by Nintendo. The Legend of Zelda and Ocarina of Time are trademarks of
-Nintendo.
+The Inter font keeps its own licence. The launcher's window icon and its Windows executable icon are timeLink's own
+artwork, supplied by HanYolo1; the repository's [assets/PROVENANCE.md](../assets/PROVENANCE.md) records where they came
+from. The launcher is an unofficial fan project, not affiliated with or endorsed by Nintendo. The Legend of Zelda and
+Ocarina of Time are trademarks of Nintendo.
 
 The game-files screen shows a status card above the builder download. Its first line keeps the status and requirements
 link together; the second line shows detected RAM and VRAM, mesh-shader availability and any limitations or unknown checks. Green means the checked OS, RAM (16 GB),
