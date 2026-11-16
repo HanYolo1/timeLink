@@ -1,0 +1,17 @@
+# Commit authors, as git and GitHub display them.
+#
+# The fork's own commits were made with a git identity left over from the previous fork's Forgejo
+# (`madebyjordan@noreply.git.magicbean.dev`). That address belongs to no one here: it is a Forgejo noreply
+# placeholder, and the person it was configured for has no part in this repository. Every commit that carries it is
+# this fork's own work, so it is mapped to the fork's maintainer.
+#
+# This changes the name and address git shows for those commits (log, shortlog, blame, and GitHub's commit list and
+# contributors graph) without rewriting history: no commit SHA changes, so the published releases and the nightly tags
+# that embed a SHA stay valid.
+#
+# Deliberately NOT mapped: `madebyjordan@users.noreply.github.com`. That is a different address, and it belongs to a
+# real upstream contributor whose nine pre-fork commits (AMD FSR 4.1, credited in README.md) are theirs, not this
+# fork's.
+
+HanYolo1 <git@hanyolo.org> <madebyjordan@noreply.git.magicbean.dev>
+HanYolo1 <git@hanyolo.org> <HanYolo1@users.noreply.github.com>
