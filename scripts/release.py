@@ -67,11 +67,11 @@ SERVER = "https://api.github.com"
 # api.github.com answers 404)
 UPLOAD_SERVER = "https://uploads.github.com"
 # (each product: its repository, its first version's major number, and the commit its nightlies count from: timeLink from the
-# fork, e2a4d453 "Rename the project to timeLink"; the launcher from its repository's first commit. Both start at v0.1.0:
-# one tag names both products' releases, which ship different files)
+# fork, 24c902e9 "Rename the project to Longshot"; the launcher from its repository's first commit. Both start at v0.1.0:
+# one tag names both products' releases, which ship different files. The anchor is a SHA, so a history rewrite moves it: tests/test_release_anchor.py checks it keeps counting right)
 PRODUCTS = {
     "longshot": {"repo": "HanYolo1/timeLink", "first_major": 0, "first_version": "v0.1.0", "display": "timeLink",
-                 "since": "e2a4d45398ffba162f54026bb7e708a7157bbed9"},
+                 "since": "24c902e9a244fe49b77f00926d1a2561c18ee1f3"},
     "launcher": {"repo": "HanYolo1/timeLink", "first_major": 0, "first_version": "v0.1.0", "display": "timeLink Launcher", "since": None},
 }
 CHANNELS = ("stable", "rc", "nightly")
