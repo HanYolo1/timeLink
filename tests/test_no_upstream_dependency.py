@@ -1,7 +1,7 @@
 """Nothing that ships fetches from the upstream project, and nothing that ships fetches from MagicBeanDev at all.
 
 The fork has no connection to the upstream repository: not for a build, not for a tool, not for a release, not for a web
-page. What ships is the game, the builder, the launcher and the website, and each is checked here on what it actually
+page. What ships is the game, the builder and the launcher, and each is checked here on what it actually
 fetches rather than on whether the word appears.
 
 The word itself is not the test. Attribution stays: `MagicBeanDev/timeLink Launcher` names where a vendored file's
@@ -43,9 +43,6 @@ SHIPPED = [
     "gpu/**/*.h",
     "host/**/*.c",
     "host/**/*.h",
-    "website/src/**/*.ts",
-    "website/src/**/*.astro",
-    "website/worker/**/*.ts",
     "scripts/ngx_sdk.py",          # the DLSS/NGX runtimes: NVIDIA's server, never ours to re-host
     "scripts/tools.py",            # what the builder fetches with
 ]

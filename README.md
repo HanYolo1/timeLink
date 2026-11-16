@@ -102,8 +102,6 @@ timeLink's first version is **v0.1.0**, and so is the launcher's: one tag names 
 
 ### What you need
 
-<!-- website/src/content/docs/requirements.mdx copies this section: when one changes, change the other to match. -->
-
 **Your game copy:** program `0400486024DEC000` · update **v131072** · build `e0f3ccfa`.
 Use a `.nup` file, or the `romfs` and `exefs` folders. Other game versions are not supported.
 

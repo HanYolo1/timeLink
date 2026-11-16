@@ -29,5 +29,4 @@ The file is exactly three lines: this header, separator and one row. This is a f
 Run `python -I -B tests/test_tested_configurations.py` from the repository root before committing the new file.
 `python -I scripts/tested_configurations.py` prints the combined Markdown as UTF-8 when piped or redirected;
 `--output work/tested-configurations.md` writes it to a file instead. Do not commit that assembled view.
-The website builds its catalogue directly from the frozen source page and these files, without a generated source
-page or a service to collect results. This README is the directory's guide, not a run fragment.
+This README is the directory's guide, not a run fragment.

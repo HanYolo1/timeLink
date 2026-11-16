@@ -11,7 +11,7 @@ add a self-contained `YYYY-MM-DD-topic-tester-run.md` file under `docs/tested/`,
 [format and checking instructions](tested/README.md). The tester's name and a distinct run identifier are required;
 repeat the context instead of saying `as above`. New results belong in those files, not in the table below.
 
-The website orders new files by date, then filename, descending. Logs and measured commits still belong in the
+New results belong in those files, not in the table below. Logs and measured commits still belong in the
 pull request's Measurements and Testing sections. Do not commit an assembled reading view.
 
 <!-- tested-run-fragments -->
