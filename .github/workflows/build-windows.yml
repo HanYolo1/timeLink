@@ -16,7 +16,7 @@
 name: Windows builder
 
 on:
-  # (no pull_request trigger for now: the Release workflow builds main's pushes and tags by calling this one; build a
+  # (no pull_request trigger for now: the Release workflow builds tags, and a nightly on request, by calling this one; build a
   # branch by hand with Run workflow)
   workflow_dispatch:
   workflow_call:
@@ -234,7 +234,7 @@ jobs:
       # source, its flags and the headers it can see), for pull requests, as the Linux AppImage workflow keeps its own: a
       # pull request compiles only the files its change reaches, not all of them (about 160 s here). Written after every
       # build but a release's (a pull request's own, for its next push; main's, for every pull request). Read only by pull
-      # requests: a push to main and a release compile every object themselves. The key also names llvm-mingw (its C and
+      # requests: a release compiles every object itself. The key also names llvm-mingw (its C and
       # C++ library headers, which the objects' own keys leave out) and this file (the pinned header checkouts above).
       - name: Object cache key
         if: env.RELEASE_CHECKED == '' && env.RELEASE_TAG == ''

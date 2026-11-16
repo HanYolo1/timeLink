@@ -10,7 +10,7 @@
 # skips only the build checks that ship nothing and passed in that run (the back end, without and with AMD FSR 4).
 name: Linux AppImage
 on:
-  # (no pull_request trigger for now: the Release workflow builds main's pushes and tags by calling this one; build a
+  # (no pull_request trigger for now: the Release workflow builds tags, and a nightly on request, by calling this one; build a
   # branch by hand with Run workflow)
   workflow_dispatch:
   workflow_call:

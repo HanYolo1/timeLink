@@ -2,7 +2,7 @@
 # (build-linux.yml, build-windows.yml) and the launcher (build-launcher.yml). What tells a product's releases apart is the
 # files they carry, not the tag (launcher/Core/ReleaseManifest.cs, Ships).
 #
-#   a push to main       the nightly: nightly-<commits since the fork>-<commit>, a pre-release
+#   Run workflow         a nightly of main, by hand: nightly-<commits since the fork>-<commit>, a pre-release
 #   a tag vX.Y.Z-rc.N    a release candidate, a pre-release (the rc channel)
 #   a tag vX.Y.Z         a stable (the stable channel, and rc too). Both products' first is v0.1.0
 #
@@ -27,9 +27,18 @@
 # there is no separate upload address to configure (Forgejo needed one behind Cloudflare's 100 MB limit).
 name: Release
 on:
+  # (a tag is a release: the versioned build players download. A push to main used to make a nightly as well, and
+  # that filled the releases page with one per commit; the maintainer wants one release at a time, so a nightly is
+  # now asked for by hand - Actions > Release > Run workflow - and the same job builds it. Nothing else depended on
+  # the push trigger: the builders are called by this workflow, and `released-as` reads whatever releases exist.)
   push:
-    branches: [main]
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      nightly:
+        description: 'Build a nightly of main (a pre-release, nightly-<n>-<sha>) instead of nothing'
+        type: boolean
+        default: true
 
 # (GitHub's GITHUB_TOKEN is read-only unless a workflow asks: `contents: write` is what makes, uploads to and publishes a
 # release. Forgejo ignored this key, so it was absent; on GitHub its absence would fail the publish job.)
@@ -71,6 +80,9 @@ jobs:
       - id: name
         env:
           RELEASE_TOKEN: ${{ github.token }}
+          # (the manual run's input, through env rather than interpolated into the shell: a `${{ }}` inside a bash
+          # test is a string, and an empty one on a tag push would read as "no nightly" and skip the release)
+          WANT_NIGHTLY: ${{ inputs.nightly }}
         run: |
           git fetch -q --tags origin main
           ref=$(git rev-parse HEAD)
@@ -83,6 +95,13 @@ jobs:
             echo "checked=$checked" >> "$GITHUB_OUTPUT"
             [[ -z $checked ]] || echo "::notice::$checked is this commit's release: its build checks are not run again"
           else
+            # (a manual run can ask for no nightly at all: the input defaults to true, so Run workflow builds one)
+            if [[ $GITHUB_EVENT_NAME == workflow_dispatch && $WANT_NIGHTLY != true ]]; then
+              echo "::notice::no nightly asked for: nothing to build"
+              echo "tag=" >> "$GITHUB_OUTPUT"
+              echo "ref=$ref" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             # (a nightly whose commit is no longer main's skips itself: the release runs queue one at a time, and of a few
             # merges in a row only the newest one builds; the one already running goes on)
             head=$(git rev-parse origin/main)
