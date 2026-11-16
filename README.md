@@ -1223,15 +1223,20 @@ their own copy.
 ## License
 
 timeLink is free software under the [GNU General Public License, version 3 or later](LICENSE) (GPL-3.0-or-later).
-It is a modified version of Hookshot, which NotRexed released under the same license; the changes made since the fork
-are timeLink's.
+It is a hard fork of Longshot, which is a hard fork of Hookshot, which NotRexed released under the same license; the
+changes made since the fork are timeLink's.
 
     Hookshot: Copyright (C) 2026 NotRexed and the Hookshot contributors
-    timeLink: Copyright (C) 2026 the timeLink contributors
+    Longshot: Copyright (C) 2026 MagicBean and the Longshot contributors
+    timeLink: Copyright (C) 2026 HanYolo1 and the timeLink contributors
 
 It includes code from Eden and suyu, which are under the GPL too. Third-party parts under other licenses that
 work with the GPL (Sirit, the Vulkan Memory Allocator, SDL, Opus, Dear ImGui, zstd, the Libertinus fonts, zbic and the
 a64-kit tools) keep their own notices in their folders.
+
+The GPL covers the code. The start-up screen's logo and the launcher's icon are Longshot's artwork, inherited through
+the fork and renamed, with no licence granted for them; [assets/PROVENANCE.md](assets/PROVENANCE.md) records where they
+came from and what replacing them takes. They are not covered by the GPL grant above.
 
 timeLink is an unofficial fan project, not affiliated with or endorsed by Nintendo. The Legend of Zelda and Ocarina of
 Time are trademarks of Nintendo.

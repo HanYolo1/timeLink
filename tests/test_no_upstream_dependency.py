@@ -5,8 +5,8 @@ page. What ships is the game, the builder and the launcher, and each is checked 
 fetches rather than on whether the word appears.
 
 The word itself is not the test. Attribution stays: `MagicBeanDev/timeLink Launcher` names where a vendored file's
-licence text lives (the GPL requires it), "by Team MagicBean" is a copyright notice, and the branding assets are named
-`magicbean-*.png`. What may not stay is a URL: a host that is not ours, in a file that a player's build reads.
+licence text lives (the GPL requires it), and "by Team MagicBean" is a copyright notice. What may not stay is a URL: a
+host that is not ours, in a file that a player's build reads.
 
 The team's own collaboration tooling is out of scope and named below: it is not shipped and does not reach a player.
 
