@@ -203,6 +203,23 @@ Not every reference is a defect. Swept the tree; the remaining ones fall in four
 | **`docs/releases.md`, `RELEASING.md`, `launcher/VENDORED.md`, `ReleaseTrust.cs`** | History: where the fork came from, which key was removed, which Forgejo mechanics no longer apply. Accurate as prose |
 | **`builder/timeLinkBuilder/Program.cs`** | **Was a bug, now fixed** — see the Fixed table. A shipped binary was telling players to download the launcher from a domain this fork does not own |
 
+## Where each download comes from, and what cannot be re-hosted
+
+Every URL the game, the builder and the launcher fetch is one of ours. Nothing reaches MagicBeanDev's Forgejo or
+Cloudflare any more, and nothing reaches the upstream repository for a build, a tool or a release.
+
+| What | Comes from | Why not somewhere else |
+|---|---|---|
+| the 11 build tools | `HanYolo1/timeLink-tools`, then where each was originally published | Re-hosted because GitHub does not serve `releases/download/` for a private repository. `tools.lock` names ours first; the original is a fallback for provenance. Three of them (`python`, `emsdk` and Hookshot's `cpm`) carry build-specific patches and cannot be re-sourced from the vendor at all |
+| releases, `SHA256SUMS`, the launcher's updates | this repository, `releases/download/<tag>/` | Signed with `774f1dc88462b913`, the only key `ReleaseTrust.cs` trusts |
+| the DLSS/NGX runtimes | `raw.githubusercontent.com/NVIDIA/DLSS` at a pinned commit, each file SHA-256 checked (`scripts/ngx_sdk.py`) | **Not ours to re-host.** NVIDIA's RTX SDKs licence allows redistributing the runtimes only as part of an application that uses them, not as a standalone download; publishing them on `timeLink-tools` would be a licence breach. The script fetches them from NVIDIA's own repository and they stay on the player's PC |
+| the NGX core, `_nvngx.dll` | NVIDIA's driver, already installed | Never shipped, by licence and by design |
+| CEF / `libcef.dll` | **not downloaded at all** | The one place a vendor source is the right answer and does not apply: the licence forbids redistributing the binaries *and* forbids standalone download, so a game that needs CEF for its in-game browser simply does not get that integration here. Where a vendored source is legitimate, `winget` is the route (it carries `Google.Chrome`, whose redistribution licence differs from CEF's) |
+| the launcher's, builder's and Vulkan back end's own files | this repository | — |
+
+`winget` is not used for any of the above because none of them is a signed Windows package: they are portable archives
+pinned by SHA-256 in `tools.lock`, and `winget` cannot pin or verify those. The rule that matters is the one the table
+keeps: **ours where we may redistribute it, the vendor's own server where we may not, and nothing from upstream.**
 ## Inherited from upstream, not caused by this fork
 
 | Issue | Detail |
