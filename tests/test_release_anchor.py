@@ -56,16 +56,27 @@ class Anchor(unittest.TestCase):
         # The newest nightly tag names its own number: nightly-<n>-<short sha>. A stale anchor puts the count far above
         # every real number, so the two stop agreeing.
         #
-        # (One tag is excluded: a large outlier left over from the 2026-11-15 rewrite, when the broken anchor published
-        # `nightly-2300-*`. Deleting a published release is not this test's business, so it is ignored rather than
-        # compared against - the same reason the check is a broad band and not an equality.)
+        # Only tags whose commit is on this fork's main count. A clone that ran `git fetch --tags` also carries
+        # upstream's nightlies, which number from upstream's own first commit and run far ahead of ours (324-363
+        # against our 240); comparing against those fails on a correct anchor. `after_fork()` is not enough to tell
+        # them apart - upstream's tags are *after* the fork anchor, so it accepts them too - but their commits are not
+        # ancestors of this fork's main, and ours are.
+        #
+        # (One tag is excluded even then: `nightly-2300-*`, published by CI while the anchor was stale. Its commit is
+        # on main, so it passes the ancestor test, and its number is nonsense. Deleting a published release is not this
+        # test's business, so it is ignored rather than compared against - the same reason the check is a broad band
+        # and not an equality.)
         nights = []
         for tag in git("tag", "-l", "nightly-*").split():
             parts = tag.split("-")
-            if len(parts) == 3 and parts[1].isdigit():
-                nights.append(int(parts[1]))
+            if len(parts) != 3 or not parts[1].isdigit():
+                continue
+            commit = git("rev-list", "-n", "1", tag)
+            if not commit or not is_ancestor(commit, "HEAD"):
+                continue   # (upstream's: not on this fork's main)
+            nights.append(int(parts[1]))
         if not nights:
-            self.skipTest("no nightly tag to compare against")
+            self.skipTest("no nightly tag on this fork's main to compare against")
         recent = [n for n in nights if n < 1000] or nights   # (see above: 2300 is the rewrite's leftover)
         last = max(recent)
         self.assertLessEqual(abs(counted - last), 25,
