@@ -14,7 +14,7 @@ GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot
 |---|---|
 | **A release** | A Forgejo release of the repository: a tag, a page with the notes, and the product's files with `SHA256SUMS` and `SHA256SUMS.sig`. Nothing else: no package registry, no pointer files |
 | **Two products** | timeLink releases its **builders** (Windows and Linux). The launcher releases **itself**. Both come from this one repository, in one `v*` tag namespace, each with its own versions and its own files: a release belongs to a product by the files it ships (`Core/ReleaseManifest.cs`'s `Ships`) |
-| **Three channels each** | `stable` (tag `vX.Y.Z`), `rc` (tag `vX.Y.Z-rc.N`, and every stable), `nightly` (every push to `main`). Read from the release list |
+| **Three channels each** | `stable` (tag `vX.Y.Z`), `rc` (tag `vX.Y.Z-rc.N`, and every stable), `nightly` (asked for by hand: Actions > Release > Run workflow). Read from the release list |
 | **One key** | CI signs `SHA256SUMS` with the release key (ECDSA P-256). The launcher has the public key built in |
 | **tools.lock** | The builders' build tools, Windows' and Linux's, are not in timeLink's releases: `tools.lock` names each one (URLs, SHA-256, size) |
 | **Tags, not release PRs** | A maintainer releases by pushing a tag. CI checks the number against the commits, builds, signs and publishes. Notes by git-cliff |
@@ -215,7 +215,8 @@ Actions. The launcher's are scoped to `launcher/` by path:
 
 One release, one tag, both products: `release.yml` builds the builders and the launcher and publishes every file together.
 A product's releases are told apart by the files they carry, not by the tag's number (`launcher/Core/ReleaseManifest.cs`,
-`Ships`). Only `release.yml` takes a push to main, so one commit produces one nightly.
+`Ships`). `release.yml` runs on a `v*` tag, and a nightly is asked for by hand (Actions > Release > Run
+workflow, its `nightly` input): a push to `main` publishes nothing, so the releases page holds one release at a time.
 
 timeLink also keeps `build-linux.yml` and `build-windows.yml` (also run on pull requests that change code) and
 `vulkan-dlss.yml` (the upscalers' build checks). A tag on a commit CI has released already (its nightly, or a stable's

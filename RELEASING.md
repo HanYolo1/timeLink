@@ -46,13 +46,14 @@ The remote is called `github` here (`scripts/forge.py login` sets up a Forgejo r
 
 ## A nightly
 
-Nothing to do: every push to `main` (every merged pull request) runs `release.yml`. It builds, signs, and publishes
+Nothing is published on its own: a push to `main` (a merged pull request) runs no release. A nightly is asked for by
+hand, *Actions* > *Release* > *Run workflow* on `main` with its `nightly` input left on. It builds, signs, and publishes
 `nightly-<count>-<commit>` as a pre-release, then deletes the nightlies past the newest 5.
 
 **If one fails:**
 
 1. Open the run (repository > *Actions* > *Release*) and read the failed step.
-2. If the problem is in the code, fix it in a pull request; its merge makes the next nightly. If it was the runner or the
+2. If the problem is in the code, fix it in a pull request, then ask for a nightly again. If it was the runner or the
    network, use *Re-run* on the run.
 3. A failed run may leave a **draft** release named after the nightly. Players never see drafts. The next successful run
    of the same commit reuses it; otherwise delete it from *Releases*.

@@ -11,7 +11,7 @@ published, and how the timeLink Launcher installs it, is in [releases.md](releas
 |---|---|---|
 | `stable` | `vX.Y.Z` | a tag `vX.Y.Z` pushed on a commit of `main` |
 | `rc` | `vX.Y.Z-rc.N`, and the stables: it offers the newest of both | a tag `vX.Y.Z-rc.N` on `main` (a stable moves it too) |
-| `nightly` | `nightly-<commits since the fork>-<8 hex of the commit>`, e.g. `nightly-412-1a2b3c4d` | every push to `main` |
+| `nightly` | `nightly-<commits since the fork>-<8 hex of the commit>`, e.g. `nightly-412-1a2b3c4d` | a manual run of the Release workflow (Actions > Release > Run workflow) |
 
 The `v` belongs to the tag, not to the version. Build metadata is not used. A nightly's count starts at the fork, the commit
 that renamed the project (`e2a4d45`), so it says how far timeLink is past it. A build from a checkout is named by

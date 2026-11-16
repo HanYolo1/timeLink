@@ -14,7 +14,7 @@ GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot
 |---|---|
 | **A release** | A Forgejo release of the repository: a tag, a page with the notes, and the product's files with `SHA256SUMS` and `SHA256SUMS.sig`. Nothing else: no package registry, no pointer files |
 | **Two products** | timeLink releases its **builders** (Windows and Linux). The launcher releases **itself**. Each from its own repository, with its own versions |
-| **Three channels each** | `stable` (tag `vX.Y.Z`), `rc` (tag `vX.Y.Z-rc.N`, and every stable), `nightly` (every push to `main`). Read from the release list |
+| **Three channels each** | `stable` (tag `vX.Y.Z`), `rc` (tag `vX.Y.Z-rc.N`, and every stable), `nightly` (asked for by hand: Actions > Release > Run workflow). Read from the release list |
 | **One key** | CI signs `SHA256SUMS` with the release key (ECDSA P-256). The launcher has the public key built in |
 | **tools.lock** | The builders' build tools, Windows' and Linux's, are not in timeLink's releases: `tools.lock` names each one (URLs, SHA-256, size) |
 | **Tags, not release PRs** | A maintainer releases by pushing a tag. CI checks the number against the commits, builds, signs and publishes. Notes by git-cliff |
