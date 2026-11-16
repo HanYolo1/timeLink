@@ -42,7 +42,7 @@ export default defineConfig({
       ] },
       { label: 'About', items: [
         { label: 'About timeLink', slug: 'about' },
-        { label: 'Team MagicBean', slug: 'about/team' },
+        { label: 'Contributors', slug: 'about/team' },
       ] },
     ],
   })],

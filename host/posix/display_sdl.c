@@ -14,7 +14,7 @@ void hos_input_clear_toggles(void);
 #include "../hos_sdl.h"
 
 /* (the window's app id: an applications menu entry for the game names it as its StartupWMClass) */
-#define HOS_APP_ID "dev.magicbean.timeLink"
+#define HOS_APP_ID "org.timelink.timeLink"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
