@@ -3,7 +3,7 @@
 // preview uploads a version without deploying it.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "timeLink-website",
+  "name": "timelink-website",
   "main": "worker/index.ts",
   "compatibility_date": "2026-11-11",
   "assets": {

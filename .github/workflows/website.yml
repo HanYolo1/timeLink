@@ -92,8 +92,25 @@ jobs:
           npm run build
           npm run check
 
-      - name: Deploy
+      # (The deploy needs two repository secrets, CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID, and this repository has
+      # never had them. Without a guard the step runs every time and fails on an empty token, which reads as a broken
+      # build on every push. A secret cannot be tested in an `if:` directly, so one step turns it into an output.)
+      - name: Cloudflare credentials
+        id: cloudflare
         if: steps.site.outputs.present == 'true' && env.IS_PR != 'true'
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$TOKEN" ] && [ -n "$ACCOUNT" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Not deploying: CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are not set in this repository. The site built and passed its checks; only the upload is skipped. To deploy, add both as repository secrets, then set DOCS_SITE_URL to the address it serves."
+          fi
+
+      - name: Deploy
+        if: steps.cloudflare.outputs.present == 'true'
         working-directory: website
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
