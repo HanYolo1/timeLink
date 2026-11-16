@@ -83,22 +83,44 @@ class Anchor(unittest.TestCase):
                              "commits since the anchor (%d) are far from the last nightly number (%d): the anchor is "
                              "probably stale after a rewrite" % (counted, last))
 
+    def published_rcs(self):
+        """This fork's release candidates, newest first. Read from the tags rather than named, so publishing a new
+        candidate does not break the test that guards the anchor.
+
+        Only tags whose commit is on this fork's main count: a clone that ran `git fetch --tags` also carries
+        upstream's candidates (v2.0.8-rc.*, v3.0.0-rc.*), which sort above ours and are not this fork's releases.
+        """
+        rcs = []
+        for tag in git("tag", "-l", "v*-rc.*").split():
+            if not release.is_version(tag, 0):
+                continue
+            commit = git("rev-list", "-n", "1", tag)
+            if commit and is_ancestor(commit, "HEAD"):
+                rcs.append(tag)
+        return sorted(rcs, key=release.version_key, reverse=True)
+
     def test_after_fork_accepts_a_real_release(self):
         """The predicate the tag logic leans on: a published release must be this fork's."""
-        if not git("tag", "-l", "v0.1.0-rc.1"):
-            self.skipTest("v0.1.0-rc.1 is not here (git fetch --tags)")
-        self.assertTrue(release.after_fork("v0.1.0-rc.1"),
-                        "after_fork() rejects v0.1.0-rc.1, which this fork published: a stale anchor")
+        rcs = self.published_rcs()
+        if not rcs:
+            self.skipTest("no release candidate here (git fetch --tags)")
+        self.assertTrue(release.after_fork(rcs[0]),
+                        "after_fork() rejects %s, which this fork published: a stale anchor" % rcs[0])
 
     def test_next_tag_does_not_offer_a_version_already_published(self):
         """The consequence of a stale anchor: a duplicate release of a version that is already out."""
         existing = [t for t in git("tag", "-l").split() if t]
-        if "v0.1.0-rc.1" not in existing:
-            self.skipTest("v0.1.0-rc.1 is not here (git fetch --tags)")
+        rcs = self.published_rcs()
+        if not rcs:
+            self.skipTest("no release candidate here (git fetch --tags)")
+        newest = rcs[0]
         offered = release.next_tag(existing, 0)
-        self.assertNotEqual(offered, "v0.1.0-rc.1",
-                            "next_tag offers v0.1.0-rc.1 again, which is already published")
-        self.assertEqual(offered, "v0.1.0-rc.2", "the next candidate follows the one that is out")
+        self.assertNotEqual(offered, newest,
+                            "next_tag offers %s again, which is already published" % newest)
+        # (the next candidate is the one after the newest that is out: rc.2 published means rc.3 is next)
+        base, _, n = newest.partition("-rc.")
+        self.assertEqual(offered, "%s-rc.%d" % (base, int(n) + 1),
+                         "the next candidate follows %s, the newest that is out" % newest)
 
     def test_the_launcher_has_no_anchor(self):
         """The launcher counts from its repository's first commit, so it has nothing to go stale."""
