@@ -1,7 +1,7 @@
 using System.Buffers.Binary;
 using System.IO.Compression;
 
-/// App/Assets/timeLink.ico (scripts/make_icon.py): every size Windows asks for, its 256 the logo, App/Assets/timeLink.png
+/// App/Assets/timeLink.ico (launcher/scripts/make_icon.py): every size Windows asks for, its 256 the logo, App/Assets/timeLink.png
 static partial class Program
 {
     /// An 8-bit RGBA PNG's pixels (not interlaced: what timeLink.png and the icon's 256 are)

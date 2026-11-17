@@ -7,7 +7,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- (the Windows program's icon: the timeLink logo, Assets/timeLink.ico, made from Assets/timeLink.png by scripts/make_icon.py) -->
+    <!-- (the Windows program's icon: the timeLink logo, Assets/timeLink.ico, made from Assets/timeLink.png by launcher/scripts/make_icon.py) -->
     <ApplicationIcon>Assets/timeLink.ico</ApplicationIcon>
     <!-- (the Windows program's details, as Properties > Details and the antivirus programs show them: a program with only its file
          name there looks more like malware) -->
