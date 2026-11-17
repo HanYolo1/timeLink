@@ -220,8 +220,7 @@ for Linux. A bump is a pull request that changes its line:
      `tools/add.sh`.
   3. Run the lines of the tools you changed, with your token: `RELEASE_TOKEN=<your token> python -I scripts/tools.py add
      emsdk 23.1.5 build-linux/docker-deps/tools/emsdk.zip --system linux-x64 --dest usr/lib/timeLink/emsdk --prefix emsdk`.
-     An archive over 100 MB (emsdk) goes through the address without Cloudflare: `FORGEJO_UPLOAD_API=<it>` (One-time
-     setup, the upload address).
+     GitHub takes an asset up to 2 GB, so there is no upload address to work around.
   4. `scripts/linux/docker.sh` builds the AppImage with the new lines (`appimage.sh` installs them into
      `build-linux/tools`, and `check_player_build.sh` starts a build from the image with them), then the pull request
      (`build(linux): LLVM 23.1.6`).
@@ -229,9 +228,9 @@ for Linux. A bump is a pull request that changes its line:
   The AppImage itself carries Python with `requirements.txt`'s packages and Tk (`deps.sh` without `tools`); a change to
   those is an ordinary pull request.
 
-Uploads over 100 MB (llvm-mingw, both emsdk) go to the address without Cloudflare: `FORGEJO_UPLOAD_API=<it>/api/v1` (One-time
-setup, the upload address), from a machine that reaches it. The next release uses the new line; installed versions keep
-theirs. Packages are never pruned, so older versions' tools stay downloadable.
+Uploads go straight to `uploads.github.com`, which takes a file up to 2 GB: llvm-mingw and both emsdk archives fit, so
+there is no proxy to configure. The next release uses the new line; installed versions keep theirs. Packages are never
+pruned, so older versions' tools stay downloadable.
 
 ## Rotate the key
 
@@ -266,17 +265,15 @@ None of this is done yet. In order (one repository now, so one secret for both p
    `nightly-*` tags (*Settings* > *Tags*): that token
    can't delete a protected tag, so the prune would fail. `tools.py` and `release.py` run by hand (`mirror`, `add`,
    `prune`) take your own token as `RELEASE_TOKEN`.
-3. **The upload address.** (This step was Forgejo's: uploads went through Cloudflare, which cut them at 100 MB, so they
-   were sent to the API without it, given as `RELEASE_UPLOAD_API` and passed to `release.py` as `FORGEJO_UPLOAD_API`.)
-   GitHub's release uploads are not behind such a proxy, and `release.py` reads `GITHUB_TOKEN` there; the
-   `FORGEJO_UPLOAD_API`/`FORGEJO_API` variable names survive because the upload code is the same, and setting neither
-   leaves every request at `https://api.github.com`.
-4. **The attachment limits** (Forgejo's `app.ini`): `[attachment] MAX_SIZE` in MB, at least the largest file (2048 now;
-   check the AppImage's size after the first build), and `[repository.release] ALLOWED_TYPES` empty, so `.AppImage`, `.exe`,
-   `.lock` and `SHA256SUMS` are accepted.
-5. **Actions and runners.** Enable Actions on the repository (*Settings* > *Units*), and register the runners in
-   [docs/forgejo-runners.md](https://github.com/HanYolo1/timeLink/blob/main/docs/forgejo-runners.md)
-   (Linux only, for both: timeLink's Windows files are cross-built on Linux).
+3. **The upload address.** Nothing to configure: GitHub's release uploads are not behind a proxy, and `release.py`
+   uploads straight to `uploads.github.com`. It reads `RELEASE_TOKEN` (CI passes `github.token`); the
+   `FORGEJO_UPLOAD_API`/`FORGEJO_API` variable names survive in the code because the upload path is unchanged, and
+   setting neither leaves every request at `https://api.github.com`.
+4. **The attachment limits.** GitHub takes a release asset up to 2 GB, and the largest builder is under 200 MB, so
+   `.AppImage`, `.exe`, `.lock` and `SHA256SUMS` all go up directly with no per-type allow list to maintain.
+5. **Actions and runners.** Nothing to do: the workflows run on GitHub-hosted runners (`ubuntu-latest` and
+   `ubuntu-24.04`), Linux only, for both products — timeLink's Windows files are cross-built on Linux. Actions is on by
+   default for the repository.
 6. **The tools' packages and `tools.lock`.** Done (2026-11-13): `cpm` with dav1d and `third-party` assembled and added,
    llvm-mingw, python, emsdk and wgpu-native mirrored, the Linux tools added, each a generic package of the organization
    (docs/releases.md, "tools.lock"). The play profile is optional and there is none yet (`tools.py assemble profile`,

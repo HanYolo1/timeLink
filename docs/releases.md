@@ -12,7 +12,7 @@ GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot
 
 | | |
 |---|---|
-| **A release** | A Forgejo release of the repository: a tag, a page with the notes, and the product's files with `SHA256SUMS` and `SHA256SUMS.sig`. Nothing else: no package registry, no pointer files |
+| **A release** | A GitHub release of the repository: a tag, a page with the notes, and the product's files with `SHA256SUMS` and `SHA256SUMS.sig`. Nothing else: no package registry, no pointer files |
 | **Two products** | timeLink releases its **builders** (Windows and Linux). The launcher releases **itself**. Each from its own repository, with its own versions |
 | **Three channels each** | `stable` (tag `vX.Y.Z`), `rc` (tag `vX.Y.Z-rc.N`, and every stable), `nightly` (asked for by hand: Actions > Release > Run workflow). Read from the release list |
 | **One key** | CI signs `SHA256SUMS` with the release key (ECDSA P-256). The launcher has the public key built in |
@@ -38,18 +38,17 @@ GitHub takes a release asset up to 2 GB, so there is no upload proxy to configur
 `.AppImage`, `.exe`, `.lock` and `SHA256SUMS` files all go up directly. Assets upload to `uploads.github.com`, which is
 what the release's own `upload_url` names.
 
-CI makes each release with the job's own token (`forgejo.token`, given to `release.py` as `RELEASE_TOKEN`), with no
-secret and no bot account: on a push or a tag in the
-repository, Forgejo 17 gives it write access to that repository's every unit and to no other repository
-(`routers/api/v1/permissions/repo_access.go`; read-only for a pull request from a fork). That covers every call
-`release.py` makes: create a release, upload its files, edit and publish the draft, delete a nightly's release and its tag
-(a tag that isn't protected). Each repository releases into itself only, so no other token or fallback is needed. The token ends with
-the job. Forgejo 17 ignores a workflow's `permissions:` key, so the workflows have none.
+CI makes each release with the job's own token (`github.token`, given to `release.py` as `RELEASE_TOKEN`), with no
+secret and no bot account: on a push or a tag in the repository, GitHub gives it write access to that repository and to
+no other. That covers every call `release.py` makes: create a release, upload its files, edit and publish the draft,
+delete a nightly's release and its tag. Each repository releases into itself only, so no other token or fallback is
+needed. The token ends with the job. GitHub reads a workflow's `permissions:` key, so `release.yml` asks for
+`contents: write` and the other workflows ask for less.
 
 ## The channels
 
-The channels are read from the repository's release list (`GET /api/v1/repos/<repo>/releases`), by the same rules in the
-launcher (`Core/ReleaseManifest.cs`, `Newest`) and in `scripts/release.py` (`newest`, `channels`):
+The channels are read from the repository's release list (`GET /repos/<owner>/<repo>/releases` on `api.github.com`), by
+the same rules in the launcher (`Core/ReleaseManifest.cs`, `Newest`) and in `scripts/release.py` (`newest`, `channels`):
 
 | Channel | Offers | For |
 |---|---|---|
@@ -198,7 +197,7 @@ There is no installer program: the launcher installs itself (the launcher's READ
 
 ## CI
 
-Both repositories have the same workflows in `.github/workflows/`, on Forgejo Actions:
+Both repositories have the same workflows in `.github/workflows/`, on GitHub Actions:
 
 | Workflow | timeLink | The launcher |
 |---|---|---|
@@ -211,7 +210,8 @@ timeLink also keeps `build-linux.yml` and `build-windows.yml` (also run on pull 
 release candidate) is still built again, since every file carries its version (a release never ships a file that names
 another), but `release.py released-as` finds that release, checks its signed `SHA256SUMS` (one that does not check stops
 the run), and the build checks that ship no file and passed in its run are not run again. Every job runs on Linux: timeLink's Windows files are cross-built there,
-and what only Windows can check is a tester's (RELEASING.md, *Needs a Windows tester*). The runners are in timeLink's [docs/forgejo-runners.md](https://github.com/HanYolo1/timeLink/src/branch/main/docs/forgejo-runners.md).
+and what only Windows can check is a tester's (RELEASING.md, *Needs a Windows tester*). The runners are GitHub-hosted
+(`ubuntu-latest` and `ubuntu-24.04`), so there is nothing to register (RELEASING.md, *One-time setup*).
 
 ## The version a tag must have
 
@@ -253,7 +253,7 @@ right thing:
 
 ## Download links
 
-Forgejo's `/releases/latest` covers stable only. This fork has no website of its own, so there are no permanent
+GitHub's `/releases/latest` covers stable only. This fork has no website of its own, so there are no permanent
 per-channel links: the launcher reads the release list itself, by the rules above, and the READMEs link to
 [the releases page](https://github.com/HanYolo1/timeLink/releases). There are no links for timeLink's builder files,
 which only the launcher downloads.
@@ -273,7 +273,7 @@ installs:
 **What RecompLauncher cannot do yet.** It finds releases only on GitHub. Its guide says it "installs and updates your recomp
 straight from your GitHub releases", its `repo` is a GitHub `owner/name`, and its schema has no field for another forge or
 a URL. So `recomplauncher.json` names no `repo`, and RecompLauncher cannot find timeLink by itself. It needs either a
-GitHub repository that mirrors these releases (there is none), or Forgejo support in RecompLauncher (a request to its
+GitHub repository that mirrors these releases (there is none), or GitHub support in RecompLauncher (a request to its
 makers). Until then a player can add a downloaded zip or AppImage to RecompLauncher by hand, as a local build.
 
 So there are two ways to install: **the timeLink Launcher** (recommended: it follows channels, checks signatures and
@@ -281,7 +281,7 @@ updates everything), or **RecompLauncher**, with the same builder files.
 
 ## Why this design
 
-- **Forgejo releases, not a package store and pointer files.** A release is what Forgejo already shows people: a tag, notes
+- **GitHub releases, not a package store and pointer files.** A release is what GitHub already shows people: a tag, notes
   and files. The channels follow from the list, so there is nothing else to publish, keep in step or replay. Drafts make a
   release appear all at once.
 - **A signature on the checksums.** HTTPS says a file came from GitHub. A stolen token, a compromised runner or a

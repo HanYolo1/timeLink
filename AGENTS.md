@@ -1,6 +1,6 @@
 # Notes for AI coding agents
 
-timeLink lives on the team's Forgejo, [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink).
+timeLink lives on GitHub, [github.com/HanYolo1/timeLink](https://github.com/HanYolo1/timeLink).
 Everything in [CONTRIBUTING.md](CONTRIBUTING.md) applies to agents as to everyone, above all **the rule with no
 exceptions: no game files, keys or anything made from them leave the PC.** This page is what agents need on top.
 
@@ -50,8 +50,9 @@ What CONTRIBUTING.md doesn't spell out, and agents trip on:
   (`python -I scripts/check_third_party.py`); a fix goes outside them, not into them (CONTRIBUTING.md).
 - **Two platforms.** Windows builds with llvm-mingw, Linux with clang/gcc. Keep host code portable, and paths UTF-8
   (no `CP_ACP`; `tests/test_utf8_paths.py`).
-- **No CI, and no game in the checks.** Forgejo runs no checks yet: run `python -I -B tests/run_all.py` yourself
-  and say so in the PR. The checks run without a dump; a run in the game is yours to do locally and report.
+- **CI runs only the light checks on a push.** The full suite is `workflow_dispatch` only, so run
+  `python -I -B tests/run_all.py` yourself and say so in the PR. The checks run without a dump; a run in the game is
+  yours to do locally and report.
 - **Test a change against a base, not in a new full build**: `scripts/dev_packs.py`, [Testing a change against a
   base](docs/development.md#testing-a-change-against-a-base). Agents sharing a PC share one base and agree before
   moving it; it is for development and A/B runs only. Bases, packs and runtimes are built from the game: never send them.
@@ -74,7 +75,7 @@ Never push to `forge`: timeLink's `main` takes reviewed pull requests only. `pr 
 - **Take it out of WIP yourself once it is ready.** When the description check passes (`pr status <n>`) and the
   change is tested and measured, run `pr ready <n>` in the same session. Don't wait to be asked: nobody reviews a WIP
   PR, so one left WIP waits for nothing. A change the game doesn't run (a script, the docs, the checks) is measured by
-  its game-free checks. Forgejo shows a WIP PR as not mergeable: that alone isn't a reason to rebase.
+  its game-free checks. GitHub shows a WIP PR as a draft: that alone isn't a reason to rebase.
 - **The description is the PR as it is now; the comments are its history.** When the change, the numbers or what was
   tested change, edit the description and post a short comment saying what changed and why, in one step: `pr update`.
 - **The checklist is yours to keep true, on every update.** Each box is a statement about the PR as it is now, and

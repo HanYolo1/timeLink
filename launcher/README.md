@@ -160,6 +160,10 @@ first, and it asks, and backs up, before it replaces a timeLink save. **Import g
 compatible Hookshot game settings into the timeLink version you choose, with its own confirmation and backup.
 
 <p align="center">
+  <img src="docs/images/home-hookshot-offer.png" alt="The launcher's home with the one-time offer to copy Hookshot's saves in" width="720">
+</p>
+
+<p align="center">
   <img src="docs/images/hookshot-import.png" alt="Import saves from Hookshot: the saves found, with their slots, and Choose a folder" width="720">
   <img src="docs/images/hookshot-settings-import.png" alt="Choose a timeLink version and review the Hookshot settings and backup before importing" width="720">
 </p>

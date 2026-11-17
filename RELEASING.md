@@ -41,8 +41,8 @@ python -I scripts/release.py next          # the number the commits call for, th
 python -I scripts/release.py channels      # what stable, rc and nightly offer now, as the launcher reads them
 ```
 
-The remote is called `github` here (`scripts/forge.py login` sets up a Forgejo remote; this fork pushes to
-`https://github.com/HanYolo1/timeLink.git`). Only maintainers can push tags.
+The remote is called `github` here (this fork pushes to `https://github.com/HanYolo1/timeLink.git`). Only maintainers
+can push tags.
 
 ## A nightly
 
@@ -224,8 +224,7 @@ for Linux. A bump is a pull request that changes its line:
      `tools/add.sh`.
   3. Run the lines of the tools you changed, with your token: `RELEASE_TOKEN=<your token> python -I scripts/tools.py add
      emsdk 23.1.5 build-linux/docker-deps/tools/emsdk.zip --system linux-x64 --dest usr/lib/timeLink/emsdk --prefix emsdk`.
-     An archive over 100 MB (emsdk) goes through the address without Cloudflare: `FORGEJO_UPLOAD_API=<it>` (One-time
-     setup, the upload address).
+     GitHub takes an asset up to 2 GB, so there is no upload address to work around.
   4. `scripts/linux/docker.sh` builds the AppImage with the new lines (`appimage.sh` installs them into
      `build-linux/tools`, and `check_player_build.sh` starts a build from the image with them), then the pull request
      (`build(linux): LLVM 23.1.6`).
@@ -233,9 +232,9 @@ for Linux. A bump is a pull request that changes its line:
   The AppImage itself carries Python with `requirements.txt`'s packages (`deps.sh` without `tools`); a change to
   those is an ordinary pull request.
 
-Uploads over 100 MB (llvm-mingw, both emsdk) go to the address without Cloudflare: `FORGEJO_UPLOAD_API=<it>/api/v1` (One-time
-setup, the upload address), from a machine that reaches it. The next release uses the new line; installed versions keep
-theirs. Packages are never pruned, so older versions' tools stay downloadable.
+Uploads go straight to `uploads.github.com`, which takes a file up to 2 GB: llvm-mingw and both emsdk archives fit, so
+there is no proxy to configure. The next release uses the new line; installed versions keep theirs. Packages are never
+pruned, so older versions' tools stay downloadable.
 
 ## Rotate the key
 
