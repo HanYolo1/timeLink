@@ -47,13 +47,8 @@ SHIPPED = [
     "scripts/tools.py",            # what the builder fetches with
 ]
 
-# Team collaboration tooling: internal, not shipped, and reaching no player. Kept for the team's workflow.
+# Not shipped, and reaching no player: the release job's own tool, and a one-off that staged the archives.
 NOT_SHIPPED = {
-    "scripts/forge.py",
-    "scripts/magicbean_login.py",
-    "scripts/team_chat.py",
-    "scripts/test_requests.py",
-    "scripts/hardware_report.py",
     "scripts/rehost_tools.py",     # one-off: staged the archives, records where each came from
     "scripts/release.py",          # the release job's own tool, and its comments record what was removed
     "launcher/scripts/release.py",

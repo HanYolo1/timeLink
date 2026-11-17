@@ -1,4 +1,4 @@
-"""Game-free checks that timeLink's Windows files are made on the Linux runner (docs/forgejo-runners.md: there is no Windows
+"""Game-free checks that timeLink's Windows files are made on the Linux runner (RELEASING.md: there is no Windows
 one): no workflow asks for a Windows runner, which would queue forever and hold a release; the Linux llvm-mingw that compiles
 them is tools.lock's release; the Windows builder's job publishes for win-x64 and checks what it made, and tools.lock's
 dav1d (no dav1d is built in CI); and a tag whose commit CI released already skips only the checks that ship no file.

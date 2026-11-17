@@ -1,33 +1,17 @@
-"""Who reports problems: the GPU vendor, card class and OS named in the issue forms (docs/workflow.md, "Reach").
+"""Reading a bug report's hardware fields: the GPU's vendor and class, and the OS.
 
-    python -I scripts/hardware_report.py [--limit 1000] [--state all|open|closed]
+    python -I scripts/hardware_report.py <report.txt> [...]
 
-Reads MagicBeanDev/timeLink's issues on git.magicbean.dev through the Forgejo API, signed in as scripts/forge.py is (run
-`python -I scripts/forge.py login` once), and counts the "Graphics card and driver version" and "CPU, RAM and operating
-system" answers. It counts reports, not players: hardware where things break shows up more. Standard library only.
+The fields are the issue form's (.github/ISSUE_TEMPLATE/1-game-problem.yml): "Graphics card and driver version" and
+"CPU, RAM and operating system". tests/test_bug_report.py checks that what the game writes is read back correctly.
+
+This used to count the answers across the team's issues on git.magicbean.dev through the Forgejo API. That repository is
+not this fork's, and the fork's issues are on GitHub, so the counting is gone; the reading is what the bug report's own
+check needs. Standard library only.
 """
 import argparse
-import collections
-import os
 import re
 import sys
-import urllib.parse
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import forge  # noqa: E402  (same folder: its signed-in API client and REPO, MagicBeanDev/timeLink)
-
-
-def issues(state, limit):
-    """[{number, title, body}] of the repository's issues (not pull requests), newest first, at most limit"""
-    out, page = [], 1
-    while len(out) < limit:
-        items = forge.api("GET", "/repos/%s/issues?type=issues&state=%s&limit=50&page=%d"
-                          % (forge.REPO, urllib.parse.quote(state), page)) or []
-        out += [{"number": i["number"], "title": i.get("title") or "", "body": i.get("body") or ""} for i in items]
-        if len(items) < 50:
-            break
-        page += 1
-    return out[:limit]
 
 
 def section(body: str, name: str) -> str:
@@ -64,31 +48,16 @@ def os_of(text: str) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--limit", type=int, default=1000)
-    ap.add_argument("--state", default="all", choices=("all", "open", "closed"))
+    ap.add_argument("report", nargs="+", help="a report.txt from the game's Bug report")
     a = ap.parse_args()
-    try:
-        found = issues(a.state, a.limit)
-    except forge.ForgeError as e:
-        print(e, file=sys.stderr)
-        return 1
-    vendor, cls, oses = collections.Counter(), collections.Counter(), collections.Counter()
-    n = 0
-    for i in found:
-        gpu = section(i["body"], "Graphics card")
-        sysinfo = section(i["body"], "CPU, RAM and operating system")
-        if not gpu and not sysinfo:
-            continue
-        n += 1
-        v, c = classify(gpu + " " + i["title"])
-        vendor[v] += 1
-        cls[c] += 1
-        oses[os_of(sysinfo + " " + gpu + " " + i["title"])] += 1
-    print(f"{len(found)} issues read, {n} with hardware fields")
-    for title, counter in (("vendor", vendor), ("card class", cls), ("OS", oses)):
-        print(f"\n{title}:")
-        for k, v in counter.most_common():
-            print(f"  {k:36s} {v:5d}  {100 * v / max(n, 1):5.1f}%")
+    for path in a.report:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            body = f.read()
+        gpu = section(body, "Graphics card")
+        system = section(body, "CPU, RAM and operating system")
+        vendor, cls = classify(gpu)
+        print("%s\n  GPU: %s\n  vendor: %s, class: %s\n  OS: %s"
+              % (path, gpu or "(none)", vendor, cls, os_of(system + " " + gpu)))
     return 0
 
 

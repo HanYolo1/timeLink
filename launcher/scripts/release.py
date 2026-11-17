@@ -88,7 +88,7 @@ NIGHTLY = re.compile(r"^nightly-([0-9]{1,9})-([0-9a-f]{8})$")
 # (names that look like the game's files, a dump's, or NVIDIA's runtime: never uploaded, CONTRIBUTING.md)
 NOT_A_RELEASE_FILE = re.compile(r"(\.(nso|nca|nsp|xci|nsz|xcz|nup|nx|keys|bin)$|romfs|exefs|nvngx|dlss|streamline|^sl\..*\.dll$)",
                                 re.IGNORECASE)
-# (a Conventional Commit title: type(scope)!: description; scripts/forge.py checks pull request titles with the same types)
+# (a Conventional Commit title: type(scope)!: description; scripts/check_pr_description.py checks pull request titles with the same types)
 TITLE = re.compile(r"^(feat|fix|perf|refactor|docs|test|ci|build|chore|revert)(\([^)]*\))?(!)?: ")
 
 
@@ -271,7 +271,7 @@ def base_of(tag):
     return (k[0], k[1], k[2]) if k else None
 
 
-def check_tag(tag, existing, first_major, root=ROOT, main="origin/main", product=None):
+def check_tag(tag, existing, first_major, root=ROOT, main="github/main", product=None):
     """The problems with releasing tag ([] when none): its form, main, every release there is, and the bump"""
     problems = []
     if not is_version(tag, first_major):
@@ -712,7 +712,7 @@ def main(argv=None):
     s = sub.add_parser("check-tag")
     s.add_argument("tag")
     s.add_argument("--releases", help="the releases as Forgejo's API lists them (a JSON file), instead of asking it")
-    s.add_argument("--main", default="origin/main")
+    s.add_argument("--main", default="github/main")
     sub.add_parser("nightly-name")
     s = sub.add_parser("notes")
     s.add_argument("tag")

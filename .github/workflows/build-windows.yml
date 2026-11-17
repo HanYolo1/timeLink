@@ -8,7 +8,7 @@
 # version), so it is always made again. It is a workflow artifact; called by release.yml with the version's name, it is
 # the release's. dav1d for the AV1 movies is not built here: it is in tools.lock's CPM cache (the cpm package), and the
 # zip's job checks that package's dav1d under Wine.
-# Every job runs on the Linux runner (ubuntu-24.04): there is no Windows one (docs/forgejo-runners.md). The setup and the
+# Every job runs on the Linux runner (ubuntu-24.04): there is no Windows one (RELEASING.md). The setup and the
 # Vulkan back end are cross-compiled with llvm-mingw's Linux build of tools.lock's release (scripts/builder_package.py,
 # LINUX_LLVM_MINGW), the builder (command-line only) is published for win-x64 with EnableWindowsTargeting, and the files are checked as
 # Windows files (their PE headers, resources and runtime) and started under Wine. What only a Windows PC can check is in

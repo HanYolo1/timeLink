@@ -5,7 +5,7 @@
 # alone (--accept-nvidia-license), and nothing of it is uploaded or cached.
 # AMD FSR 4 (TIMELINK_FSR=1: AMD's MIT headers, nothing downloaded) is built in the same run: both engines share
 # vk_temporal.cpp.
-# It runs on the Linux runner (there is no Windows one, docs/forgejo-runners.md): RX_TARGET=windows, with llvm-mingw's Linux
+# It runs on the Linux runner (there is no Windows one, RELEASING.md): RX_TARGET=windows, with llvm-mingw's Linux
 # build of tools.lock's release (scripts/builder_package.py --host linux), as build-windows.yml builds the back end.
 name: Vulkan back end with NVIDIA DLSS
 

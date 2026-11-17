@@ -27,16 +27,16 @@ a change to the menu's code while it says None, a PR rebased onto a newer main t
 Needs disagreeing with Must be tested, and Not tested or Must be tested naming something the Measurements say was
 measured.
 
-A pull request still in work in progress (a title starting with WIP: or [WIP], Forgejo's draft mark, or the API's
-draft) is not checked: it passes with a notice listing what is left. The check applies once it is marked ready for
-review; forge.py pr ready runs the same check before it takes the WIP: off (--force goes on anyway).
+A pull request still in work in progress (a title starting with WIP: or [WIP], or the API's draft) is not checked: it
+passes with a notice listing what is left. The check applies once it is marked ready for review.
 
     python -I scripts/check_pr_description.py --file body.md [--title T] [--diff pr.diff] [--wip]
     python -I scripts/check_pr_description.py --pr 12 [--repo HanYolo1/timeLink] [--server https://github.com]
 
---pr reads the pull request, its title and its diff from the API (GitHub, or Forgejo), with the token in FORGEJO_TOKEN or
-GITHUB_TOKEN when one is set (a public repository needs none). Exit status 0 when it passes, 1 with the problems listed
-when it does not. Standard library only; .github/workflows/pr-description.yml runs it on every pull request.
+--pr reads the pull request, its title and its diff from the API, with the token in GITHUB_TOKEN or FORGEJO_TOKEN when
+one is set (a public repository needs none). Exit status 0 when it passes, 1 with the problems listed when it does not.
+Standard library only; .github/workflows/pr-description.yml runs it on every pull request, and ci.yml's title check
+imports TYPES and strip_wip from here.
 """
 import argparse
 import json
@@ -47,11 +47,10 @@ import urllib.request
 from pathlib import Path
 
 TEMPLATE = Path(__file__).resolve().parents[1] / ".github" / "pull_request_template.md"
-# Forgejo's default WORK_IN_PROGRESS_PREFIXES ([repository.pull-request] in app.ini), matched at the start of the title
-# whatever the case. The first is the one forge.py adds.
+# The work-in-progress prefixes, matched at the start of the title whatever the case.
 WIP_PREFIXES = ("WIP:", "[WIP]")
 NEEDS_MEASUREMENTS = "needs measurements"   # (the label of a PR sent back to WIP for its measurements)
-TYPES = ("feat", "fix", "perf", "refactor", "docs", "test", "ci", "build", "chore", "revert")   # (forge.py's TITLE_TYPES)
+TYPES = ("feat", "fix", "perf", "refactor", "docs", "test", "ci", "build", "chore", "revert")   # (a Conventional Commit's types)
 RISKS = ("low", "medium", "high")
 STATUS = ("Type", "Risk", "Tested on", "Needs")
 # The sections a description fills in; Issues may be left out, How to reproduce is for a fix

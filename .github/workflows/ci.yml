@@ -5,7 +5,7 @@
 # the game or MSVC says so, and why, in its own file (RUN_ALL_SKIP). No game data is involved.
 # The tests run in two parts at once (run_all.py --shard, split by tests/run_all_times.json): each part is one job, and
 # every check is in exactly one of them. The Windows Builder's checks (its compile, its --cli delivery) are in part 1, on
-# Linux with EnableWindowsTargeting. There is no Windows runner (docs/forgejo-runners.md): what only Windows can check
+# Linux with EnableWindowsTargeting. There is no Windows runner (RELEASING.md): what only Windows can check
 # (the suite on Windows' Python, MSVC's compile of the native checks) is in RELEASING.md, "Needs a Windows tester".
 # On Linux the C and C++ compiles go through ccache (the compilers in its PATH), with the cache main's runs leave
 # (actions/cache: read by every run, written only by a push to main, so a pull request never writes what another reads).
@@ -27,8 +27,8 @@ concurrency:
 
 jobs:
   # (a squash-merged pull request's title is its commit on main, a line of the next release's notes, and what decides the next
-  # version: a Conventional Commit, by scripts/forge.py's TITLE, which `forge.py pr create` checks too. Only the title is
-  # read, from the event: the pull request's code is not run for it)
+  # version: a Conventional Commit, by scripts/check_pr_description.py's TYPES. Only the title is read, from the event: the
+  # pull request's code is not run for it)
   title:
     name: Conventional Commit title
     if: github.event_name == 'pull_request'
@@ -45,16 +45,16 @@ jobs:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
           python3 -I - <<'PY'
-          import importlib.util, os, sys
-          spec = importlib.util.spec_from_file_location("forge", "scripts/forge.py")
-          forge = importlib.util.module_from_spec(spec)
-          spec.loader.exec_module(forge)
-          # (without Forgejo's work-in-progress prefixes, as forge.py and the description check take them off: forge.desc is
-          # scripts/check_pr_description.py, in the sparse checkout with forge.py)
-          title = forge.desc.strip_wip(os.environ["TITLE"])
-          if not forge.TITLE.match(title):
+          import importlib.util, os, re, sys
+          spec = importlib.util.spec_from_file_location("desc", "scripts/check_pr_description.py")
+          desc = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(desc)
+          # (without the work-in-progress prefixes, as the description check takes them off)
+          title = desc.strip_wip(os.environ["TITLE"])
+          pattern = re.compile(r"^(%s)(\([\w./-]+\))?!?: \S" % "|".join(desc.TYPES))
+          if not pattern.match(title):
               print("::error::the title must be a Conventional Commit, type(scope): description, with the type one of %s "
-                    "(CONTRIBUTING.md, Pull request titles): %r" % (", ".join(forge.TITLE_TYPES), title))
+                    "(CONTRIBUTING.md, Pull request titles): %r" % (", ".join(desc.TYPES), title))
               sys.exit(1)
           print("ok: %s" % title)
           PY

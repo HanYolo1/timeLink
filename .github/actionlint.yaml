@@ -1,11 +1,6 @@
-# actionlint's settings for the workflows here (ci.yml, "Workflow lint"): it knows GitHub, not Forgejo.
-self-hosted-runner:
-  # (docs/forgejo-runners.md: quick is the label of the short jobs' runner)
-  labels: [quick]
-paths:
-  .forgejo/workflows/*.yml:
-    ignore:
-      # (Forgejo takes a full URL in uses:, https://github.com/... or https://data.forgejo.org/...)
-      - 'specifying action ".+" in invalid format because owner and repo and ref should not be empty'
-      # (Forgejo's own context, as github)
-      - 'undefined variable "forgejo"'
+# actionlint's settings for the workflows here (ci.yml, "Workflow lint").
+#
+# This file used to carry two more things, both for the team's Forgejo: a `quick` self-hosted runner label, and ignore
+# rules for `.forgejo/workflows/*.yml`. Neither is here any more - the fork's CI is GitHub's, every job asks for
+# `ubuntu-latest` or `ubuntu-24.04`, and there is no `.forgejo/` directory. An empty config is kept so the lint step's
+# `-config-file` argument still names a file.

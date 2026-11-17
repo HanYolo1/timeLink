@@ -36,7 +36,7 @@ def tools_module():
 
 
 # llvm-mingw's Linux build, the same release as tools.lock's (tests/test_windows_on_linux.py keeps the two the same): CI has no
-# Windows runner (docs/forgejo-runners.md), so the setup, the Windows Vulkan back end and dav1d are compiled on Linux with it.
+# Windows runner (RELEASING.md), so the setup, the Windows Vulkan back end and dav1d are compiled on Linux with it.
 # (version, folder in the archive, SHA-256, size, URL), as a tools.lock line has them
 LINUX_LLVM_MINGW = ("20261104", "llvm-mingw-20261104-ucrt-ubuntu-22.04-x86_64",
                     "919380403de87dca3c581c2053230cd298af5e891286628ba0613b7fed370926", 84104244,
