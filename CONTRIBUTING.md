@@ -239,6 +239,12 @@ for scripted input, screenshots, frame dumps and profiles are in the development
 
   `{name}` is a tool the runner finds (`cxx`, `vulkan_headers`, `spirv_headers`, `spirv_val`, `glslang`, `dotnet`).
 - Keep it fast, and make it pass on Linux and Windows where it can.
+- **Name a compiled fixture something descriptive, not a bare number.** A test that compiles a program into `%TEMP%` and
+  runs it is exactly what a dropper looks like, and Windows Defender's heuristic has flagged one: `0.exe` in a
+  `dlss-sdk-cache-*` folder came back as `Trojan:Win32/Bearfoos.A!ml` (the `!ml` means a guess, not a signature). It was
+  `tests/test_dlss_sdk_cache.py`'s own probe, whose `main()` only returns a number. `fixture.exe`, `harness.exe` and
+  `dlss-cache-probe-0.exe` are not flagged; `0.exe` was. A false positive costs a contributor an afternoon and makes
+  them think the project shipped them a trojan, so avoid the shape.
 - For a renderer or runtime fix, say what you saw before and after, on which GPU and driver, and where in the game.
 
 ## Code and data conventions

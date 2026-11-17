@@ -57,7 +57,9 @@ def main():
         def result(job):
             key, (_, source, _, compile_flags, _) = job
             if key not in cache:
-                exe = root / (str(len(cache)) + (".exe" if os.name == "nt" else ".out"))
+                # (a descriptive name, not "0.exe": an unsigned program in %TEMP% named with a bare number is what a
+                # dropper looks like, and Defender's heuristic flagged this one as Trojan:Win32/Bearfoos.A!ml)
+                exe = root / ("dlss-cache-probe-%d%s" % (len(cache), ".exe" if os.name == "nt" else ".out"))
                 subprocess.run([a.cxx, *compile_flags, source, "-o", str(exe)], check=True, **flags)
                 cache[key] = exe
             return subprocess.run([str(cache[key])], check=False, **flags).returncode
