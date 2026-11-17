@@ -24,6 +24,20 @@ has a `user/` of its own: the game moves an old one into the shared folder by it
 game also finds that folder by itself; on Windows a build started on its own (`bin\timeLink.exe` double-clicked) still keeps
 its saves in its own folder's `user\`, and the launcher brings them in at its next start (below).
 
+The **Saves** page, with no saves yet and with six:
+
+<p align="center">
+  <img src="screenshots/saves-empty.png" alt="The Saves page with no saves: Start where you left off, and the way in from an emulator or Hookshot" width="480">
+  <img src="screenshots/saves-layout.png" alt="The Saves page with six saves, each with its slot and when it was saved" width="480">
+</p>
+
+More than fits the page scrolls (*Other save locations* under the list names every emulator a save was found in):
+
+<p align="center">
+  <img src="screenshots/saves-slots-scrolled.png" alt="The Saves page scrolled past the first slots: Slot 6 to Slot 14" width="480">
+  <img src="screenshots/saves-sources.png" alt="The Saves page with Other save locations open, naming NX2navi" width="480">
+</p>
+
 The game settings (`timeLink_options.ini`: the Insert menu's choices and your controls) are in the same folder once a build
 that keeps them there has run. Before Play, a build that has none of its own, such as an update into a new folder, gets the
 newest settings of your other versions, its own Compile shaders choice kept.

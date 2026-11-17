@@ -45,6 +45,17 @@ to it too.
 - **Packages are pinned.** `Directory.Packages.props` pins each package exactly and `packages.lock.json` records what
   they bring; CI restores in locked mode. A package change updates the lock files in the same pull request.
 - **Two platforms.** Windows and Linux (and the Steam Deck) from the same code; keep paths portable and UTF-8.
+- **The screenshots are the launcher's own, and go stale quietly.** `docs/images/` (the home, Settings, and the two
+  Hookshot imports, shown in [README.md](README.md)) and `docs/screenshots/` (the Saves page, shown in
+  [docs/saves.md](docs/saves.md)) are of a running launcher: nothing generates them and no test can tell that one has
+  drifted from the window it shows. Take them again in a change that moves a screen, a word on it or the logo. What they
+  must be taken from: a launcher home and a user profile of their own (`TIMELINK_LAUNCHER_HOME`, `USERPROFILE`,
+  `APPDATA` and `LOCALAPPDATA` pointed at a scratch folder), so no real build, save or folder of yours is in the picture;
+  `docs/images/` at 1100x720 or 960x600, `docs/screenshots/` at 960x600. Nothing of a real copy of the game may be in one
+  (the Files step lists every `.nup` it found on the PC, with its folder), so a screen that shows a real dump is not
+  published. The four requirements states (`requirements-*.png`) and the Linux Saves page (`saves-linux.png`) were
+  removed for that reason: the states come from the hardware the launcher is running on, with nothing to override them,
+  so they cannot be reproduced on one PC and would always be at least half wrong.
 
 ## Commits and pull requests
 
