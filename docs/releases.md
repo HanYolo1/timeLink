@@ -2,7 +2,7 @@
 
 How timeLink and the timeLink Launcher are released on GitHub, and how the launcher finds, checks and installs
 them. Both are released from one repository, [HanYolo1/timeLink](https://github.com/HanYolo1/timeLink): the launcher
-is `launcher/` there (vendored, [VENDORED.md](../VENDORED.md)). How to make a release, step by step, is in **RELEASING.md**
+is `launcher/` there (vendored, [VENDORED.md](../launcher/VENDORED.md)). How to make a release, step by step, is in **RELEASING.md**
 (one file, covering both products).
 
 timeLink's numbers start at **v0.1.0**, and the launcher's do too: one tag names both products' releases. Nothing here reads or writes
