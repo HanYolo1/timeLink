@@ -25,4 +25,4 @@ can test something, say so on the issue for that change and report what you saw,
 ## Improve the documentation or the code
 
 Read the [contribution guide](../CONTRIBUTING.md) and the [development guide](development.md), then send a pull request
-on [GitHub](https://github.com/HanYolo1/timeLink). Questions are welcome on Discord.
+on [GitHub](https://github.com/HanYolo1/timeLink). Questions are welcome as [GitHub issues](https://github.com/HanYolo1/timeLink/issues): timeLink has no Discord or other chat.
