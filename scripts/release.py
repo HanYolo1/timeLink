@@ -185,6 +185,15 @@ def since_fork(root=ROOT):
     return since if since and git("cat-file", "-e", since + "^{commit}", root=root, check=False) is not None else None
 
 
+def this_repository(url, repo=None):
+    """Whether a remote's URL is this repository on GitHub (https or ssh, with or without .git, any letter case): the repo of
+    a product here (they are all one repository: the launcher is its launcher/ folder), or the one given"""
+    repos = {repo.lower()} if repo else {p["repo"].lower() for p in PRODUCTS.values()}
+    m = re.match(r"^(?:https?://(?:[^@/]+@)?github\.com/|ssh://git@github\.com/|git@github\.com:)([^/]+/[^/]+?)(?:\.git)?/?$",
+                 (url or "").strip(), re.I)
+    return bool(m) and m.group(1).lower() in repos
+
+
 def after_fork(tag, root=ROOT, since=None):
     """Whether tag is a release of this branch: on a commit at or after the fork, and reachable from main.
 
@@ -199,12 +208,16 @@ def after_fork(tag, root=ROOT, since=None):
         return True
     if since is not None and git("merge-base", "--is-ancestor", since, commit, root=root, check=False) is None:
         return False
-    # (the branch a release is made from. `origin` is the upstream repository in this fork, and its main carries upstream's
-    # own v2/v3 tags - a tag there is a real release of *that* repository, not of this one, so it must not count. The
-    # fork's main is `github/main` here, or whatever remote the caller's main is on; refs/heads/main is the local one.)
-    candidates = ["refs/heads/main"] + [r for r in
-                  git("for-each-ref", "--format=%(refname)", "refs/remotes/*/main", root=root, check=False).split()
-                  if r and not r.startswith("refs/remotes/origin/")]
+    # (the branch a release is made from: the local main, or the main of a remote that is this repository, whatever the
+    # remote is called. timeLink is a hard fork: its clones and CI's checkout call it `origin`. A remote that points
+    # anywhere else, an upstream repository a clone still carries, has its own v2/v3 tags on its main - real releases of
+    # *that* repository, not of this one - so it does not count. This once skipped `origin` by name, from when origin was
+    # the upstream repository: on a checkout with no local main (CI's) it then found no main and refused every release.)
+    candidates = [r for r in ["refs/heads/main"] if git("rev-parse", "--verify", "-q", r, root=root, check=False)]
+    for ref in (git("for-each-ref", "--format=%(refname)", "refs/remotes/*/main", root=root, check=False) or "").split():
+        remote = ref[len("refs/remotes/"):-len("/main")]
+        if this_repository(git("remote", "get-url", remote, root=root, check=False)):
+            candidates.append(ref)
     if not candidates:
         return True   # (no main to compare against: keep the old answer rather than refuse every tag)
     # (git() returns "" for a command that succeeded with no output, and None for one that failed: `merge-base

@@ -41,8 +41,8 @@ python -I scripts/release.py next          # the number the commits call for, th
 python -I scripts/release.py channels      # what stable, rc and nightly offer now, as the launcher reads them
 ```
 
-The remote is called `github` here (this fork pushes to `https://github.com/HanYolo1/timeLink.git`). Only maintainers
-can push tags.
+The remote is `origin` here, `https://github.com/HanYolo1/timeLink.git`; `release.py` knows timeLink's main by that URL,
+whatever the remote is called, and counts no other repository's tags. Only maintainers can push tags.
 
 ## A nightly
 
