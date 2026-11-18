@@ -30,8 +30,9 @@ mkdir -p "$OUT"
 OUT=$(cd "$OUT" && pwd)
 WORK=$(mktemp -d)
 # (a single-file publish for a system adds that system's runtime packs to the restore, which packages.lock.json, made for the plain
-# build CI checks, does not list; the restore writes them in. The files are put back as they were: the packages themselves are
-# pinned exactly in launcher/Directory.Packages.props)
+# build CI checks, does not list; the restore writes them in. The files are put back as they were afterwards. What the publish
+# downloads is checked instead: it restores into a package folder of its own, empty before it, and scripts/check_packages.py
+# holds every package there to the content hash packages.lock.json or publish-packages.lock pins, so nothing unpinned is shipped)
 locks=(App/packages.lock.json Core/packages.lock.json)
 for f in "${locks[@]}"; do mkdir -p "$WORK/locks/$(dirname "$f")"; cp "$ROOT/$f" "$WORK/locks/$f"; done
 cleanup() {
@@ -39,6 +40,13 @@ cleanup() {
     rm -rf "$WORK"
 }
 trap cleanup EXIT
+export NUGET_PACKAGES="$WORK/packages"
+mkdir -p "$NUGET_PACKAGES"
+# (the runtime packs follow the SDK: CI installs the one scripts/dotnet-sdk.json names. Another one is only a warning here;
+# check_packages.py fails the build if its packs are not the pinned ones)
+sdk=$("$DOTNET" --version)
+want_sdk=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["sdk"]["version"])' "$ROOT/scripts/dotnet-sdk.json")
+[ "$sdk" = "$want_sdk" ] || echo "package.sh: the .NET SDK is $sdk, not $want_sdk (scripts/dotnet-sdk.json)" >&2
 
 # (a release's MSBuild version is its tag without the v; a nightly keeps the projects' own, its tag says which it is)
 version=()
@@ -80,6 +88,9 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
 PY
 
 publish linux-x64 "$WORK/linux-x64"
+# (before anything is packed: every package the publishes downloaded, against the lock files as committed)
+python3 -I "$ROOT/scripts/check_packages.py" "$NUGET_PACKAGES" "$ROOT/publish-packages.lock" \
+    "$WORK/locks/App/packages.lock.json" "$WORK/locks/Core/packages.lock.json"
 app="$WORK/AppDir"
 mkdir -p "$app/usr/bin"
 cp "$WORK/linux-x64/timeLinkLauncher" "$app/usr/bin/TimeLinkLauncher"
