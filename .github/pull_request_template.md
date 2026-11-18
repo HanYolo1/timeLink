@@ -3,14 +3,14 @@
 <!-- The status line above is what a reviewer reads first: the title's type, how much could break, where you ran it and
      where it still has to run. E.g. "**Type:** fix · **Risk:** low · **Tested on:** Linux, RX 6700 XT ·
      **Needs:** Windows, any GPU".
-     Open as work in progress (forge.py pr create adds "WIP: ") and mark it ready (forge.py pr ready) once every
+     Open as a draft (gh pr create --draft) and mark it ready (gh pr ready) once every
      section and every Everyone box is done. Keep this description current, and post a comment for each new commit,
      measurement or test run: CONTRIBUTING.md, "Commits and pull requests". -->
 
 ## Why
 
 <!-- The reason for this PR, first, in plain words a player could follow: what goes wrong or what is missing, and for
-     whom. Not the implementation. Search the issue tracker (forge.py issue list, or the web page) and link every
+     whom. Not the implementation. Search the issue tracker (gh issue list, or the web page) and link every
      issue that fits: "Fixes #N" closes it on merge, "See #N" links it.
      E.g. "At 4K the pause menu's text runs off the right edge, so the last option of each row can't be read.
      Fixes #42." -->
