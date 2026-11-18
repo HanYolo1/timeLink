@@ -702,7 +702,7 @@ On Windows the launcher runs the same `make_game.py`. Note the date, the nightly
 
 Every release ships a list of pipelines, merged from the sources in `assets/pipeline_states/`:
 
-- `tour.bin.xz`, which only the pipeline tour (`scripts/pipeline_tour.py`) writes, replaced whole each time;
+- `tour.bin.xz`, which only the pipeline tour writes (`python -I nx2/pipeline_states.py tour`), replaced whole each time;
 - `contrib/<name>.bin.xz`, one per contributed list, which people add.
 
 Each has a note beside it (`<name>.md`) that says who recorded it, on what GPU, driver, build and settings, and the

@@ -193,7 +193,7 @@ dump, the runtime made game-neutral, the stage-1 tools checked on MKW's dump as 
 - **S1:** the lift: 295,178 functions, 17,668,191 instructions, 100.0000 % translated (after UDOT), 1,475 jump
   tables, no BR without one. Instruction test: 742 forms, 44,172 cases, all pass.
 - **S2:** the standalone lift: 294,450 functions in 57 chunks (1.4 GB of C), 485 HLE functions, 243 OS imports
-  stubbed, 22 sdk NVN functions routed to `host/nvn2.c`.
+  stubbed, 22 sdk NVN functions routed to `host/nvn_native.c` (`nvn2_dispatch`).
   The build links (`timeLink.exe`, 426 MB; ~25 min for a full build with 4 jobs, a few minutes after a relift).
   On 2026-11-13 a player's build of nightly-56 compiled in about 5 minutes with 24 jobs, and took 13.5 to 14 minutes in all
   ([build times](development.md#build-times)).
