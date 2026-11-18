@@ -45,8 +45,8 @@ chain.
 
 > [!IMPORTANT]
 > This repository **does not contain the game, keys or an executable**, and it does not explain how to get them. You
-> need your own copy. Everything the build creates (`timeLink.exe`, the generated code, the shader caches and your
-> saves) comes from your game and stays on your PC. Never share those files.
+> need your own legally obtained copy. Everything the build creates (`timeLink.exe`, the generated code, the shader caches and your
+> saves) comes from your game and stays on your PC. Never share those files. Do not ask for a copy.
 
 ## Project status
 
