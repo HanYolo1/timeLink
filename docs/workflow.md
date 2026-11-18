@@ -14,11 +14,9 @@ follow.
 |---|---|
 | GitHub issues (game problem, build problem, idea) | the record: version, hardware, place in the game, `timeLink_log.txt` |
 | Tracking issues (`[Tracking] ...`) | one per family of reports (AMD rendering, no mesh shaders, Linux, VRAM, missing walls, FPS, ...) |
-| Discord #bug-reporting (forum) | first reports, often without a log; turn the reproducible ones into issues |
-| Discord #dev-work | claims, progress, review requests |
-| Matrix `#agent-updates:magicbean.dev` | the same, posted by agents (`scripts/team_chat.py`, sign-in with Discord); copied to Discord #dev-agents |
-| Matrix `#test-requests:magicbean.dev` | PRs that need a test on other hardware, who is testing them and the results ([test-requests.md](test-requests.md), `scripts/test_requests.py`); copied to Discord |
-| Discord #dev-stuff | security scan results (Syntak): handled before anything else |
+| Comments on issues and PRs | claims, progress, review requests: there is no chat, so the issue is where work is claimed |
+| GitHub label `testing wanted` | PRs that need a test on other hardware; results are comments on the PR ([test-requests.md](test-requests.md)) |
+| Private security reports (the repository's *Security* tab) | vulnerabilities, reported privately: handled before anything else |
 | CI | a red check on `main` is everyone's first problem |
 
 ## 2. Priority: what to work on first
@@ -75,7 +73,7 @@ problem with a log outranks an NVIDIA one of the same severity.
 
 1. **Triage.** Reproduce if you can. Find the tracking issue it belongs to, or open the issue (with the log). Score it
    (section 2).
-2. **Claim.** Before starting, say so in Discord #dev-work and on the issue: what, why (the score), and on what
+2. **Claim.** Before starting, say so on the issue (a comment, and the assignee if you can set it): what, why (the score), and on what
    hardware you can test. Search open PRs first: two people fixing the same thing is the most common waste here. Drop
    a claim out loud when you stop.
 3. **Fix.** A branch from current `main`, one topic. Find the cause before the fix: a log, a trace, a measurement.
@@ -89,13 +87,13 @@ problem with a log outranks an NVIDIA one of the same severity.
    - Say what you could not test (another OS, another vendor, real input devices), and open a test request for
      what others must test: the description's Testing section
      ([CONTRIBUTING.md](../CONTRIBUTING.md#commits-and-pull-requests)).
-5. **Pull request.** Open it as work in progress (`forge.py pr create`, a `WIP:` title) and fill in
+5. **Pull request.** Open it as a draft (`gh pr create --draft`) and fill in
    [the template](../.github/pull_request_template.md) as
-   [CONTRIBUTING.md](../CONTRIBUTING.md#commits-and-pull-requests) says. Mark it ready (`pr ready`) only once it is
-   measured and every *For everyone* box is ticked. Link the issue and the tracking issue. Post the link in #dev-work.
+   [CONTRIBUTING.md](../CONTRIBUTING.md#commits-and-pull-requests) says. Mark it ready (`gh pr ready`) only once it is
+   measured and every *For everyone* box is ticked. Link the issue and the tracking issue, and post the PR's link on the issue.
 6. **Review.** Reviewers take PRs marked ready, not WIP ones; one that needs more work goes back to WIP (with the label
    `needs measurements` when that is what it lacks). Answer every comment in the PR. For each new commit, measurement
-   or test run, update the description and comment what changed (`pr update`). Rebase onto `main` before asking for
+   or test run, update the description and comment what changed (`gh pr edit`, `gh pr comment`). Rebase onto `main` before asking for
    review again: a PR that does not merge cleanly waits.
 7. **Merge and release.** Release branches are merged back into `main` right after a release, so that `main`'s builds
    carry the release's fixes and the right version string (`git describe` only sees tags on `main`'s history).
@@ -104,12 +102,12 @@ problem with a log outranks an NVIDIA one of the same severity.
 
 ## 4. The security lane
 
-Security comes first: a scan result in #dev-stuff is triaged before other work.
+Security comes first: a private report or a scan result is triaged before other work.
 
 - Check every finding against the code; post the finding and the verdict for each (real / false positive, and why).
 - Fix the real ones in a PR, marked as security in the title.
 - Record false positives in the scanner as not exploitable, with the reason, so the next scan shows only new ones.
-- Never paste secrets, tokens or the scanner's private links in public channels.
+- Never paste secrets, tokens or the scanner's private links in a public issue, PR or comment.
 
 ## 5. Keeping the board readable
 
@@ -120,9 +118,10 @@ next thing to work on is the top of `is:open label:reproduced -label:claimed sor
 ## For agents
 
 - Start here, then AGENTS.md, then CONTRIBUTING.md.
-- Pick from the top of [docs/worklist.md](worklist.md); add a scored row there for a new problem you find.
+- Pick from the top of [docs/worklist.md](worklist.md); add a scored row there for a new problem you find. When it is
+  empty, score the open GitHub issues into it first.
 - Prefer problems you can reproduce on the hardware you run on.
-- Claim before working, report progress where you claimed, and post the PR there. Agents post to the Matrix room
-  `#agent-updates:magicbean.dev` (AGENTS.md, *Team updates*): read it before claiming.
+- Claim before working (a comment on the issue), report progress where you claimed, and post the PR there. Read the
+  issue and the open PRs before claiming (AGENTS.md, *Pick and claim work*).
 - Measure, don't guess: every claim about speed or correctness carries the log line, the test or the screenshot.
 - Never open a PR whose tests you have not run, or that has not been rebased onto `main`.

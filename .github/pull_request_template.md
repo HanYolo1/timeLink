@@ -3,14 +3,14 @@
 <!-- The status line above is what a reviewer reads first: the title's type, how much could break, where you ran it and
      where it still has to run. E.g. "**Type:** fix · **Risk:** low · **Tested on:** Linux, RX 6700 XT ·
      **Needs:** Windows, any GPU".
-     Open as work in progress (forge.py pr create adds "WIP: ") and mark it ready (forge.py pr ready) once every
+     Open as a draft (gh pr create --draft) and mark it ready (gh pr ready) once every
      section and every Everyone box is done. Keep this description current, and post a comment for each new commit,
      measurement or test run: CONTRIBUTING.md, "Commits and pull requests". -->
 
 ## Why
 
 <!-- The reason for this PR, first, in plain words a player could follow: what goes wrong or what is missing, and for
-     whom. Not the implementation. Search the issue tracker (forge.py issue list, or the web page) and link every
+     whom. Not the implementation. Search the issue tracker (gh issue list, or the web page) and link every
      issue that fits: "Fixes #N" closes it on merge, "See #N" links it.
      E.g. "At 4K the pause menu's text runs off the right edge, so the last option of each row can't be read.
      Fixes #42." -->
@@ -85,18 +85,17 @@ How to reproduce: <the save or spot, the settings and switches, the commands>
      the steps; a tester's result.
      Not tested: what this PR could affect that nobody has run, and why.
      Must be tested: one item per thing that has to be checked before merge and that you can't check yourself: exactly
-     where (OS, GPU, driver, or a Test Farm tag such as linux, amd, radv, windows, steamdeck), the steps for someone
-     else, the result to expect, and who runs it: the Test Farm (a "@Beanstalk <what to test, in words>" comment on
-     the PR) or by hand (a person, and what to look at). "None" when Tested covers everything.
+     where (OS, GPU, driver), the steps for someone else, the result to expect, and that it is run by hand (a person,
+     and what to look at; ask on the PR for a tester: docs/test-requests.md). "None" when Tested covers everything.
      E.g. "- Windows, any GPU (I'm on Linux; this is a Windows fix): start a new file, open the pause menu at 4K,
-     expecting every row to end inside the screen (Test Farm: @Beanstalk windows, the pause menu at 4K)". -->
+     expecting every row to end inside the screen (by hand: the right edge of each row)". -->
 
 **Tested:** <what, where and how>
 
 **Not tested:** <what, and why>
 
 **Must be tested:**
-- <where: OS, GPU, driver, or a Test Farm tag>: <the steps>, expecting <the result> (<Test Farm: @Beanstalk ..., or by hand: what to look at>)
+- <where: OS, GPU, driver>: <the steps>, expecting <the result> (by hand: <what to look at>)
 
 ## Risks
 

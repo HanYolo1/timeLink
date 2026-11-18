@@ -41,8 +41,8 @@ python -I scripts/release.py next          # the number the commits call for, th
 python -I scripts/release.py channels      # what stable, rc and nightly offer now, as the launcher reads them
 ```
 
-The remote is called `forge` here (timeLink's `scripts/forge.py login` sets it up; in the launcher's checkout, add
-`https://github.com/HanYolo1/timeLink/tree/main/launcher.git` under that name). Only maintainers can push tags.
+The remote is `origin` here, `https://github.com/HanYolo1/timeLink` (the launcher lives in its `launcher/` folder). Only
+maintainers can push tags.
 
 ## A nightly
 
@@ -62,8 +62,8 @@ Players on the nightly channel keep the last good nightly until then.
 
 ## A release candidate
 
-1. **Preview.** Run `python -I scripts/release.py next` on an up-to-date `main` (`jj git fetch --remote forge` and
-   `jj new main@forge`, or `git fetch forge` and `git switch --detach forge/main`). It prints:
+1. **Preview.** Run `python -I scripts/release.py next` on an up-to-date `main` (`jj git fetch --remote origin` and
+   `jj new main@origin`, or `git fetch origin` and `git switch --detach origin/main`). It prints:
    - the number the commits since the last stable call for (feat: minor, fix and perf: patch, `!` or `BREAKING CHANGE:`:
      major; the first release: `v0.1.0` for both products);
    - the next tag, e.g. `v0.2.0-rc.1` (or `-rc.2` when `-rc.1` is out);
@@ -75,12 +75,12 @@ Players on the nightly channel keep the last good nightly until then.
 
    ```sh
    # git
-   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" forge/main
-   git push forge v0.2.0-rc.1
+   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" origin/main
+   git push origin v0.2.0-rc.1
    # jj: jj does not push tags, so the tag is made and pushed with git (a jj clone is colocated with git)
-   jj git fetch --remote forge
-   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" "$(jj log -r main@forge --no-graph -T commit_id)"
-   git push forge v0.2.0-rc.1
+   jj git fetch --remote origin
+   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" "$(jj log -r main@origin --no-graph -T commit_id)"
+   git push origin v0.2.0-rc.1
    ```
 
    Or in the web UI: *Releases* > *New release*. Type the tag (`v0.2.0-rc.1`), choose the target `main`, and press
@@ -112,10 +112,10 @@ When an rc has been tested and nothing blocks it, tag **the same commit** as sta
 
 ```sh
 git tag -a v0.2.0 -m "timeLink v0.2.0" v0.2.0-rc.2^{}
-git push forge v0.2.0
+git push origin v0.2.0
 # jj: the commit of the rc tag
 git tag -a v0.2.0 -m "timeLink v0.2.0" "$(jj log -r 'v0.2.0-rc.2' --no-graph -T commit_id)"
-git push forge v0.2.0
+git push origin v0.2.0
 ```
 
 Web UI: *New release*, tag `v0.2.0`, target: the rc's commit, **Create tag**.
@@ -149,13 +149,13 @@ Players should not get a version that breaks:
 
 ## When CI refuses a tag
 
-The *version* step of `release.yml` says why. Nothing was built. Delete the tag (`git push forge :refs/tags/<tag>` and
+The *version* step of `release.yml` says why. Nothing was built. Delete the tag (`git push origin :refs/tags/<tag>` and
 `git tag -d <tag>`, or *Tags* > delete in the web UI), then:
 
 | The error says | Do |
 |---|---|
 | `is not vX.Y.Z or vX.Y.Z-rc.N` | A typo, or timeLink below v3 / the launcher below v1: tag the right name |
-| `is not on main` | Tag a commit of `main` (`forge/main`), not of a branch |
+| `is not on main` | Tag a commit of `main` (`origin/main`), not of a branch |
 | `is not above every release there is` | The number is taken or lower: `release.py next` gives the next one |
 | `is lower than the commits since vX call for: at least vY` | A `feat` or a breaking change came in: tag `vY` (or `vY-rc.1`) |
 | `no tag ... here` | The tag was pushed without its commit: push `main` first |
