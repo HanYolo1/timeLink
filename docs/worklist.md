@@ -28,6 +28,7 @@ rather than carried over. Git history has it.)
 
 | Score | Problem | S | Reach | Conf. | Owner | Links |
 |---:|---|---|---:|---:|---|---|
+| 0.72 | Committed memory grows all session on Windows (10 to 23.7 GB in an hour, RTX 5070 Ti, 32 GB RAM) until the commit rule squeezes the textures' budget from 6 GB to about 1 GB; a longer session risks an out-of-memory exit. Part: the textures' startup blocks kept for the whole run (fix in review). Open: pipelines built in play, render-target block fragmentation, write-back shadows | S2 | 0.6 | 0.4 | HanYolo1 | #6; #7 |
 
 ## Fixed, waiting for a release
 
