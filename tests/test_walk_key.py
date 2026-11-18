@@ -117,6 +117,7 @@ static int64_t script_end_ms;
 static int64_t script_elapsed_ms(int64_t now) { (void)now; return 0; }
 static void scripted_input(uint64_t *b, int32_t s[4]) { (void)b; (void)s; }
 int hos_control_input(uint64_t *buttons, int32_t stick[4]) { (void)buttons; (void)stick; return 0; }   /* (host/control.c: off) */
+void hos_oot_autoload_input(void) {}   /* (host/oot_autoload.c, the Skip title screen row: off; tests/test_skip_title.py) */
 static int game_in_front(void) { return front; }
 static volatile LONG pad_raw_now;
 static int pad_after_menu;   /* (main shares this state with the ocarina note word) */

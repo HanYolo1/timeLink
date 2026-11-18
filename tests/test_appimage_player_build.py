@@ -146,7 +146,10 @@ class TheChecksAreWired(unittest.TestCase):
         self.assertNotIn("timeLink_vk.so", apprun)
         script = (ROOT / "scripts/linux/appimage.sh").read_text(encoding="utf-8")
         self.assertNotIn("RX_VK_ONLY", script)
-        self.assertNotIn("usr/lib/timeLink", script)
+        # (no built renderer in the image: nothing written to the AppDir's usr/lib, where a prebuilt timeLink_vk.so went. The build
+        # tools' own usr/lib/timeLink is under $TOOLS, outside the image, and is read, not shipped)
+        self.assertNotRegex(script, r'\$\{?APPDIR\}?/usr/lib\b')
+        self.assertNotRegex(script, r'(?m)^(?!.*\$TOOLS).*usr/lib/timeLink')
         self.assertRegex(script, r'\ncp -a gpu/vk gpu/compat gpu/third_party "\$T/gpu/"\n')
         self.assertRegex(script, r'\ncp -a nx2 host scripts LICENSE README.md assets tools.lock "\$T/"\n')
         build = (ROOT / "nx2/build.py").read_text(encoding="utf-8")

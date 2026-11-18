@@ -1504,7 +1504,7 @@ VK_PROFILE_SHIPPED = os.path.join("assets", "profiles", VK_PROFILE + ".xz")
 VK_PROFILE_UNPACKED = "timeLink_vk.shipped.profdata"
 
 
-def vk_profile_for(work, environ, readable=None, root=ROOT):
+def vk_profile_for(work, environ, readable=None, root=None):
     """The renderer's profile nx2/build.py is given (RX_VK_PGO), or None. The checkout's work/timeLink_vk.profdata when it has one
     (a developer's recording, copied to <work> by main), else the committed assets/profiles/timeLink_vk.profdata.xz, unpacked
     into <work>; either only when this compiler reads it (on every system: the committed one comes from another LLVM than
@@ -1512,6 +1512,7 @@ def vk_profile_for(work, environ, readable=None, root=ROOT):
     the renderer is built as it always was. After ProjectReLink's make_game.py"""
     if environ.get("RX_VK_PGO"):
         return None
+    root = root or ROOT   # (read at the call: a default of ROOT is fixed when the module loads, past a test's or a caller's change)
     own = os.path.join(work, VK_PROFILE)
     if os.path.exists(os.path.join(root, "work", VK_PROFILE)) and os.path.exists(own):
         prof = own

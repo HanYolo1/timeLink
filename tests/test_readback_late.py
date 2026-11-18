@@ -8,6 +8,7 @@ The wait itself, with and without a rule, is run in tests/test_readback_part.py.
 python -I -B tests/test_readback_late.py [--cxx g++]
 """
 import argparse
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -63,7 +64,9 @@ def main():
         raise SystemExit("invalidate no longer asks the late rule before its wait")
     # (the by-range notes take a lock at every readback: only with their switch)
     notes = inv[inv.index('static const bool log_ranges = env_on("RX_VK_LOG_READBACK_RANGES");'):]
-    if not notes.startswith('static const bool log_ranges = env_on("RX_VK_LOG_READBACK_RANGES");\n            if (log_ranges)\n                rb_range_note('):
+    # (the if, with or without a block, and rb_range_note first inside it: nothing of the notes runs without the switch)
+    if not re.match(r'static const bool log_ranges = env_on\("RX_VK_LOG_READBACK_RANGES"\);\s*if \(log_ranges\)\s*\{?\s*rb_range_note\(',
+                    notes):
         raise SystemExit("the readbacks are noted by range without RX_VK_LOG_READBACK_RANGES")
     if "if (log_ranges) rb_ranges_log();" not in notes[:1200]:
         raise SystemExit("the by-range log is written without RX_VK_LOG_READBACK_RANGES")
