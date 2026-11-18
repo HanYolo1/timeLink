@@ -51,14 +51,17 @@ def check_source(source):
     # (the textures' own: no minimum, VMA would keep those blocks for the whole run; each held by a placeholder instead, which
     # Windows' commit limit can take back: texture_reserve.h, tests/test_texture_reserve.py)
     need("vk_vma.cpp: textures_pool()", block(vma, "VmaPool textures_pool() {"),
-         ["make_pool(pi, 0, texture_pool);", "hold_blocks(type, blocks_at_start(true))", "made at the start"])
+         ["make_pool(pi, 0, texture_pool);", "hold_blocks(type, blocks_at_start(true))", "made at the start",
+          'if (env_on("RX_VK_KEEP_TEXTURE_RESERVE")) {',
+          "texture_pool_min_kept = make_pool(pi, blocks_at_start(true), texture_pool) * kImageBlock;"])
     # (no room for the blocks: the pool empty, as before them)
     need("vk_vma.cpp: make_pool()", block(vma, "static size_t make_pool("),
          ["pi.minBlockCount = n;", "pi.minBlockCount = 0;"])
     # (and a compaction run does not start for free space VMA keeps)
     need("vk_vma.cpp: textures_pool_usage()", block(vma, "bool textures_pool_usage("),
          ["const uint64_t held = texture_held.bytes();",
-          "texture_reserve::free_with_held(st.blockBytes, st.allocationBytes, held)", "*kept_bytes = held;"])
+          "texture_reserve::free_with_held(st.blockBytes, st.allocationBytes, held)",
+          "*kept_bytes = held + texture_pool_min_kept;"])
     need("vk_texture.cpp: compact_step()", block(tex, "void compact_step(uint64_t completed)"),
          ["textures_pool_usage(&block_bytes, &free_bytes, &kept)",
           "vram_compact::returnable(block_bytes, free_bytes, kept) < vram_compact::run_from(min_free, compact.pressed)"])
@@ -113,14 +116,18 @@ const uint64_t kImageBlock = 128ull << 20;
 texture_reserve::Held<VmaAllocation> texture_held(kImageBlock);
 Alloc placeholders[32]{};
 size_t placeholder_n;
+uint64_t texture_pool_min_kept;
 const char* compact_env;
 const char* prealloc_env;
+const char* keep_env;
 const char* test_getenv(const char* name) {
     if (!std::strcmp(name, "RX_VK_COMPACT")) return compact_env;
     if (!std::strcmp(name, "RX_VK_IMAGE_PREALLOC")) return prealloc_env;
+    if (!std::strcmp(name, "RX_VK_KEEP_TEXTURE_RESERVE")) return keep_env;
     return nullptr;
 }
 #define getenv test_getenv
+bool env_on(const char* name) { const char* v = getenv(name); return v && std::strcmp(v, "0"); }
 void logf(const char*, ...) {}
 int vmaFindMemoryTypeIndexForImageInfo(int, const VkImageCreateInfo*, const VmaAllocationCreateInfo*, uint32_t* type) {
     *type = 7; return VK_SUCCESS;
@@ -149,7 +156,9 @@ int main(int argc, char** argv) {
     if (!std::strcmp(argv[1], "prealloc-off")) prealloc_env = "0";
     const bool integrated = !std::strcmp(argv[1], "integrated");
     if (integrated) dev.props.deviceType = VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
-    fail_prealloc = !std::strcmp(argv[1], "fallback");
+    const bool keep = !std::strncmp(argv[1], "keep", 4);   // (RX_VK_KEEP_TEXTURE_RESERVE=1: the minimum, as before)
+    if (keep) keep_env = "1";
+    fail_prealloc = !std::strcmp(argv[1], "fallback") || !std::strcmp(argv[1], "keep-fallback");
     fail_all = !std::strcmp(argv[1], "failed-pool");
     VmaPool utility = images_pool();
     VmaPool sampled = compact ? textures_pool() : utility;
@@ -161,8 +170,12 @@ int main(int argc, char** argv) {
         CHECK(utility && sampled);
         CHECK(utility->info.minBlockCount == (compact || fail_prealloc ? 0 : wanted));
         CHECK(sampled->info.memoryTypeIndex == 7 && sampled->info.blockSize == kImageBlock);
-        if (compact) {   // (the textures' pool has no minimum: its blocks made at the start are held, one placeholder a block)
-            CHECK(sampled->info.minBlockCount == 0);
+        if (keep) {   // (the textures' pool keeps its blocks made at the start as its minimum, and holds none)
+            CHECK(sampled->info.minBlockCount == (fail_prealloc ? 0 : wanted) && !texture_held.count() && !placeholder_n);
+            CHECK(texture_pool_min_kept == sampled->info.minBlockCount * kImageBlock);
+            if (fail_prealloc) CHECK(calls == 3 && requested[1] == wanted && requested[2] == 0);
+        } else if (compact) {   // (the textures' pool has no minimum: its blocks made at the start are held, one placeholder a block)
+            CHECK(sampled->info.minBlockCount == 0 && !texture_pool_min_kept);
             CHECK(texture_held.count() == (fail_prealloc ? 0 : wanted) && placeholder_n == texture_held.count());
             CHECK(texture_held.bytes() == texture_held.count() * kImageBlock);
             for (size_t i = 0; i < placeholder_n; i++)
@@ -207,7 +220,8 @@ def main():
         subprocess.run([args.cxx, "-std=c++20", "-Wall", "-Wextra", "-Werror", str(ROOT / "tests/test_blocks_at_start.cpp"), "-o",
                         str(exe)], check=True)
         failures = 0
-        for case in ("default", "compaction-off", "override", "prealloc-off", "fallback", "failed-pool", "integrated"):
+        for case in ("default", "compaction-off", "override", "prealloc-off", "fallback", "failed-pool", "integrated", "keep",
+                     "keep-fallback"):
             failures += subprocess.run([str(pools), case]).returncode != 0
         if failures:
             raise SystemExit(f"{failures} pool constructor cases failed")

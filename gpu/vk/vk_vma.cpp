@@ -139,6 +139,8 @@ bool texture_pool_tried = false;
 // need a block, all at once near Windows' commit limit: texture_held_release)
 texture_reserve::Held<VmaAllocation> texture_held(kImageBlock);
 std::mutex texture_take_mu;   // (one texture at a time takes a held block: two let go at once, VMA would free the second empty one)
+// (RX_VK_KEEP_TEXTURE_RESERVE=1: the blocks made at the start are the pool's minimum instead, kept for the whole run: bytes)
+uint64_t texture_pool_min_kept = 0;
 /// n placeholders of a whole block in the textures' pool, each making one block now: the ones made (fewer when VRAM has no room)
 static size_t hold_blocks(uint32_t type, size_t n) {
     VkMemoryRequirements req{};
@@ -173,6 +175,16 @@ VmaPool textures_pool() {
     VmaPoolCreateInfo pi{};
     pi.memoryTypeIndex = type;
     pi.blockSize = kImageBlock;
+    // (RX_VK_KEEP_TEXTURE_RESERVE=1, the launcher's "Keep texture memory reserved", recommended on AMD: the blocks made at
+    // the start are the pool's minimum, kept for the whole run, as before texture_reserve.h. A block made again later costs
+    // AMD's Windows driver ~170 ms; kept, they cost their commit the whole run, and the commit rule can only squeeze textures)
+    if (env_on("RX_VK_KEEP_TEXTURE_RESERVE")) {
+        texture_pool_min_kept = make_pool(pi, blocks_at_start(true), texture_pool) * kImageBlock;
+        logf("vk: textures from a pool of their own, %llu MB blocks (RX_VK_COMPACT), %llu made at the start%s",
+             (unsigned long long)(kImageBlock >> 20), (unsigned long long)(texture_pool_min_kept / kImageBlock),
+             !texture_pool ? ": not made" : texture_pool_min_kept ? " (kept for the whole run: RX_VK_KEEP_TEXTURE_RESERVE)" : "");
+        return texture_pool;
+    }
     make_pool(pi, 0, texture_pool);   // (no minimum: VMA would keep those blocks for the whole run, texture_reserve.h)
     const size_t held = texture_pool ? hold_blocks(type, blocks_at_start(true)) : 0;
     logf("vk: textures from a pool of their own, %llu MB blocks (RX_VK_COMPACT), %zu made at the start%s",
@@ -191,7 +203,7 @@ bool textures_pool_usage(uint64_t* block_bytes, uint64_t* free_bytes, uint64_t* 
     vmaGetPoolStatistics(vma, texture_pool, &st);
     const uint64_t held = texture_held.bytes();   // (free for every count, as the blocks VMA kept were: texture_reserve.h)
     *block_bytes = st.blockBytes, *free_bytes = texture_reserve::free_with_held(st.blockBytes, st.allocationBytes, held);
-    if (kept_bytes) *kept_bytes = held;
+    if (kept_bytes) *kept_bytes = held + texture_pool_min_kept;   // (one or the other: RX_VK_KEEP_TEXTURE_RESERVE)
     return true;
 }
 
