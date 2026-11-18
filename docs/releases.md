@@ -202,7 +202,7 @@ Both repositories have the same workflows in `.github/workflows/`, on GitHub Act
 | Workflow | timeLink | The launcher |
 |---|---|---|
 | `ci.yml` | every pull request and push to main: the PR title, every game-free check (`tests/run_all.py`, on Linux) | the PR title, compile, `test_launcher_core.py`, `test_release.py` |
-| `release.yml` | tags `v*` and pushes to main: the version, the two builders (`build-linux.yml`, `build-windows.yml`), sign and publish | tags `v*` and pushes to main: the version, the launcher (`scripts/package.sh`), sign and publish |
+| `release.yml` | tags `v*` and pushes to main: the version, the two builders (`build-linux.yml`, `build-windows.yml`), sign and publish | tags `v*` and pushes to main: the version, the launcher (`launcher/scripts/package.sh`), sign and publish |
 | `third-party.yml` | the third_party rule (`scripts/check_third_party.py`) | (none) |
 
 timeLink also keeps `build-linux.yml` and `build-windows.yml` (also run on pull requests that change code) and

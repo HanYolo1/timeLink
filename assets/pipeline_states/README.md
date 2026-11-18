@@ -29,7 +29,7 @@ timeLink's shader hashes; their notes say how. They hold the same records as any
 
 | File | Written by | Changed how |
 |---|---|---|
-| `tour.bin.xz`, `tour.md` | the pipeline tour (`scripts/pipeline_tour.py`) | replaced whole by each tour |
+| `tour.bin.xz`, `tour.md` | the pipeline tour (`nx2/pipeline_states.py tour`) | replaced whole by each tour |
 | `contrib/<name>.bin.xz`, `contrib/<name>.md` | one contributor each | added; only its owner adds to it |
 
 Each list has a note beside it (`<name>.md`) that says where it comes from: who, GPU and driver, build, settings and
