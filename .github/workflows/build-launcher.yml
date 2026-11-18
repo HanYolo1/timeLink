@@ -49,9 +49,11 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
+      # (the SDK scripts/dotnet-sdk.json pins: the runtime packs a publish downloads follow it, and package.sh checks them against
+      # launcher/publish-packages.lock)
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: launcher/scripts/dotnet-sdk.json
       - name: The Windows setup, the portable zip and the AppImage
         env:
           WINE_CHECK_EXE: ${{ runner.temp }}/wine-check/timeLinkLauncher.exe
