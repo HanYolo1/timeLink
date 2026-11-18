@@ -799,6 +799,21 @@ static partial class Program
         Require(LauncherSettings.Load(path).BuildChannel("nightly-8-3b243d73") == "nightly", "The migrated settings.json changes on its next load.");
         File.WriteAllText(path, """{"format":1,"defaultChannel":"rc"}""");
         Require(LauncherSettings.Load(path).DefaultChannel == "rc", "An old settings.json's pick of rc is lost.");
+
+        // (the shortcuts: the game with no window until the player picks; the textures' reserve: the player's pick, else on with AMD)
+        var fresh = new LauncherSettings();
+        Require(fresh.ShortcutsOpenLauncher == null && fresh.KeepTextureReserve == null, "The shortcuts and the textures' reserve start unpicked.");
+        File.WriteAllText(path, """{"format":2,"checkUpdates":true}""");
+        Require(LauncherSettings.Load(path) is { ShortcutsOpenLauncher: null, KeepTextureReserve: null },
+                "A settings.json from before the two choices reads as neither picked.");
+        new LauncherSettings { ShortcutsOpenLauncher = true, KeepTextureReserve = false }.Save(path);
+        Require(File.ReadAllText(path).Contains("\"shortcutsOpenLauncher\": true") && File.ReadAllText(path).Contains("\"keepTextureReserve\": false")
+                && LauncherSettings.Load(path) is { ShortcutsOpenLauncher: true, KeepTextureReserve: false }, "The two choices round trip.");
+        string[] amd = { SystemInfo.Amd }, nvidia = { SystemInfo.Nvidia }, both = { SystemInfo.Nvidia, SystemInfo.Amd };
+        Require(fresh.KeepTextureReserveFor(amd) && fresh.KeepTextureReserveFor(both) && !fresh.KeepTextureReserveFor(nvidia)
+                && !fresh.KeepTextureReserveFor(Array.Empty<string>()), "Unpicked, the textures' reserve is kept with an AMD GPU only.");
+        Require(!new LauncherSettings { KeepTextureReserve = false }.KeepTextureReserveFor(amd)
+                && new LauncherSettings { KeepTextureReserve = true }.KeepTextureReserveFor(nvidia), "A pick comes before the GPU.");
     }
 
     // ---- make_game.py's lines and the overall bar ----
@@ -978,6 +993,20 @@ static partial class Program
                 && GamePlay.StartInfo("/g", Platform.Windows, env).ArgumentList.Count == 0
                 && GamePlay.StartInfo("/g", Platform.Linux, env).ArgumentList.Count == 0,
                 "Play gives the game the user folder it is given (--user), on Linux too; none, no argument.");
+        // (the launcher's switches: RX_VK_KEEP_TEXTURE_RESERVE=1 for a reserve kept on Windows; the player's own value stays)
+        var keep = new LauncherSettings { KeepTextureReserve = true };
+        Require(GamePlay.Switches(keep, Array.Empty<string>(), Platform.Windows) is { Count: 1 } kept && kept["RX_VK_KEEP_TEXTURE_RESERVE"] == "1"
+                && GamePlay.Switches(keep, Array.Empty<string>(), Platform.Linux).Count == 0
+                && GamePlay.Switches(new LauncherSettings(), new[] { SystemInfo.Amd }, Platform.Windows).ContainsKey("RX_VK_KEEP_TEXTURE_RESERVE")
+                && GamePlay.Switches(new LauncherSettings(), new[] { SystemInfo.Nvidia }, Platform.Windows).Count == 0,
+                "The textures' reserve: kept on Windows when picked, or unpicked with AMD; never on Linux.");
+        var switches = GamePlay.Switches(keep, Array.Empty<string>(), Platform.Windows);
+        Require(GamePlay.StartInfo("/g", Platform.Windows, env, switches: switches).Environment["RX_VK_KEEP_TEXTURE_RESERVE"] == "1"
+                && !GamePlay.StartInfo("/g", Platform.Windows, env).Environment.ContainsKey("RX_VK_KEEP_TEXTURE_RESERVE"),
+                "Play gives the game the launcher's switches.");
+        var own = new Dictionary<string, string>(env) { ["rx_vk_keep_texture_reserve"] = "0" };
+        Require(GamePlay.Environment(Platform.Windows, own, switches)["RX_VK_KEEP_TEXTURE_RESERVE"] == "0",
+                "A switch the player set in the launcher's environment stays theirs (Windows' names ignore case).");
         // (a settings.json of before, with moveSaves: still read)
         var old = Path.Combine(Folder("settings-old"), "settings.json");
         File.WriteAllText(old, "{\"format\":2,\"moveSaves\":false,\"language\":\"fr\"}");
@@ -1057,6 +1086,13 @@ static partial class Program
         Require(P("--update", "/g") is { Kind: StartKind.Window, Folder: null, Problem: null } u && u.Ignored.SequenceEqual(new[] { "--update", "/g" }),
                 "--update is no start mode: an unknown argument, the window opens.");
         Require(P("--some-avalonia-flag", "--launch", "/g").Ignored.SequenceEqual(new[] { "--some-avalonia-flag" }), "Unknown arguments are kept aside.");
+        // (a shortcut, --play, opens the window when the player chose so: on its build when it names one)
+        Require(P("--play").ForShortcuts(true) is { Kind: StartKind.Window, Folder: null, Problem: null }, "A shortcut opening the launcher: the window.");
+        Require(P("--play", "/g").ForShortcuts(true) is { Kind: StartKind.Launch, Folder: "/g" }, "A build's shortcut opening the launcher: on that build.");
+        Require(P("--play").ForShortcuts(false) is { Kind: StartKind.Play } && P("--play", "/g").ForShortcuts(false) is { Kind: StartKind.Play, Folder: "/g" },
+                "Not chosen, a shortcut starts the game as before.");
+        Require(P().ForShortcuts(true) is { Kind: StartKind.Window } && P("--launch", "/g").ForShortcuts(true) is { Kind: StartKind.Launch, Folder: "/g" }
+                && P("--play", "/g", "--launch", "/h").ForShortcuts(true).Problem != null, "Only --play changes; a start with a problem stays as it was.");
     }
 
     // ---- a folder named outside any one code page ----

@@ -197,6 +197,32 @@
           </Grid>
         </Border>
 
+        <!-- starting the game: the shortcuts (both systems) and the textures' reserve (Windows) -->
+        <TextBlock Classes="glabel" Text="{c:T 'STARTING THE GAME'}"/>
+        <Border Classes="card">
+          <Grid ColumnDefinitions="*,20,*">
+            <Border BorderBrush="{StaticResource GlassLine}" BorderThickness="0,0,1,0">
+              <Grid Classes="srow" ColumnDefinitions="*,Auto">
+                <StackPanel VerticalAlignment="Center" Spacing="1">
+                  <TextBlock Classes="rtitle" Text="{c:T 'Shortcuts open the launcher'}"/>
+                  <TextBlock Classes="rdesc" Text="{Binding ShortcutsDesc}"/>
+                </StackPanel>
+                <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding ShortcutsOpenLauncher}" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+            <Grid Grid.Column="1" Grid.ColumnSpan="2" Classes="srow" ColumnDefinitions="*,Auto" Margin="34,8,14,8" IsVisible="{Binding Windows}">
+              <StackPanel VerticalAlignment="Center" Spacing="1">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Classes="rtitle" Text="{c:T 'Keep texture memory reserved'}"/>
+                  <Border Classes="chip quiet small" IsVisible="{Binding KeepReserveRecommended}"><TextBlock Text="{c:T 'Recommended for your GPU'}"/></Border>
+                </StackPanel>
+                <TextBlock Classes="rdesc" Text="{Binding KeepReserveDesc}"/>
+              </StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding KeepReserve}" VerticalAlignment="Center"/>
+            </Grid>
+          </Grid>
+        </Border>
+
         <!-- advanced: closed by default -->
         <Border Classes="card" Margin="0,12,0,0">
           <StackPanel>

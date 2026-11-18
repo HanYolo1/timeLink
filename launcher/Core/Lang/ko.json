@@ -568,5 +568,14 @@
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "{0}에 연결할 수 없습니다. 이 PC가 인터넷에 연결되어 있는지, 방화벽, VPN 또는 백신 프로그램이 사이트를 차단하고 있지 않은지 확인하세요.",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "이 PC는 프록시 {1}을(를) 거치도록 설정되어 있지만 프록시가 응답하지 않아 {0}에 연결하지 못했습니다. 프록시 설정을 확인하거나 프록시를 끄세요.",
   "No version is out on the {0} channel yet.": "{0} 채널에 아직 나온 버전이 없습니다.",
-  "Your game settings from your other versions now apply to this one too.": "다른 버전의 게임 설정이 이 버전에도 적용됩니다."
+  "Your game settings from your other versions now apply to this one too.": "다른 버전의 게임 설정이 이 버전에도 적용됩니다.",
+  "STARTING THE GAME": "게임 시작",
+  "Shortcuts open the launcher": "바로 가기로 런처 열기",
+  "They show the launcher first: its Play button, and any update.": "먼저 런처를 보여 줍니다: 플레이 버튼과 업데이트.",
+  "They start the game straight away.": "게임을 바로 시작합니다.",
+  "Keep texture memory reserved": "텍스처 메모리 예약 유지",
+  "Recommended for your GPU": "내 GPU에 권장",
+  "Fewer stutters where new areas load on AMD cards. Uses more memory: up to 15% of your graphics card's, held in Windows' memory all session.": "AMD 카드에서 새 지역을 불러올 때 끊김이 줄어듭니다. 메모리를 더 씁니다: 그래픽 카드 메모리의 최대 15%를 세션 내내 Windows 메모리에 잡아 둡니다.",
+  "Frees that memory when Windows runs low. AMD cards may stutter where new areas load.": "Windows 메모리가 부족해지면 그 메모리를 풉니다. AMD 카드는 새 지역을 불러올 때 끊길 수 있습니다.",
+  "Shortcuts open the launcher instead of starting the game": "바로 가기가 게임 대신 런처를 엽니다"
 }

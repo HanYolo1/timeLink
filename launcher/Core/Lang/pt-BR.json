@@ -600,5 +600,14 @@
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "Não foi possível conectar a {0}. Verifique se este PC está conectado à internet e se nenhum firewall, VPN ou antivírus bloqueia o site.",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "Este PC está configurado para passar pelo proxy {1}, que não respondeu, então {0} não foi alcançado. Verifique as configurações de proxy ou desative o proxy.",
   "No version is out on the {0} channel yet.": "Ainda não há nenhuma versão no canal {0}.",
-  "Your game settings from your other versions now apply to this one too.": "As configurações de jogo das suas outras versões agora também valem para esta."
+  "Your game settings from your other versions now apply to this one too.": "As configurações de jogo das suas outras versões agora também valem para esta.",
+  "STARTING THE GAME": "INICIANDO O JOGO",
+  "Shortcuts open the launcher": "Os atalhos abrem o launcher",
+  "They show the launcher first: its Play button, and any update.": "Eles mostram o launcher primeiro: o botão Jogar e qualquer atualização.",
+  "They start the game straight away.": "Eles iniciam o jogo direto.",
+  "Keep texture memory reserved": "Manter a memória de texturas reservada",
+  "Recommended for your GPU": "Recomendado para sua GPU",
+  "Fewer stutters where new areas load on AMD cards. Uses more memory: up to 15% of your graphics card's, held in Windows' memory all session.": "Menos travadas ao carregar áreas novas em placas AMD. Usa mais memória: até 15% da memória da sua placa de vídeo, mantida na memória do Windows durante toda a sessão.",
+  "Frees that memory when Windows runs low. AMD cards may stutter where new areas load.": "Libera essa memória quando o Windows fica com pouca. Placas AMD podem travar ao carregar áreas novas.",
+  "Shortcuts open the launcher instead of starting the game": "Os atalhos abrem o launcher em vez de iniciar o jogo"
 }

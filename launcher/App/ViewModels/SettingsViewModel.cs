@@ -222,6 +222,19 @@ public sealed class SettingsViewModel : ViewModelBase
         }
     }
 
+    /// What the Desktop and Start menu shortcuts do: open the launcher, or start the game (LauncherSettings.ShortcutsOpenLauncher,
+    /// asked first in the build settings)
+    public bool ShortcutsOpenLauncher
+    {
+        get => s.ShortcutsOpenLauncher == true;
+        set
+        {
+            s.ShortcutsOpenLauncher = value;
+            Save();
+            Raise();
+        }
+    }
+
     public string Version => "timeLink Launcher " + (typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3) ?? "3.0.0");
 
     public Command DoneCommand { get; }

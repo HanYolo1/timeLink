@@ -157,14 +157,28 @@ public static class GamePlay
 {
     static readonly string[] Dropped = { "TIMELINK_", "PYTHON", "APPDIR", "APPIMAGE", "ARGV0", "OWD" };   // (make_game.GAME_ENV_DROP)
 
-    /// The environment the game starts with, from the launcher's
-    public static Dictionary<string, string> Environment(Platform platform, IReadOnlyDictionary<string, string> current)
+    /// The game's switches the launcher's settings set (timeLink_env.txt's names): RX_VK_KEEP_TEXTURE_RESERVE=1 when the textures'
+    /// memory stays reserved (LauncherSettings.KeepTextureReserveFor). Windows only: the hitch it saves is AMD's Windows driver's,
+    /// and the memory it costs is Windows' commit (Linux overcommits)
+    public static Dictionary<string, string> Switches(LauncherSettings settings, IReadOnlyCollection<string> gpus, Platform platform)
+    {
+        var switches = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (platform == Platform.Windows && settings.KeepTextureReserveFor(gpus)) switches["RX_VK_KEEP_TEXTURE_RESERVE"] = "1";
+        return switches;
+    }
+
+    /// The environment the game starts with, from the launcher's, and the launcher's switches (Switches): one the player set
+    /// themselves, in the launcher's environment, is theirs and stays (timeLink_env.txt beside the game comes after both)
+    public static Dictionary<string, string> Environment(Platform platform, IReadOnlyDictionary<string, string> current,
+        IReadOnlyDictionary<string, string>? switches = null)
     {
         var env = platform == Platform.Windows
             ? new Dictionary<string, string>(current, StringComparer.OrdinalIgnoreCase)
             : current.Where(kv => !Dropped.Any(p => kv.Key.StartsWith(p, StringComparison.Ordinal)) && kv.Key != "LD_LIBRARY_PATH")
                 .ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.Ordinal);
         env["TIMELINK_NO_UPDATE_CHECK"] = "1";   // (the launcher already checked for updates: the game does not ask again)
+        foreach (var (k, v) in switches ?? new Dictionary<string, string>())
+            env.TryAdd(k, v);
         return env;
     }
 
@@ -187,7 +201,8 @@ public static class GamePlay
 
     /// user: timeLink's user folder, which every build shares (UserFolder), given to the game as --user. Every build takes --user,
     /// the ones from before the launcher too; without it the game keeps its saves in its own folder's user\ on Windows
-    public static ProcessStartInfo StartInfo(string folder, Platform platform, IReadOnlyDictionary<string, string>? current = null, string? user = null)
+    public static ProcessStartInfo StartInfo(string folder, Platform platform, IReadOnlyDictionary<string, string>? current = null, string? user = null,
+        IReadOnlyDictionary<string, string>? switches = null)
     {
         current ??= System.Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>()
             .ToDictionary(e => (string)e.Key, e => (string?)e.Value ?? "");
@@ -198,7 +213,7 @@ public static class GamePlay
             si.ArgumentList.Add(user);
         }
         si.Environment.Clear();
-        foreach (var (k, v) in Environment(platform, current)) si.Environment[k] = v;
+        foreach (var (k, v) in Environment(platform, current, switches)) si.Environment[k] = v;
         return si;
     }
 }
