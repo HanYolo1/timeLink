@@ -203,9 +203,10 @@ output. Name part of a path to run only matching checks (`tests/run_all.py ub_`)
 compiler, `spirv-val`, the SPIR-V or Vulkan headers, `zstandard`) is skipped and says so; `--strict` fails it instead.
 Checks that can't run everywhere say so in their own file (`RUN_ALL_SKIP`); `--no-skip` runs them anyway.
 
-GitHub Actions runs the light checks on every pull request (the title, the description, workflow lint, the third-party
-notes). The full checks are long, so they are not run on every pull request: run them yourself before you open one and
-put their results in it, and a maintainer can start them by hand (*Actions* > *CI* > *Run workflow*).
+GitHub Actions runs every check on every pull request and every push to `main`: the title, the description, workflow
+lint, the third-party notes, the whole `tests/run_all.py` (Linux, in two parts) and the SPIR-V fixtures. Run
+`tests/run_all.py` yourself before you open a pull request too, and put its results in it: CI has no Windows runner, so
+a Windows run is yours to report.
 
 ### Checks that need your dump or a run
 
