@@ -78,6 +78,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # (all of it, with the tags: tests/test_release_anchor.py checks that the release fork anchor is an ancestor of
+          # HEAD and that the nightly count matches the last nightly tag, which a one-commit checkout cannot hold)
+          fetch-depth: 0
       # (the versions scripts/linux/deps.sh builds the Vulkan back end with)
       - name: Check out pinned SPIR-V headers
         run: scripts/fetch_commit.sh https://github.com/KhronosGroup/SPIRV-Headers 04f10f650d514df88b76d25e83db360142c7b174 _deps/spirv-headers   # vulkan-sdk-1.4.341.0
