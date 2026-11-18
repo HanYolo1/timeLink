@@ -8,6 +8,8 @@
 #include <vk_mem_alloc.h>
 #include <algorithm>
 #include <atomic>
+#include <mutex>
+#include <string>
 #include <cstdlib>
 #include <vector>
 
@@ -15,6 +17,7 @@
 #include "timeLink_env.h"
 #endif
 #include "vram_compact.h"
+#include "texture_reserve.h"
 #include "vk_work.h"   // (last: RX_VK_RECORDER=defer drains before the destructions and the invalidate below)
 
 namespace mkwvk {
@@ -132,7 +135,26 @@ VmaPool images_pool() {
 // frame interpolation's and the scratch ones in the images' pool
 VmaPool texture_pool = VK_NULL_HANDLE;
 bool texture_pool_tried = false;
-uint64_t texture_pool_kept = 0;   // (its blocks made at the start, which VMA keeps: bytes)
+// (its blocks made at the start, each held by a placeholder of the whole block: texture_reserve.h. Let go one at a time as textures
+// need a block, all at once near Windows' commit limit: texture_held_release)
+texture_reserve::Held<VmaAllocation> texture_held(kImageBlock);
+std::mutex texture_take_mu;   // (one texture at a time takes a held block: two let go at once, VMA would free the second empty one)
+/// n placeholders of a whole block in the textures' pool, each making one block now: the ones made (fewer when VRAM has no room)
+static size_t hold_blocks(uint32_t type, size_t n) {
+    VkMemoryRequirements req{};
+    req.size = kImageBlock;
+    req.alignment = 1;
+    req.memoryTypeBits = 1u << type;
+    VmaAllocationCreateInfo ai{};
+    ai.pool = texture_pool;
+    size_t made = 0;
+    for (; made < n; made++) {
+        VmaAllocation a = VK_NULL_HANDLE;
+        if (vmaAllocateMemory(vma, &req, &ai, &a, nullptr) != VK_SUCCESS) break;
+        texture_held.add(a);
+    }
+    return made;
+}
 VmaPool textures_pool() {
     if (texture_pool_tried) return texture_pool;
     texture_pool_tried = true;
@@ -151,17 +173,25 @@ VmaPool textures_pool() {
     VmaPoolCreateInfo pi{};
     pi.memoryTypeIndex = type;
     pi.blockSize = kImageBlock;
-    texture_pool_kept = make_pool(pi, blocks_at_start(true), texture_pool) * kImageBlock;
-    logf("vk: textures from a pool of their own, %llu MB blocks (RX_VK_COMPACT), %llu made at the start%s",
-         (unsigned long long)(kImageBlock >> 20), (unsigned long long)(texture_pool_kept / kImageBlock), texture_pool ? "" : ": not made");
+    make_pool(pi, 0, texture_pool);   // (no minimum: VMA would keep those blocks for the whole run, texture_reserve.h)
+    const size_t held = texture_pool ? hold_blocks(type, blocks_at_start(true)) : 0;
+    logf("vk: textures from a pool of their own, %llu MB blocks (RX_VK_COMPACT), %zu made at the start%s",
+         (unsigned long long)(kImageBlock >> 20), held,
+         !texture_pool ? ": not made" : held ? " (held for later: given back near Windows' commit limit)" : "");
     return texture_pool;
+}
+uint64_t texture_held_release() {
+    const std::vector<VmaAllocation> all = texture_held.take_all();
+    for (VmaAllocation a : all) vmaFreeMemory(vma, a);   // (VMA gives the emptied blocks back but one)
+    return (uint64_t)all.size() * kImageBlock;
 }
 bool textures_pool_usage(uint64_t* block_bytes, uint64_t* free_bytes, uint64_t* kept_bytes) {
     if (!texture_pool) return false;
     VmaStatistics st{};
     vmaGetPoolStatistics(vma, texture_pool, &st);
-    *block_bytes = st.blockBytes, *free_bytes = st.blockBytes - std::min(st.blockBytes, st.allocationBytes);
-    if (kept_bytes) *kept_bytes = texture_pool_kept;
+    const uint64_t held = texture_held.bytes();   // (free for every count, as the blocks VMA kept were: texture_reserve.h)
+    *block_bytes = st.blockBytes, *free_bytes = texture_reserve::free_with_held(st.blockBytes, st.allocationBytes, held);
+    if (kept_bytes) *kept_bytes = held;
     return true;
 }
 
@@ -231,7 +261,18 @@ bool create_image(const VkImageCreateInfo& ci, VkImage& image, VmaAllocation& al
         VmaAllocationCreateInfo pai = ai;
         pai.pool = pool;
         pai.usage = VMA_MEMORY_USAGE_UNKNOWN;
-        if (vmaCreateImage(vma, &ci, &pai, &image, &allocation, nullptr) == VK_SUCCESS) return true;
+        if (pool == texture_pool && texture_held.count()) {
+            // (where there is room already; with none, a held block let go takes it, with no vkAllocateMemory: texture_reserve.h)
+            std::lock_guard lk(texture_take_mu);
+            VmaAllocationCreateInfo nai = pai;
+            nai.flags |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;
+            if (vmaCreateImage(vma, &ci, &nai, &image, &allocation, nullptr) == VK_SUCCESS) return true;
+            VmaAllocation held = VK_NULL_HANDLE;
+            if (texture_held.take_one(&held)) vmaFreeMemory(vma, held);
+            if (vmaCreateImage(vma, &ci, &pai, &image, &allocation, nullptr) == VK_SUCCESS) return true;
+        } else if (vmaCreateImage(vma, &ci, &pai, &image, &allocation, nullptr) == VK_SUCCESS) {
+            return true;
+        }
     }
     if (vmaCreateImage(vma, &ci, &ai, &image, &allocation, nullptr) == VK_SUCCESS) return true;
     if (ai.flags & VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT) {
@@ -371,11 +412,14 @@ void vma_log_image_blocks() {
         if (!pool) continue;
         VmaDetailedStatistics d{};
         vmaCalculatePoolStatistics(vma, pool, &d);
-        logf("vk: image blocks%s: %u blocks %llu MB, %u images %llu MB; %u free ranges, the largest %llu MB",
+        // (the textures' held blocks are allocations to VMA, placeholders here: not images, counted apart)
+        const uint64_t held = pool == texture_pool ? texture_held.count() : 0;
+        logf("vk: image blocks%s: %u blocks %llu MB, %u images %llu MB; %u free ranges, the largest %llu MB%s",
              pool == target_image_pool ? " (render targets)" : pool == texture_pool ? " (textures, compacted)" : "", d.statistics.blockCount,
-             (unsigned long long)(d.statistics.blockBytes >> 20), d.statistics.allocationCount,
-             (unsigned long long)(d.statistics.allocationBytes >> 20), d.unusedRangeCount,
-             (unsigned long long)(d.unusedRangeSizeMax >> 20));
+             (unsigned long long)(d.statistics.blockBytes >> 20), (unsigned)(d.statistics.allocationCount - held),
+             (unsigned long long)((d.statistics.allocationBytes - std::min(d.statistics.allocationBytes, held * kImageBlock)) >> 20),
+             d.unusedRangeCount, (unsigned long long)(d.unusedRangeSizeMax >> 20),
+             held ? ("; " + std::to_string(held) + " of the blocks held for later").c_str() : "");
     }
 }
 void vma_log_heaps() {
@@ -401,6 +445,7 @@ bool vram_usage(uint64_t* used, uint64_t* budget, uint64_t* block_free) {
             // (the free space in VMA's blocks: the driver counts it as the process's, new allocations take it first)
             f += b[h].statistics.blockBytes - std::min(b[h].statistics.blockBytes, b[h].statistics.allocationBytes);
         }
+    f += texture_held.bytes();   // (the textures' held blocks: as free as the blocks VMA kept were, texture_reserve.h)
     // (a test: RX_VK_TEST_ALLOWED_MB=<n> reports what the driver allows as at most n MB, so a 16 GB card plays the eviction and
     // keep-rendered paths an 8 GB card takes when its VRAM fills (the rainbow textures of issue 993 were never seen here otherwise))
     static const uint64_t test_allowed = getenv("RX_VK_TEST_ALLOWED_MB") ? (uint64_t)atoi(getenv("RX_VK_TEST_ALLOWED_MB")) << 20 : 0;
