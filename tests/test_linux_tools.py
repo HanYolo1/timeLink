@@ -112,7 +112,7 @@ class Tools(unittest.TestCase):
         again, error, said = self.ensure(getter=self.offline)
         self.assertEqual((again, error, self.asked, said), (found, None, [], []))
         # (nothing written into the image)
-        self.assertEqual(sorted(p.name for p in self.app.rglob("*")), ["AppRun", "VERSION", "timelink", "share", "tools.lock", "usr"])
+        self.assertEqual(sorted(p.name for p in self.app.rglob("*")), ["AppRun", "VERSION", "share", "timeLink", "tools.lock", "usr"])
 
     def test_another_version_links_what_it_shares_and_downloads_what_changed(self):
         self.ensure()

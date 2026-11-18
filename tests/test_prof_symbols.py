@@ -73,7 +73,7 @@ def linux_elf(tmp, cc):
     maps.mkdir()
     src = tmp / "probe.c"
     src.write_text(PROBE)
-    exe = maps / "timelink"
+    exe = maps / "timeLink"
     subprocess.run([cc, "-O1", "-fPIE", "-pie", "-o", str(exe), str(src)], check=True)
     r = subprocess.run([str(exe)], capture_output=True, text=True)
     check(r.returncode == 0, "the probe runs")
@@ -93,7 +93,7 @@ def linux_elf(tmp, cc):
     check(hot.read_text().split()[0] == "f_80001000", "hotlist.py: the lifted function named from the ELF symbols, first")
     sys.path.insert(0, str(SCRIPTS))
     import prof
-    addrs, names = prof.load_symbols(str(maps))["timelink"]
+    addrs, names = prof.load_symbols(str(maps))["timeLink"]
     check("prof_symbol_probe" in names and addrs[names.index("prof_symbol_probe")] == probe,
           "prof.load_symbols: the symbol's offset is the one a sample gives")
 

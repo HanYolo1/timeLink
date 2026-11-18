@@ -29,7 +29,7 @@ def load_map(path, base):
 
 
 # The modules whose frames are timeLink's own code (the game and the runtime, the renderer): Windows, then Linux
-GAME_MODS = ("timeLink.exe", "timelink")
+GAME_MODS = ("timeLink.exe", "timeLink")
 VK_MODS = ("timeLink_vk.dll", "timeLink_vk.so")
 RUN_MODS = GAME_MODS + VK_MODS
 # A sample whose leaf is outside timeLink is a wait only when a wait is on its stack: libc's memcpy and the driver's own
@@ -76,7 +76,7 @@ def load_symbols(folder=None):
         mp = os.path.join(folder, mod[:-4] + ".map")
         if os.path.exists(mp):
             maps[mod] = load_map(mp, 0x180000000 if mod.endswith(".dll") else 0x140000000)
-    for mod in ("timeLink_vk.so", "timelink"):
+    for mod in ("timeLink_vk.so", "timeLink"):
         b = os.path.join(folder, mod)
         if os.path.isfile(b):
             try:

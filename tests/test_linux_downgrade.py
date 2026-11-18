@@ -17,7 +17,7 @@ class FolderDispatch(unittest.TestCase):
             root = Path(folder)
             game = root / "Authored 'game % folder"
             (game / "bin").mkdir(parents=True)
-            script = game / "timelink"
+            script = game / "timeLink"
             shutil.copyfile(ROOT / "builder/linux/timeLink-folder", script)
             script.chmod(0o700)
             recorded = root / "Recorded 'Builder.AppImage"
