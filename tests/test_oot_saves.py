@@ -59,7 +59,7 @@ class Case(unittest.TestCase):
         self.data = self.home / ".local" / "share"
         self.appdata = self.home / "AppData" / "Roaming"
         self.localappdata = self.home / "AppData" / "Local"
-        self.hs = self.data / "timelink" / "save" / UID
+        self.hs = self.data / "timeLink" / "save" / UID
         self.li = eden_save(self.data / "eden")
         make_save(self.hs, b"HS")
         make_save(self.li, b"LI", slots=("slot_00",))
@@ -162,7 +162,7 @@ class Discovery(Case):
         for root in (data, data / "nand", data / "nand" / "user" / "save", self.li.parent.parent, self.li.parent,
                      self.li):
             self.assertEqual(oot.find_saves(str(root)), {PROFILE: str(self.li)}, root)
-        for root in (self.data / "timelink", self.hs.parent, self.hs):
+        for root in (self.data / "timeLink", self.hs.parent, self.hs):
             self.assertEqual(oot.find_saves(str(root)), {UID: str(self.hs)}, root)
 
     def test_empty_title_folder_is_a_target(self):
@@ -276,10 +276,10 @@ class Copy(Case):
 
     def test_import_into_a_timelink_without_a_save(self):
         # (timeLink never started: the save goes where it will look, save/<its one user id>, and there is nothing to back up)
-        shutil.rmtree(self.data / "timelink")
+        shutil.rmtree(self.data / "timeLink")
         code, out, err = self.run_main("import", "lichii")
         self.assertEqual(code, 0, err)
-        made = self.data / "timelink" / "save" / oot.USER_ID
+        made = self.data / "timeLink" / "save" / oot.USER_ID
         self.assertEqual(tree(made), tree(self.li))
         self.assertEqual(self.backup_dirs(), [])
         self.assertIn("there is no save there yet", out)
@@ -709,10 +709,10 @@ class Hookshot(Case):
         self.assertEqual(tree(backup), old)
 
     def test_import_into_a_timelink_without_a_save(self):
-        shutil.rmtree(self.data / "timelink")
+        shutil.rmtree(self.data / "timeLink")
         code, out, err = self.run_main("import", "hookshot")
         self.assertEqual(code, 0, err)
-        self.assertEqual(tree(self.data / "timelink" / "save" / oot.USER_ID), tree(self.hk))
+        self.assertEqual(tree(self.data / "timeLink" / "save" / oot.USER_ID), tree(self.hk))
         self.assertEqual(self.backup_dirs(), [])
 
     def test_export(self):

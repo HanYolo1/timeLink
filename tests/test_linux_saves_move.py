@@ -60,7 +60,7 @@ class Case:
         # (deeper than the game's user/, as ~/.local/share is: a link written from where it stands names another place from it)
         self.data = Path(tempfile.mkdtemp(prefix="home-", dir=data_parent)) / ".local" / "share"
         self.data.mkdir(parents=True)
-        self.user, self.new = self.game / "user", self.data / "timelink"
+        self.user, self.new = self.game / "user", self.data / "timeLink"
         self.sync = self.game.parent / (self.game.name + "-sync")   # (beside the game: "../../<name>-sync" from user/save)
         (self.user / "temp").mkdir(parents=True)
         (self.sync / USER_ID).mkdir(parents=True)

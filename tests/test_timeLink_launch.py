@@ -21,7 +21,7 @@ def game(folder):
     beside it that must never be started"""
     (folder / "bin").mkdir(parents=True)
     (folder / "image.bin").write_bytes(b"image")
-    exe = folder / "bin" / "timelink"
+    exe = folder / "bin" / "timeLink"
     exe.write_text(
         "#!/bin/sh\n"
         "pwd\n"
@@ -33,7 +33,7 @@ def game(folder):
         encoding="utf-8",
     )
     exe.chmod(exe.stat().st_mode | stat.S_IEXEC)
-    launcher = folder / "timelink"
+    launcher = folder / "timeLink"
     launcher.write_text("#!/bin/sh\nprintf 'launcher\\n'\n", encoding="utf-8")
     launcher.chmod(launcher.stat().st_mode | stat.S_IEXEC)
 
@@ -81,7 +81,7 @@ class LaunchTests(unittest.TestCase):
             # (a folder with only its launcher, timeLink, and no bin/timeLink: never started, it would start this again)
             folder = Path(tmp) / "game"
             game(folder)
-            (folder / "bin" / "timelink").unlink()
+            (folder / "bin" / "timeLink").unlink()
             for args in ((), (str(folder),)):
                 ran = self.run_launch(*args, home=tmp)
                 self.assertNotEqual(ran.returncode, 0)

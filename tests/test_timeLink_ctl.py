@@ -245,7 +245,7 @@ class GamePaths(unittest.TestCase):
         m = client_module()
         with tempfile.TemporaryDirectory() as tmp:
             game = Path(tmp)
-            name = "timeLink.exe" if WINDOWS else "timelink"
+            name = "timeLink.exe" if WINDOWS else "timeLink"
             (game / name).touch()
             self.assertEqual(m.game_exe(tmp), str(game / name))
             (game / "bin").mkdir()
@@ -843,7 +843,7 @@ class timeLinkCtl(unittest.TestCase):
         else:
             cls.game = os.path.join(cls.dir, "game")
             os.mkdir(cls.game)
-            exe = os.path.join(cls.game, "timelink")
+            exe = os.path.join(cls.game, "timeLink")
             with open(exe, "w") as f:
                 f.write("#!%s -I\n%s" % (sys.executable, FAKE))
             os.chmod(exe, 0o755)
@@ -1107,7 +1107,7 @@ class timeLinkCtl(unittest.TestCase):
                 f.write(n)
         before = sorted((dp, fn, os.stat(os.path.join(dp, fn)).st_mtime_ns) for dp, _, fns in os.walk(src) for fn in fns)
         dest = m.copy_save(src, os.path.join(self.dir, "d-all"))
-        self.assertTrue(dest.endswith(os.path.join("timelink", "save", m.SAVE_USER)))
+        self.assertTrue(dest.endswith(os.path.join("timeLink", "save", m.SAVE_USER)))
         self.assertEqual(sorted(os.listdir(dest)), ["account.sav", "option.sav", "slot_00", "slot_03"])
         for slot in ("03", "slot_03", "3"):
             dest = m.copy_save(src, os.path.join(self.dir, "d-" + slot), slot)
@@ -1148,7 +1148,7 @@ class timeLinkCtl(unittest.TestCase):
             r = ctl("--json", "launch", self.game, "--run", run, "--headless", "--save", src, "--slot", "03",
                     "--timeout", "20", check=0)
             info = json.loads(r.stdout)
-            got = os.path.join(run, "data", "timelink", "save", m.SAVE_USER)
+            got = os.path.join(run, "data", "timeLink", "save", m.SAVE_USER)
             self.assertEqual(sorted(os.listdir(got)), ["account.sav", "option.sav", "slot_03"])
             with open(self.log) as f:
                 starts = [json.loads(line) for line in f if '"_start"' in line]

@@ -57,7 +57,7 @@ def game_folder(root, built, in_bin=False):
         (root / name).write_text(name)
     where = root / "bin" if in_bin else root
     where.mkdir(exist_ok=True)
-    exe = where / "timelink"
+    exe = where / "timeLink"
     shutil.copy2(built, exe)
     return exe
 
