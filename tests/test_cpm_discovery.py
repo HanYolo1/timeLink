@@ -51,7 +51,8 @@ class CpmDiscoveryTests(unittest.TestCase):
         # so the real build module discovers packages in this owned layout instead.
         kit = types.SimpleNamespace(ROOT=str(self.tools), HERE=str(self.tools / "nx2"),
                                     WORK=str(self.tools / "work"))
-        toolchain = types.SimpleNamespace(windows=lambda: os.name == "nt")
+        # (find: no clang, so loading build.py doesn't ask one for -march=native: its _CLANG probe, x86-64-v3 kept)
+        toolchain = types.SimpleNamespace(windows=lambda: os.name == "nt", find=lambda name: "")
 
         def no_process(command, *args, **kwargs):
             if command[0] == "pkg-config":

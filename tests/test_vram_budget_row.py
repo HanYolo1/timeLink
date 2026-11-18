@@ -85,22 +85,22 @@ def main():
 #include <cstdint>
 #include <cstdio>
 #define CHECK(x) do { if (!(x)) { std::fprintf(stderr, "FAIL %d: %s\n", __LINE__, #x); return 1; } } while (0)
-OPTIONS
+@@OPTIONS@@
 Options opts;
-TABLES
-OF_PRESET
-SYNC
-SYNC_PRESET
+@@TABLES@@
+@@OF_PRESET@@
+@@SYNC@@
+@@SYNC_PRESET@@
 static uint64_t card_bytes = 16ull << 30;
 uint64_t device_vram_bytes() { return card_bytes; }
-CAPS
+@@CAPS@@
 #include <cstring>
 #include <cstdlib>
 // (a restart: the preset row, the VRAM budget row and memory_budget as save() writes them, read back as menu_init does)
 static void restart(bool write_memory_budget) {
     FILE* f = std::tmpfile();
     std::fprintf(f, "quality_preset=%d\nvram_budget=%d\n", opts.preset, opts.vram_budget);
-    if (write_memory_budget) SAVE_LINE
+    if (write_memory_budget) @@SAVE_LINE@@
     std::rewind(f);
     opts = Options{};
     bool has_vram_budget = false, has_memory_budget = false;
@@ -111,12 +111,12 @@ static void restart(bool write_memory_budget) {
         *eq = 0;
         if (!std::strcmp(line, "quality_preset")) opts.preset = std::atoi(eq + 1);
         if (!std::strcmp(line, "vram_budget")) opts.vram_budget = std::atoi(eq + 1);
-        PARSE_LINE
+        @@PARSE_LINE@@
         has_vram_budget |= !std::strcmp(line, "vram_budget");
     }
     std::fclose(f);
-    FALLBACK_LINE
-    ROW_FALLBACK
+    @@FALLBACK_LINE@@
+    @@ROW_FALLBACK@@
     vram_budget_sync();
 }
 int main() {
@@ -168,14 +168,15 @@ int main() {
     return 0;
 }
 '''
-    for key, value in (("OPTIONS", options), ("TABLES", tables),
-                       ("OF_PRESET", definition(menu, "int preset_vram_budget(int p)") +
+    # (@@...@@: a placeholder no source text can hold; a bare SYNC once matched RX_VK_ASYNC in a comment of Options)
+    for key, value in (("@@OPTIONS@@", options), ("@@TABLES@@", tables),
+                       ("@@OF_PRESET@@", definition(menu, "int preset_vram_budget(int p)") +
                         "\nint vram_budget_of_preset(int p) { return preset_vram_budget(p); }"),
-                       ("SYNC_PRESET", definition(menu, "void sync_preset_budgets(int p)")),
-                       ("SYNC", definition(menu, "void vram_budget_sync()")),
-                       ("CAPS", definition(memory, "bool preset_caps_memory()")),
-                       ("SAVE_LINE", save_line), ("PARSE_LINE", parse_line), ("FALLBACK_LINE", fallback_line),
-                       ("ROW_FALLBACK", row_fallback)):
+                       ("@@SYNC_PRESET@@", definition(menu, "void sync_preset_budgets(int p)")),
+                       ("@@SYNC@@", definition(menu, "void vram_budget_sync()")),
+                       ("@@CAPS@@", definition(memory, "bool preset_caps_memory()")),
+                       ("@@SAVE_LINE@@", save_line), ("@@PARSE_LINE@@", parse_line), ("@@FALLBACK_LINE@@", fallback_line),
+                       ("@@ROW_FALLBACK@@", row_fallback)):
         fixture = fixture.replace(key, value, 1)
     with tempfile.TemporaryDirectory(prefix="vram-budget-row-") as tmp:
         cpp = Path(tmp) / "fixture.cpp"
