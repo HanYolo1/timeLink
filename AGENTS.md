@@ -28,7 +28,8 @@ branch of it; otherwise `gh repo fork HanYolo1/timeLink --remote` makes their fo
 
 ## Pick and claim work
 
-- Take the top of [docs/worklist.md](docs/worklist.md) that fits, unless the person you work for says otherwise.
+- Take the top of [docs/worklist.md](docs/worklist.md) that fits, unless the person you work for says otherwise. When
+  it is empty, the work is triage: score the open GitHub issues into it (a PR) and take the top.
 - **Look before claiming** so two people don't fix the same thing: the issue's comments and assignee, and the open pull
   requests (`gh pr list -R HanYolo1/timeLink --search "<words>"`). Then claim it with a comment on the issue.
 

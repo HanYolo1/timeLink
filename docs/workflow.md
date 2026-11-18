@@ -118,7 +118,8 @@ next thing to work on is the top of `is:open label:reproduced -label:claimed sor
 ## For agents
 
 - Start here, then AGENTS.md, then CONTRIBUTING.md.
-- Pick from the top of [docs/worklist.md](worklist.md); add a scored row there for a new problem you find.
+- Pick from the top of [docs/worklist.md](worklist.md); add a scored row there for a new problem you find. When it is
+  empty, score the open GitHub issues into it first.
 - Prefer problems you can reproduce on the hardware you run on.
 - Claim before working (a comment on the issue), report progress where you claimed, and post the PR there. Read the
   issue and the open PRs before claiming (AGENTS.md, *Pick and claim work*).
