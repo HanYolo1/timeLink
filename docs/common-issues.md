@@ -66,8 +66,7 @@ The steps below show each one, and how to check first that the download is genui
 1. **Update your graphics driver.** On Linux, update Mesa or the NVIDIA driver.
 2. **Check your graphics card.** timeLink needs **Vulkan 1.3**; see [what you need](../README.md#what-you-need). A
    driver update can't add it to an older card that doesn't have it.
-3. **AMD cards** have known crashes ([#708](https://github.com/NotRexed/Hookshot/issues/708),
-   [#614](https://github.com/NotRexed/Hookshot/issues/614)). To try the other drawing path, add the line
+3. **AMD cards** have known crashes. To try the other drawing path, add the line
    `RX_VK_MESH_SHADERS=compute` to `timeLink_env.txt` in the game folder (usually a little slower; delete the line to
    undo it).
 4. **Read the end of the log.** `timeLink_log.txt` in the game folder's `logs` folder has the last run; its last lines usually say what
@@ -94,8 +93,7 @@ startup errors and its exit status. Started from a terminal, the game prints the
 
 ### Parts of the picture are missing, or a message says your card has no mesh shader support
 
-Without mesh shaders, timeLink draws through its compute fallback, which leaves some draws out
-([#640](https://github.com/NotRexed/Hookshot/issues/640)).
+Without mesh shaders, timeLink draws through its compute fallback, which leaves some draws out.
 
 1. **Update your graphics driver:** a card and driver with mesh shaders draw everything. NVIDIA RTX 20 series and
    newer, AMD RX 6000 series and newer, and Intel Arc have them.
@@ -159,8 +157,7 @@ the driver's limit itself.
 ### Steam Deck: the game freezes and closes in the starting area or first dungeon
 
 `journalctl -k` shows `gfx_0.0.0 timeout`. Add the line `RX_VK_MESH_NOCULL=2c56dc1006942f74` to `timeLink_env.txt` in
-the game folder: it turns off the culling pass that runs for seconds there, and every model is still drawn
-([#817](https://github.com/NotRexed/Hookshot/issues/817)).
+the game folder: it turns off the culling pass that runs for seconds there, and every model is still drawn.
 
 [Search Steam Deck reports](https://github.com/HanYolo1/timeLink/issues?q=is%3Aissue+Steam%20Deck)
 

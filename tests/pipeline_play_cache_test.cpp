@@ -375,7 +375,7 @@ int run(const std::string& name) {
         closer.join();
         CHECK(file_keys(play_path(3)) == (std::set<uint64_t>{32, 33}));
     } else if (name == "lock-users") {
-        // (the fetch lock on, https://github.com/NotRexed/Hookshot/issues/999: a save while a build is between two of
+        // (the fetch lock on, Intel's closes: a save while a build is between two of
         // create_cached's builds, counted in the generation and holding no lock. A save that held the lock while it waited for the
         // generation's users would wait for that build, and the build for the lock, for good: the game frozen at a background save)
         CHECK(pcache_fetch_lock_on());

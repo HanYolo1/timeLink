@@ -24,23 +24,21 @@ python -I -B tests/test_psychov35_dlss.py --write --glslang glslang --cxx clang+
 
 The existing packed output header is unchanged. `tests/test_psychov35_dlss.py` checks the opt-in format pairs, the same policy at camera/actor/reactive consumers, history resets, HDR prep selection and the compiled output's RGBA16F storage image type.
 
-### Hookshot review and NVIDIA frame generation
+### The earlier draft and NVIDIA frame generation
 
-This path adapts [Hookshot #2707](https://github.com/NotRexed/Hookshot/pull/2707),
-head `f1d654ce6f841fd4ce5bcbbe8900629a5394e484`, by nooblikejagger. It is an open draft at the time of review.
+This path adapts nooblikejagger's draft (head `f1d654ce6f841fd4ce5bcbbe8900629a5394e484`), still a draft at the time
+of review.
 Its author reports a successful RTX 4070 SUPER HDR-display test for DLSS, but no controlled performance comparison
 or NVIDIA frame-generation measurement. Those results do not validate this timeLink port.
 
-[Hookshot #2481](https://github.com/NotRexed/Hookshot/pull/2481) introduced PsychoV35 and deliberately narrowed
+The change that introduced PsychoV35 deliberately narrowed
 RGBA16F to Native HDR plus PsychoV35. Its discussion confirms that selecting DLSS and frame generation in the menu
-did not prove they ran: the log revealed the format rejection and fallback. [Hookshot #2243](https://github.com/NotRexed/Hookshot/pull/2243)
-established the native-HDR DLSS encoding; its author confirmed that it landed through
-[Hookshot #2342](https://github.com/NotRexed/Hookshot/pull/2342). Removing the format
+did not prove they ran: the log revealed the format rejection and fallback. An earlier change
+established the native-HDR DLSS encoding; its author confirmed that it landed through a later one. Removing the format
 check alone would leave a packed-format storage shader bound to an RGBA16F image. Skipping the prep decode because
 storage is floating point would instead change brightness.
 
-[Hookshot #2118](https://github.com/NotRexed/Hookshot/pull/2118), merged, supplies the NGX frame-generation path
-already in timeLink. It takes the temporal chain's inputs and logs successful and fallback sets every 600 presents.
+The NGX frame-generation path already in timeLink takes the temporal chain's inputs and logs successful and fallback sets every 600 presents.
 In timeLink, `temporal_upscale` calls `dlss_fg_inputs` after a successful evaluation and output dispatch. That function
 copies the frame's depth and motion and carries its camera and history reset; it does not inspect the scene colour format.
 When the chain rejects RGBA16F, no new inputs reach it and `dlss_fg_frames` falls back with `FG_SKIP_INPUTS`.

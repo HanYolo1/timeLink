@@ -9,9 +9,9 @@ gets you set up, then covers what to send, how to build and test it, and the rul
 trouble. The [development guide](docs/development.md) has the full pipeline; the
 [design notes](docs/design.md) have the architecture.
 
-**timeLink is developed by HanYolo1.** It is a hard fork of Longshot, developed by MagicBean, which is a hard fork of
-Hookshot, developed by NotRexed. Issues and pull requests for timeLink are all here, on GitHub. A fork of your own is
-welcome under the GPL. Everything below applies to work on your own copy.
+**timeLink is developed by HanYolo1.** Where it comes from, and the credits, are in the [README](README.md#credits).
+Issues and pull requests for timeLink are all here, on GitHub. A fork of your own is welcome under the GPL. Everything
+below applies to work on your own copy.
 
 ## The rule with no exceptions
 

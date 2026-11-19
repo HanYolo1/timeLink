@@ -1,8 +1,8 @@
 # Versioning
 
 timeLink follows [Semantic Versioning 2.0.0](https://semver.org/). Its first version is **v0.1.0**, and the timeLink
-Launcher's is too: one tag names both products' releases, which ship different files. Hookshot's versions
-(0.1.0 to 2.x, NotRexed/Hookshot) are Hookshot's history and are not timeLink versions. How a version is built, signed and
+Launcher's is too: one tag names both products' releases, which ship different files. Version numbers from before the
+fork are not timeLink versions. How a version is built, signed and
 published, and how the timeLink Launcher installs it, is in [releases.md](releases.md).
 
 ## Versions and channels
@@ -66,9 +66,7 @@ builds of the same release apart, and it is the only identifier a build from a m
 ## The changelog
 
 timeLink keeps no changelog file. Its changes are on each release's page, written by git-cliff (`cliff.toml`,
-`scripts/release.py notes`) when it is released; nothing is committed back to `main`. Hookshot's history up to the fork
-(its entries up to 2.2.0-rc.1) stays in [NotRexed/Hookshot](https://github.com/NotRexed/Hookshot)'s
-[`CHANGELOG.md`](https://github.com/NotRexed/Hookshot/blob/main/CHANGELOG.md).
+`scripts/release.py notes`) when it is released; nothing is committed back to `main`.
 
 ## Rules
 

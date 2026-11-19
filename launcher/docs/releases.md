@@ -6,7 +6,7 @@ is `launcher/` there (vendored, [VENDORED.md](../VENDORED.md)). How to make a re
 (one file, covering both products).
 
 timeLink's numbers start at **v0.1.0**, and the launcher's do too: one tag names both products' releases. Nothing here reads or writes
-GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot's history is Hookshot's).
+GitHub, and nothing is compatible with the updates of the builds from before the fork.
 
 ## In short
 
@@ -249,8 +249,7 @@ The first release of each product only needs its first number (both `v0.1.0`).
 git-cliff writes them at release time from the commit titles since the previous tag, with the repository's `cliff.toml`.
 For a stable, that is since the previous stable, so its notes cover its release candidates. The headings are Features,
 Fixes, Performance, Reverted, Documentation, Code, Build and Tests; `ci` and `chore` are left out. The notes go on the
-release page only: nothing is committed back to `main`, and there is no changelog file to keep up (Hookshot's is in
-NotRexed/Hookshot).
+release page only: nothing is committed back to `main`, and there is no changelog file to keep up.
 
 `release.py publish` puts a header above the notes (`release_page`), so a player who lands on a release page downloads the
 right thing:

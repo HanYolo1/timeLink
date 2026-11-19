@@ -57,18 +57,18 @@ Host-visible and host-coherent flags alone do not identify whether accesses reac
    changed used-memory reporting and Windows heap commit. Both affect comparisons with previous builds.
    Longshot PR 326 measures the separate capture-to-mirror sync path.
 
-## Earlier Hookshot results
+## Earlier results, from before the fork
 
-These were separate NVIDIA/Windows tests on older Hookshot builds. They help prioritize experiments for the
+These were separate NVIDIA/Windows tests on builds from before the fork. They help prioritize experiments for the
 Market return and memory pressure, but are neither timeLink measurements nor a diagnosis of the Field dispatch.
 
-- [Excess eviction](https://github.com/NotRexed/Hookshot/pull/2826), backported to `0ec31ff6` with a runtime toggle,
+- Excess eviction, backported to `0ec31ff6` with a runtime toggle,
   was the strongest repeatable change on the moving route. Two enabled runs averaged 47.35 and 48.82 FPS across
   Market, Castle, Field and Forest versus 35.99 FPS in the same-DLL off run and 42.82 and 43.78 FPS in earlier controls.
   Market return was 33.44 and 37.82 FPS enabled versus 19.70 FPS in the same-DLL off run. Fresh Market showed no
   consistent FPS gain. Allowance warnings persisted and private commit was 25.18–25.41 GiB across all three toggle runs.
-- [Draw-cache work](https://github.com/NotRexed/Hookshot/pull/2774) moved a fixed fountain view from 43.69 to 44.63 FPS
-  in one pair with unequal cache state. [The texture upload change](https://github.com/NotRexed/Hookshot/pull/2785)
+- Draw-cache work moved a fixed fountain view from 43.69 to 44.63 FPS
+  in one pair with unequal cache state. The texture upload change
   reduced some long moving frames. A warmed control had similar traversal tails and neither experiment established
   a repeatable gamewide improvement. Combined hazard memoization and target-trim pacing regressed one moving-route
   A/B sequence. Target reuse, import size, and preallocation experiments changed distinct parts of the workload.
@@ -78,11 +78,11 @@ Market return and memory pressure, but are neither timeLink measurements nor a d
   14.36 GiB without a corresponding drop in committed guest memory. The difference includes more than one
   runtime/driver allocation owner. Import backing may alias guest pages, so adding import bytes to process commit
   would double-count some memory.
-- [Mirror trim](https://github.com/NotRexed/Hookshot/pull/2825) at `18a733a1` retained a retired source mirror on
+- Mirror trim at `18a733a1` retained a retired source mirror on
   replacement allocation failure, but had already published the replacement imports. A local transaction patch
   staged all child imports and mirrors before changing the mapping. The old code failed on child mirror allocation
   failures. Nine fault-injection cases passed with the patch. Visible Field-to-Market gameplay under an API-19
-  Hookshot host exercised successful trims in both arms. One Market sweep averaged 38.05 FPS before and 37.43 FPS
+  pre-fork host exercised successful trims in both arms. One Market sweep averaged 38.05 FPS before and 37.43 FPS
   after, with workload differences. This supports a separate correctness investigation. At timeLink `cf605c85` the
   legacy `mirrors_trim` / `trims_settle` sequence still publishes host imports before the child mirrors are made.
   A timeLink fault test should establish when that path is reached with sparse mode enabled and disabled and check

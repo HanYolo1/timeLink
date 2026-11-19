@@ -385,7 +385,7 @@ void gpu_time_end(Recording& r) {
     ts_pending[r.slot] = true;
 }
 
-// (timelink) Real occlusion counts (on unless RX_VK_OCC_QUERIES=0; from Hookshot's draft by jordanella). Ocarina of Time
+// (timelink) Real occlusion counts (on unless RX_VK_OCC_QUERIES=0; from jordanella's draft). Ocarina of Time
 // reads its z-prepass samples-passed reports back on the CPU a frame or two later and leaves out of its draw lists the
 // objects whose count was 0 (docs/development.md); with every report reading 4096 nothing was ever left out. Each draw from
 // a samples-passed reset to its report gets an occlusion query, numbered from one counter for all the game's queues
@@ -558,7 +558,7 @@ void occ_slot_visible(uint64_t addr) {
 /// The reports whose queries are done, written into the game's slots (the replay thread, as a recording begins). The
 /// queries of every waiting report are asked for at once, as one run of the ring (two calls where it wraps), without a wait;
 /// the reports from the oldest on whose queries have all ended (or whose submission the GPU has finished: a query never begun
-/// is unknown then) are written, and their queries reset with one call. (Hookshot's draft asked and reset each report's
+/// is unknown then) are written, and their queries reset with one call. (jordanella's draft asked and reset each report's
 /// queries on their own, ~1,500 of each a frame in the Market; waiting for a whole submission instead wrote the counts 3-13
 /// recordings late, about two frames, often after the game had read the slot.)
 void occ_collect() {
@@ -1778,7 +1778,7 @@ void maybe_split(VkCommandBuffer& cmd) {
     // after a part's end: a later part's storage, vertex, index or texture reads of an updated range, and, on a GPU whose
     // buffer pools have no VRAM mirror, the game's own CPU reads, since the GPU then writes the memory the game sees partway
     // through its frame. Written at each part's end, on Intel without mirrors: white blocks and flashes at Kokiri, and
-    // a whole-screen white flash every 8 frames on the Arc 140V (https://github.com/NotRexed/Hookshot/issues/999).
+    // a whole-screen white flash every 8 frames on the Arc 140V.
     // Measured on an Intel iGPU only (no mirrors), so the default there; with mirrors (Arc discrete) the write goes to the
     // mirror, and it was not tested there: left as before. RX_VK_SPLIT_UBFLUSH=1: written at each part's end, as before,
     // =0: at the last part's on any GPU)

@@ -42,7 +42,7 @@ inline bool old_ini_choice(const char* line, int* value) {
     return *value == 1 || *value == 2;   // (what the row read: 0 to 2, anything else Automatic)
 }
 
-/// (timeLink, https://github.com/NotRexed/Hookshot/issues/996) The GPUs whose task + mesh draws take the compute fallback by
+/// (timeLink) The GPUs whose task + mesh draws take the compute fallback by
 /// default; vk_main.cpp asks only on Windows, where AMD's driver timed out on the native task + mesh path of RDNA 2. Navi 22
 /// first (an RX 6700 XT), then Navi 21: on an RX 6800 XT (driver 0x800161) the native path lost the device within minutes at
 /// Hyrule Castle's entrance, while the fallback played 25 minutes there with none. Navi 23: an RX 6600 (driver 0x800161)
