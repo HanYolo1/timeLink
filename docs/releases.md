@@ -134,10 +134,10 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
   `add` or `assemble`: a new asset in the `tools` release, then the line (RELEASING.md, "Bump a tool"). The release workflow
   refuses a `tools.lock` whose assets are not there with their size, or that lacks a tool the
   builder needs (`tools.py check --require`), in its first job, before anything is built.
-- **Today's lock.** Windows: Python, emsdk and wgpu-native are taken as they are from Hookshot v2.1.0's Windows builder
-  (checked against their SHA-256 when they were copied to `timeLink-tools`); llvm-mingw is upstream's; the CPM cache is Hookshot
-  v2.1.0's with dav1d added (`scripts/windows/dav1d.sh`), and `third-party` the prebuilt files of Hookshot v2.1.0's
-  `third_party` part (`assemble third-party`). Linux: `scripts/linux/deps.sh tools`'s. The lock has no play profile:
+- **Today's lock.** Windows: Python, emsdk and wgpu-native are the vendors' Windows builds as the builder before the fork
+  packaged them, repacked in `timeLink-tools` under a `timeLinkBuilder` folder with every file unchanged; llvm-mingw is
+  upstream's; the CPM cache is that builder's with dav1d added (`scripts/windows/dav1d.sh`), and `third-party` the prebuilt
+  files of its `third_party` part (`assemble third-party`), built from the GPL sources in `third_party/`. Linux: `scripts/linux/deps.sh tools`'s. The lock has no play profile:
   play profiles are committed in `assets/profiles/`.
 - **Linux.** The AppImage carries only the builder: its Python (the tools' download and `make_game.py` run on it,
   and its packages follow `requirements.txt`, which changes with the version), and timeLink's sources (the player's build
