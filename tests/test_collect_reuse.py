@@ -63,7 +63,8 @@ static void mark(uint64_t from, uint64_t count, uint64_t every) {
     for (uint64_t i = 0; i < count; i++) a64_dirty[from + i * every] = 1;
 }
 
-static int check(const char *what, int64_t got, int64_t want, const uint32_t *pages, uint64_t first, uint64_t every) {
+static int check(const char *what, int64_t got, int64_t want, uint32_t *const *list, uint64_t first, uint64_t every) {
+    const uint32_t *pages = *list;   /* (read here, after host_collect set it: the order a call's arguments are evaluated in is unspecified) */
     if (got != want) {
         printf("%s: %lld pages found, %lld expected\n", what, (long long)got, (long long)want);
         return 1;
@@ -83,12 +84,12 @@ int main(void) {
 
     /* (a few pages, then many collections: one list allocated, none freed) */
     mark(100, 10, 3);
-    if (check("first", host_collect(&pages), 10, pages, 100, 3)) return 1;
+    if (check("first", host_collect(&pages), 10, &pages, 100, 3)) return 1;
     uint32_t *const first_list = pages;
     host_free_pages(pages);
     for (int i = 0; i < 1000; i++) {
         mark(200 + (uint64_t)i % 50, 1, 1);
-        if (check("again", host_collect(&pages), 1, pages, 200 + (uint64_t)i % 50, 1)) return 1;
+        if (check("again", host_collect(&pages), 1, &pages, 200 + (uint64_t)i % 50, 1)) return 1;
         host_free_pages(pages);
     }
     if (pages != first_list || mallocs != 2 || reallocs || frees) {
@@ -99,14 +100,14 @@ int main(void) {
 
     /* (more pages than the first list holds: grown once, every page found, and kept for the next collection) */
     mark(10, 6000, 4);   /* (pages 10, 14, ... 23,006) */
-    if (check("grown", host_collect(&pages), 6000, pages, 10, 4)) return 1;
+    if (check("grown", host_collect(&pages), 6000, &pages, 10, 4)) return 1;
     host_free_pages(pages);
     if (reallocs != 1 || frees) {
         printf("6000 pages: grown %d times (1 expected), %d freed\n", reallocs, frees);
         return 1;
     }
     mark(7, 3, 1);
-    if (check("after growing", host_collect(&pages), 3, pages, 7, 1)) return 1;
+    if (check("after growing", host_collect(&pages), 3, &pages, 7, 1)) return 1;
     host_free_pages(pages);
 
     /* (a list that is not collect_in's: freed) */
@@ -126,14 +127,14 @@ int main(void) {
     range_lo = 0x9000ull << 12, range_hi = 0xA000ull << 12;
     mark(0x9010, 5, 2);
     mark(50, 1, 1);   /* (outside the new range: not found, and left marked) */
-    if (check("new range", host_collect(&pages), 5, pages, 0x9010, 2)) return 1;
+    if (check("new range", host_collect(&pages), 5, &pages, 0x9010, 2)) return 1;
     host_free_pages(pages);
     if (range_calls != 2 || !a64_dirty[50]) {
         printf("after the generation moved: %d asks for the ranges (2 expected), page 50 %s\n", range_calls,
                a64_dirty[50] ? "kept" : "taken");
         return 1;
     }
-    if (check("same generation", host_collect(&pages), 0, pages, 0, 1) || range_calls != 2) {
+    if (check("same generation", host_collect(&pages), 0, &pages, 0, 1) || range_calls != 2) {
         printf("%d asks for the ranges, 2 expected\n", range_calls);
         return 1;
     }
