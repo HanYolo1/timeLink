@@ -47,9 +47,8 @@ SHIPPED = [
     "scripts/tools.py",            # what the builder fetches with
 ]
 
-# Not shipped, and reaching no player: the release job's own tool, and a one-off that staged the archives.
+# Not shipped, and reaching no player: the release job's own tool.
 NOT_SHIPPED = {
-    "scripts/rehost_tools.py",     # one-off: staged the archives, records where each came from
     "scripts/release.py",          # the release job's own tool, and its comments record what was removed
     "launcher/scripts/release.py",
 }

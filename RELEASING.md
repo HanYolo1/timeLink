@@ -66,8 +66,8 @@ Players on the nightly channel keep the last good nightly until then.
    `assets/profiles/README.md`'s recording: record it again (docs/development.md, "The renderer's play profile") and merge
    the new `assets/profiles/timeLink_vk.profdata.xz` and its note in a pull request first. An old one still builds: what
    changed since is built as if there were no profile.
-1. **Preview.** Run `python -I scripts/release.py next` on an up-to-date `main` (`jj git fetch --remote forge` and
-   `jj new main@forge`, or `git fetch forge` and `git switch --detach forge/main`). It prints:
+1. **Preview.** Run `python -I scripts/release.py next` on an up-to-date `main` (`jj git fetch --remote origin` and
+   `jj new main@origin`, or `git fetch origin` and `git switch --detach origin/main`). It prints:
    - the number the commits since the last stable call for (feat: minor, fix and perf: patch, `!` or `BREAKING CHANGE:`:
      major; the first release: `v0.1.0` for both products);
    - the next tag, e.g. `v0.2.0-rc.1` (or `-rc.2` when `-rc.1` is out);
@@ -79,12 +79,12 @@ Players on the nightly channel keep the last good nightly until then.
 
    ```sh
    # git
-   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" forge/main
-   git push forge v0.2.0-rc.1
+   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" origin/main
+   git push origin v0.2.0-rc.1
    # jj: jj does not push tags, so the tag is made and pushed with git (a jj clone is colocated with git)
-   jj git fetch --remote forge
-   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" "$(jj log -r main@forge --no-graph -T commit_id)"
-   git push forge v0.2.0-rc.1
+   jj git fetch --remote origin
+   git tag -a v0.2.0-rc.1 -m "timeLink v0.2.0-rc.1" "$(jj log -r main@origin --no-graph -T commit_id)"
+   git push origin v0.2.0-rc.1
    ```
 
    Or in the web UI: *Releases* > *New release*. Type the tag (`v0.2.0-rc.1`), choose the target `main`, and press
@@ -116,10 +116,10 @@ When an rc has been tested and nothing blocks it, tag **the same commit** as sta
 
 ```sh
 git tag -a v0.2.0 -m "timeLink v0.2.0" v0.2.0-rc.2^{}
-git push forge v0.2.0
+git push origin v0.2.0
 # jj: the commit of the rc tag
 git tag -a v0.2.0 -m "timeLink v0.2.0" "$(jj log -r 'v0.2.0-rc.2' --no-graph -T commit_id)"
-git push forge v0.2.0
+git push origin v0.2.0
 ```
 
 Web UI: *New release*, tag `v0.2.0`, target: the rc's commit, **Create tag**.
@@ -153,13 +153,13 @@ Players should not get a version that breaks:
 
 ## When CI refuses a tag
 
-The *version* step of `release.yml` says why. Nothing was built. Delete the tag (`git push forge :refs/tags/<tag>` and
+The *version* step of `release.yml` says why. Nothing was built. Delete the tag (`git push origin :refs/tags/<tag>` and
 `git tag -d <tag>`, or *Tags* > delete in the web UI), then:
 
 | The error says | Do |
 |---|---|
 | `is not vX.Y.Z or vX.Y.Z-rc.N` | A typo, or timeLink below v3 / the launcher below v1: tag the right name |
-| `is not on main` | Tag a commit of `main` (`forge/main`), not of a branch |
+| `is not on main` | Tag a commit of `main` (`origin/main`), not of a branch |
 | `is not above every release there is` | The number is taken or lower: `release.py next` gives the next one |
 | `is lower than the commits since vX call for: at least vY` | A `feat` or a breaking change came in: tag `vY` (or `vY-rc.1`) |
 | `no tag ... here` | The tag was pushed without its commit: push `main` first |
@@ -291,7 +291,7 @@ Steps 3 to 5 are done; 1, 2 and 6 are what a maintainer still does. In order:
 |---|---|---|
 | `release.yml` fails at *SHA256SUMS, signed*: "no RELEASE_SIGNING_KEY" | the secret is not set or not visible to the repository | One-time setup, step 2 |
 | ... "not signed by a trusted key" at `verify` | the secret's key is not the one in `ReleaseTrust.cs` / `release_keys.json` | put the matching key in the secret, or rotate (above) |
-| *Publish* fails with HTTP 413 or a cut connection | an upload over Cloudflare's 100 MB limit | set `RELEASE_UPLOAD_API` (One-time setup, step 3) |
+| *Publish* fails with a cut connection | the network dropped during an upload | re-run the job (the draft is reused); GitHub takes an asset up to 2 GB, so it is not a size limit |
 | *Publish* fails with HTTP 400/422 on an upload | the attachment size or type limits | One-time setup, step 4 |
 | *Publish* fails with HTTP 401/403 | the job's token is read-only: the run is not a push to this repository (a pull request from a fork, or another repository's workflow) | release from a push or a tag here only |
 | "is already published" | a run for a version that is out (a re-run of an old run) | nothing: a version's files never change |

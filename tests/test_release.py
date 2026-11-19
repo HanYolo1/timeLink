@@ -92,7 +92,7 @@ class Copies(unittest.TestCase):
     def test_no_release_file_starts_with_a_byte_order_mark(self):
         """(PowerShell 5.1's Set-Content -Encoding utf8 writes a BOM. A BOM on a .py is tolerated, but on a file that is read
         line by line, like tools.lock, the first line stops matching and the tool it names is invisible)"""
-        for name in ("tools.lock", "scripts/tools.py", "scripts/release.py", "scripts/rehost_tools.py",
+        for name in ("tools.lock", "scripts/tools.py", "scripts/release.py",
                      "launcher/scripts/release.py", "tests/test_tools_lock.py", "tests/test_release.py",
                      "docs/known-issues.md", "docs/releases.md"):
             path = ROOT / name
@@ -100,6 +100,30 @@ class Copies(unittest.TestCase):
                 continue
             with self.subTest(name):
                 self.assertFalse(path.read_bytes()[:3] == b"\xef\xbb\xbf", "%s starts with a UTF-8 BOM" % name)
+
+
+class ApiNames(unittest.TestCase):
+    """$RELEASE_API and $RELEASE_UPLOAD_API point the script at another API (the tests' server). Their older names, from the
+    releases' Forgejo days, are still read when the new ones are unset; unset, it is GitHub's."""
+
+    def test_the_new_names_win_and_the_old_ones_still_work(self):
+        names = ("RELEASE_API", "RELEASE_UPLOAD_API", "FORGEJO_API", "FORGEJO_UPLOAD_API")
+        with mock.patch.dict(os.environ, {}, clear=False):
+            for n in names:
+                os.environ.pop(n, None)
+            self.assertIsNone(release.env("RELEASE_API"))
+            os.environ["FORGEJO_API"] = "http://old/api"
+            os.environ["FORGEJO_UPLOAD_API"] = "http://old-up/api"
+            self.assertEqual(release.env("RELEASE_API"), "http://old/api")
+            self.assertEqual(release.env("RELEASE_UPLOAD_API"), "http://old-up/api")
+            os.environ["RELEASE_API"] = "http://new/api"
+            os.environ["RELEASE_UPLOAD_API"] = "http://new-up/api"
+            self.assertEqual(release.env("RELEASE_API"), "http://new/api")
+            self.assertEqual(release.env("RELEASE_UPLOAD_API"), "http://new-up/api")
+
+    def test_no_workflow_sets_the_old_names(self):
+        for wf in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            self.assertNotIn("FORGEJO_", wf.read_text(encoding="utf-8"), wf.name)
 
 
 class Keys(unittest.TestCase):
@@ -471,7 +495,7 @@ class Publish(unittest.TestCase):
         self.addCleanup(self.server.shutdown)
         self.dir = Path(tempfile.mkdtemp(prefix="release-publish-"))
         self.addCleanup(shutil.rmtree, self.dir, True)
-        env = {"FORGEJO_API": "http://127.0.0.1:%d/api/v1" % self.server.server_port, "RELEASE_TOKEN": "t",
+        env = {"RELEASE_API": "http://127.0.0.1:%d/api/v1" % self.server.server_port, "RELEASE_TOKEN": "t",
                "GITHUB_REPOSITORY": "MagicBeanDev/Test"}
         patcher = mock.patch.dict(os.environ, env)
         patcher.start()
@@ -608,11 +632,11 @@ class ReleasedAs(unittest.TestCase):
         self.dir = Path(tempfile.mkdtemp(prefix="release-as-"))
         self.addCleanup(shutil.rmtree, self.dir, True)
         self.base = "http://127.0.0.1:%d" % self.server.server_port
-        patcher = mock.patch.dict(os.environ, {"FORGEJO_API": self.base + "/api/v1", "RELEASE_TOKEN": "t",
+        patcher = mock.patch.dict(os.environ, {"RELEASE_API": self.base + "/api/v1", "RELEASE_TOKEN": "t",
                                                "GITHUB_REPOSITORY": "MagicBeanDev/Test"})
         patcher.start()
         self.addCleanup(patcher.stop)
-        os.environ.pop("FORGEJO_UPLOAD_API", None)
+        os.environ.pop("RELEASE_UPLOAD_API", None)
         run("keygen", self.dir / "keys")
         run("keygen", self.dir / "other")
         self.repo = self.dir / "repo"
@@ -703,11 +727,11 @@ class ReleasedAs(unittest.TestCase):
             self.released_as(self.b)
 
     def test_the_files_come_from_the_address_without_cloudflare(self):
-        # (FORGEJO_UPLOAD_API: the same server by its own address; the release list's links name the public one)
+        # (RELEASE_UPLOAD_API: the same server by its own address; the release list's links name the public one)
         self.release(self.nightly(1, self.b), self.b)
         for a in FakeForgejo.releases[0]["assets"]:
             a["browser_download_url"] = a["browser_download_url"].replace(self.base, "https://git.example.invalid")
-        with mock.patch.dict(os.environ, FORGEJO_UPLOAD_API="http://localhost:%d/api/v1" % self.server.server_port):
+        with mock.patch.dict(os.environ, RELEASE_UPLOAD_API="http://localhost:%d/api/v1" % self.server.server_port):
             self.assertEqual(self.released_as(self.b), self.nightly(1, self.b))
         self.assertEqual(FakeForgejo.fetched, ["localhost:%d" % self.server.server_port] * 2)
 
@@ -761,7 +785,7 @@ class TokenStaysHome(unittest.TestCase):
             self.addCleanup(s.shutdown)
         url = "http://127.0.0.1:%d/o/r/releases/download/v1/SHA256SUMS" % forge.server_port
         with mock.patch.dict(os.environ, RELEASE_TOKEN="secret"):
-            os.environ.pop("FORGEJO_UPLOAD_API", None)
+            os.environ.pop("RELEASE_UPLOAD_API", None)
             self.assertEqual(release.download(url), b"the sums")
         # (Bearer: uploads.github.com answers 404 to `token` with a GitHub App installation token, which is what
         # GITHUB_TOKEN is - see scripts/release.py api. The point of this test is that the store gets no header at all)

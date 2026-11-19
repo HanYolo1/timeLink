@@ -428,7 +428,7 @@ class Publish(unittest.TestCase):
         self.addCleanup(self.server.shutdown)
         self.dir = Path(tempfile.mkdtemp(prefix="release-publish-"))
         self.addCleanup(shutil.rmtree, self.dir, True)
-        env = {"FORGEJO_API": "http://127.0.0.1:%d/api/v1" % self.server.server_port, "RELEASE_TOKEN": "t",
+        env = {"RELEASE_API": "http://127.0.0.1:%d/api/v1" % self.server.server_port, "RELEASE_TOKEN": "t",
                "GITHUB_REPOSITORY": "HanYolo1/Test"}
         patcher = mock.patch.dict(os.environ, env)
         patcher.start()
@@ -565,11 +565,11 @@ class ReleasedAs(unittest.TestCase):
         self.dir = Path(tempfile.mkdtemp(prefix="release-as-"))
         self.addCleanup(shutil.rmtree, self.dir, True)
         self.base = "http://127.0.0.1:%d" % self.server.server_port
-        patcher = mock.patch.dict(os.environ, {"FORGEJO_API": self.base + "/api/v1", "RELEASE_TOKEN": "t",
+        patcher = mock.patch.dict(os.environ, {"RELEASE_API": self.base + "/api/v1", "RELEASE_TOKEN": "t",
                                                "GITHUB_REPOSITORY": "HanYolo1/Test"})
         patcher.start()
         self.addCleanup(patcher.stop)
-        os.environ.pop("FORGEJO_UPLOAD_API", None)
+        os.environ.pop("RELEASE_UPLOAD_API", None)
         run("keygen", self.dir / "keys")
         run("keygen", self.dir / "other")
         self.repo = self.dir / "repo"
@@ -662,11 +662,11 @@ class ReleasedAs(unittest.TestCase):
             self.released_as(self.b)
 
     def test_the_files_come_from_the_address_without_cloudflare(self):
-        # (FORGEJO_UPLOAD_API: the same server by its own address; the release list's links name the public one)
+        # (RELEASE_UPLOAD_API: the same server by its own address; the release list's links name the public one)
         self.release(self.nightly(1, self.b), self.b)
         for a in FakeForgejo.releases[0]["assets"]:
             a["browser_download_url"] = a["browser_download_url"].replace(self.base, "https://git.example.invalid")
-        with mock.patch.dict(os.environ, FORGEJO_UPLOAD_API="http://localhost:%d/api/v1" % self.server.server_port):
+        with mock.patch.dict(os.environ, RELEASE_UPLOAD_API="http://localhost:%d/api/v1" % self.server.server_port):
             self.assertEqual(self.released_as(self.b), self.nightly(1, self.b))
         self.assertEqual(FakeForgejo.fetched, ["localhost:%d" % self.server.server_port] * 2)
 
@@ -720,7 +720,7 @@ class TokenStaysHome(unittest.TestCase):
             self.addCleanup(s.shutdown)
         url = "http://127.0.0.1:%d/o/r/releases/download/v1/SHA256SUMS" % forge.server_port
         with mock.patch.dict(os.environ, RELEASE_TOKEN="secret"):
-            os.environ.pop("FORGEJO_UPLOAD_API", None)
+            os.environ.pop("RELEASE_UPLOAD_API", None)
             self.assertEqual(release.download(url), b"the sums")
         self.assertEqual(seen, {"forge": "Bearer secret", "store": None})
 

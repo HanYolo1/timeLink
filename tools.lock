@@ -14,24 +14,24 @@
 #
 # The URLs are tried in order: first timeLink's own copy, an asset of the `tools` release of HanYolo1/timeLink-tools, a
 # public repository that holds nothing but these archives
-# (https://github.com/HanYolo1/timeLink-tools/releases/download/tools/<sha256>-<name>.zip), then where it came from (upstream, or
-# NotRexed/Hookshot's release) as the fallback, where the line has one. Archives timeLink assembles (a tool with our
-# packages, the Linux tools) have no upstream: their GitHub asset is the only copy. A release asset's name carries its
-# SHA-256, and the line checks it, so a replaced asset is caught; never reuse a version string.
+# (https://github.com/HanYolo1/timeLink-tools/releases/download/tools/<sha256>-<name>.zip), then, for llvm-mingw only, its
+# maker's own release as the fallback. Every other archive's timeLink copy is the only one a line names: no other project's
+# releases are listed. A release asset's name carries its SHA-256, and the line checks it, so a replaced asset is caught;
+# never reuse a version string.
 #
-# (These lines used to name MagicBeanDev's Forgejo package store first. scripts/rehost_tools.py staged every archive from
-# there, checked each against the SHA-256 and size below, and rewrote the lines to the tools release.)
+# (These lines used to name MagicBeanDev's Forgejo package store first, and three of them Hookshot's builder-parts release
+# as their fallback. Every archive was checked against the SHA-256 and size below when it was copied to timeLink-tools.)
 #
-# Taken as they are from Hookshot v2.1.0's Windows builder (NotRexed/Hookshot, release builder-parts): python, emsdk and
+# Where they came from (kept for their licences): taken as they are from Hookshot v2.1.0's Windows builder: python, emsdk and
 # wgpu-native; cpm is Hookshot's with dav1d added (scripts/windows/dav1d.sh), third-party the prebuilt files of its
 # third_party part (tools.py assemble). The linux-x64 lines: scripts/linux/deps.sh tools (LLVM 23.1.5's clang and lld;
 # FFmpeg with dav1d; SDL2; the Vulkan, SPIR-V and VMA headers; Ubuntu 22.04's glibc 2.35 sysroot). No play profile:
 # play profiles are committed in assets/profiles/, not tools here.
 tool llvm-mingw 20261104 windows-x64 552191b5754c49a5a20723276a6fc56541ea1922c4c50b7b669022333fc1b40f 191037046 timeLinkBuilder/tools/llvm-mingw llvm-mingw-20261104-ucrt-x86_64 https://github.com/HanYolo1/timeLink-tools/releases/download/tools/552191b5754c49a5a20723276a6fc56541ea1922c4c50b7b669022333fc1b40f-llvm-mingw.zip https://github.com/mstorsjo/llvm-mingw/releases/download/20261104/llvm-mingw-20261104-ucrt-x86_64.zip
-tool python 3.14-hookshot-v2.1.0 windows-x64 c0eb2e3fbabae82cb7d3dc61ec4b0e9b4b854269d9c38c3bbcc5a08e4497bd12 55961280 timeLinkBuilder/tools/python HookshotBuilder/tools/python https://github.com/HanYolo1/timeLink-tools/releases/download/tools/c0eb2e3fbabae82cb7d3dc61ec4b0e9b4b854269d9c38c3bbcc5a08e4497bd12-python.zip https://github.com/NotRexed/Hookshot/releases/download/builder-parts/HookshotBuilder-python-c0eb2e3fbaba.zip
-tool emsdk hookshot-v2.1.0 windows-x64 b4c8fc476654d7657806180039b3a96050c104cf6a93dab1cc5c027277ece368 120100315 timeLinkBuilder/tools/emsdk HookshotBuilder/tools/emsdk https://github.com/HanYolo1/timeLink-tools/releases/download/tools/b4c8fc476654d7657806180039b3a96050c104cf6a93dab1cc5c027277ece368-emsdk.zip https://github.com/NotRexed/Hookshot/releases/download/builder-parts/HookshotBuilder-emsdk-b4c8fc476654.zip
+tool python 3.14-hookshot-v2.1.0 windows-x64 c0eb2e3fbabae82cb7d3dc61ec4b0e9b4b854269d9c38c3bbcc5a08e4497bd12 55961280 timeLinkBuilder/tools/python HookshotBuilder/tools/python https://github.com/HanYolo1/timeLink-tools/releases/download/tools/c0eb2e3fbabae82cb7d3dc61ec4b0e9b4b854269d9c38c3bbcc5a08e4497bd12-python.zip
+tool emsdk hookshot-v2.1.0 windows-x64 b4c8fc476654d7657806180039b3a96050c104cf6a93dab1cc5c027277ece368 120100315 timeLinkBuilder/tools/emsdk HookshotBuilder/tools/emsdk https://github.com/HanYolo1/timeLink-tools/releases/download/tools/b4c8fc476654d7657806180039b3a96050c104cf6a93dab1cc5c027277ece368-emsdk.zip
 tool cpm hookshot-v2.1.0-dav1d-1.5.4 windows-x64 4eeae3a8d50118dd5c15f2c18dcdc452fbf1dfafceeffcad3bca97aadffe829b 19771824 timeLinkBuilder/tools/cpm cpm https://github.com/HanYolo1/timeLink-tools/releases/download/tools/4eeae3a8d50118dd5c15f2c18dcdc452fbf1dfafceeffcad3bca97aadffe829b-cpm.zip
-tool wgpu-native 29.0.1.1 windows-x64 a3b3d8253fbaedf5975172994c0b45202fe2e4ff89a42ff5bfad53f9468cf498 2162194 timeLinkBuilder/tools/wgpu-native HookshotBuilder/tools/wgpu-native https://github.com/HanYolo1/timeLink-tools/releases/download/tools/a3b3d8253fbaedf5975172994c0b45202fe2e4ff89a42ff5bfad53f9468cf498-wgpu-native.zip https://github.com/NotRexed/Hookshot/releases/download/builder-parts/HookshotBuilder-wgpu-native-a3b3d8253fba.zip
+tool wgpu-native 29.0.1.1 windows-x64 a3b3d8253fbaedf5975172994c0b45202fe2e4ff89a42ff5bfad53f9468cf498 2162194 timeLinkBuilder/tools/wgpu-native HookshotBuilder/tools/wgpu-native https://github.com/HanYolo1/timeLink-tools/releases/download/tools/a3b3d8253fbaedf5975172994c0b45202fe2e4ff89a42ff5bfad53f9468cf498-wgpu-native.zip
 tool emsdk 23.1.5 linux-x64 7b4ab8976575d68ea91ea58415b2cc96321f6b8c86985d53880449302a3dacde 141542909 usr/lib/timeLink/emsdk emsdk https://github.com/HanYolo1/timeLink-tools/releases/download/tools/7b4ab8976575d68ea91ea58415b2cc96321f6b8c86985d53880449302a3dacde-emsdk.zip
 tool ffmpeg 9.0.2-dav1d-1.5.4 linux-x64 d92c7f63b272d5abd92c23f0ff25e9fed384ac62715b71abe6aaa20a3c200d49 9796808 usr/lib/timeLink/ffmpeg ffmpeg https://github.com/HanYolo1/timeLink-tools/releases/download/tools/d92c7f63b272d5abd92c23f0ff25e9fed384ac62715b71abe6aaa20a3c200d49-ffmpeg.zip
 tool sdl2 2.32.10 linux-x64 6410a86826414d58e78c4e7d0046f1fbb6444f6bb594e94c7f7de4b54fcdd62e 889975 usr/lib/timeLink/sdl2 sdl2 https://github.com/HanYolo1/timeLink-tools/releases/download/tools/6410a86826414d58e78c4e7d0046f1fbb6444f6bb594e94c7f7de4b54fcdd62e-sdl2.zip

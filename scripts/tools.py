@@ -539,7 +539,7 @@ def release_id(token):
             fail("GET the %s release: HTTP %d" % (TAG, e.code))
     body = json.dumps({"tag_name": TAG, "name": "Build tools", "draft": True,
                        "body": "The build tools tools.lock names, one asset per tool and system, each named for its SHA-256. "
-                               "scripts/tools.py mirror uploads them; scripts/rehost_tools.py staged them."}).encode()
+                               "scripts/tools.py mirror uploads them."}).encode()
     req = urllib.request.Request("%s/repos/%s/releases" % (API, TOOLS_REPO), data=body, method="POST",
                                  headers=dict(headers, **{"Content-Type": "application/json"}))
     try:

@@ -102,9 +102,11 @@ are what the preparation produced.
 ## The tools re-host: done
 
 All 11 archives were downloaded from MagicBeanDev's store and verified against `tools.lock`'s SHA-256 and size
-(`scripts/rehost_tools.py stage`), then uploaded to the `tools` release of **`HanYolo1/timeLink-tools`** — a public
-repository that holds nothing but these archives. Every `tools.lock` line names it first, keeping third-party upstream URLs
-behind it where a line had them.
+(with `scripts/rehost_tools.py`, a one-off since removed: `scripts/tools.py fetch` and `mirror` do the same), then
+uploaded to the `tools` release of **`HanYolo1/timeLink-tools`** — a public repository that holds nothing but these
+archives. Every `tools.lock` line names it first. Only llvm-mingw keeps a fallback, its maker's own release: the
+Hookshot `builder-parts` fallbacks three lines had were removed, so timeLink's installs depend on no other project's
+releases.
 
 **Why a separate repository.** `HanYolo1/timeLink` was **private** when the tools were re-hosted, and GitHub does not serve
 `releases/download/` for a private repository at all. It is public again now, so the tools could move here - they stay in
@@ -199,7 +201,7 @@ Not every reference is a defect. Swept the tree; the remaining ones fall in four
 
 | Where | Why it stays |
 |---|---|
-| **`scripts/forge.py`, `test_requests.py`, `rehost_tools.py`, `docs/forge.md`, `docs/forgejo-runners.md`** | **Removed in `25ca5d0a`.** These were the *team's* Forgejo tooling at `git.magicbean.dev`: the Forgejo CLI, its Discord sign-in, the Matrix team chat, the test requests, and the two docs. That repository is not this fork's, and the fork's CI, releases and issues are GitHub's, so the whole cluster went — 22 files, 3,748 lines, including their four tests. `ci.yml`'s title check imported `forge.py` for `TITLE` and `strip_wip`; both already existed in `scripts/check_pr_description.py`, which it imports now. `scripts/hardware_report.py` kept its `section`/`classify`/`os_of` (which `tests/test_bug_report.py` needs) and lost its Forgejo counting. `rehost_tools.py` stays: it is a one-off that records where each tool archive came from |
+| **`scripts/forge.py`, `test_requests.py`, `docs/forge.md`, `docs/forgejo-runners.md`** | **Removed in `25ca5d0a`.** These were the *team's* Forgejo tooling at `git.magicbean.dev`: the Forgejo CLI, its Discord sign-in, the Matrix team chat, the test requests, and the two docs. That repository is not this fork's, and the fork's CI, releases and issues are GitHub's, so the whole cluster went — 22 files, 3,748 lines, including their four tests. `ci.yml`'s title check imported `forge.py` for `TITLE` and `strip_wip`; both already existed in `scripts/check_pr_description.py`, which it imports now. `scripts/hardware_report.py` kept its `section`/`classify`/`os_of` (which `tests/test_bug_report.py` needs) and lost its Forgejo counting. `rehost_tools.py` stays: it is a one-off that records where each tool archive came from |
 | **`longshot.magicbean.dev`** | Nothing player-facing is left. The user-facing links went in `ca661d6b` and the last of the prose in this session: `docs/getting-started.md`, `docs/common-issues.md`, `docs/tested*`, `README.md` and `builder/linux/AppRun` all carry **0** references now, and `scripts/release.py` writes `https://github.com/HanYolo1/timeLink/releases` (`SITE`, `DOWNLOADS`). What still names the domain is this file (`5`: the history below) and two comments that record what was removed and why (`scripts/release.py` and `launcher/scripts/release.py`). **Correcting an earlier version of this row:** it listed 30 references across 7 files and said they were worth keeping because the upstream site answers 200 and this fork has none. That was true when written; the user then asked for every magicbean link to go, so the links went and the count is now zero |
 | **`docs/releases.md`, `RELEASING.md`, `launcher/VENDORED.md`, `ReleaseTrust.cs`** | History: where the fork came from, which key was removed, which Forgejo mechanics no longer apply. Accurate as prose |
 | **`builder/timeLinkBuilder/Program.cs`** | **Was a bug, now fixed** — see the Fixed table. A shipped binary was telling players to download the launcher from a domain this fork does not own |
