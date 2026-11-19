@@ -1,4 +1,4 @@
-"""scripts/release.py (docs/releases.md, RELEASING.md; the same file in HanYolo1/TimeLinkLauncher), with no network: keys,
+"""scripts/release.py (docs/releases.md, RELEASING.md; a copy of timeLink's scripts/release.py), with no network: keys,
 SHA256SUMS and its signature; the channels as the launcher reads them from the release list; the version a tag must reach
 (the bump from the commits since the last stable), in a git repository made here; the nightly's name; and publish and
 prune against a fake Forgejo on 127.0.0.1 (a draft first, every file uploaded and checked, published last; only nightlies

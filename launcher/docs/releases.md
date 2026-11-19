@@ -24,10 +24,10 @@ GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot
 
 Each version is one GitHub release, made by `.github/workflows/release.yml`:
 
-| timeLink (HanYolo1/timeLink) | The launcher (HanYolo1/TimeLinkLauncher) |
+| timeLink's builders | The launcher (the same release) |
 |---|---|
-| `timeLinkBuilder-<v>-windows-x64.zip`: the Windows builder (its setup as `timeLinkBuilder.exe`, the builder and timeLink's sources in `timeLinkBuilder\`, `tools.lock`, `VERSION`, and `recomplauncher.json` at the top) | `TimeLinkLauncher-<v>-windows-x64-setup.exe`: one self-contained program that installs itself (below); `TimeLinkLauncher-<v>-windows-x64-portable.zip`: the same program as `timeLinkLauncher.exe` with its `portable` file |
-| `timeLink-<v>-x86_64.AppImage`: the Linux builder (the builder, its Python, timeLink's sources, the Vulkan back end, its `tools.lock` and `recomplauncher.json`); its build tools are not inside | `TimeLinkLauncher-<v>-x86_64.AppImage` |
+| `timeLinkBuilder-<v>-windows-x64.zip`: the Windows builder (its setup as `timeLinkBuilder.exe`, the builder and timeLink's sources in `timeLinkBuilder\`, `tools.lock`, `VERSION`, and `recomplauncher.json` at the top) | `timeLinkLauncher-<v>-windows-x64-setup.exe`: one self-contained program that installs itself (below); `timeLinkLauncher-<v>-windows-x64-portable.zip`: the same program as `timeLinkLauncher.exe` with its `portable` file |
+| `timeLink-<v>-x86_64.AppImage`: the Linux builder (the builder, its Python, timeLink's sources, the Vulkan back end, its `tools.lock` and `recomplauncher.json`); its build tools are not inside | `timeLinkLauncher-<v>-x86_64.AppImage` |
 | `tools.lock`: the tools the builders download | |
 | `SHA256SUMS`, `SHA256SUMS.sig` | `SHA256SUMS`, `SHA256SUMS.sig` |
 
