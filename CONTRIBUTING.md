@@ -10,8 +10,9 @@ trouble. The [development guide](docs/development.md) has the full pipeline; the
 [design notes](docs/design.md) have the architecture.
 
 **timeLink is developed by HanYolo1.** Where it comes from, and the credits, are in the [README](README.md#credits).
-Issues and pull requests for timeLink are all here, on GitHub. A fork of your own is welcome under the GPL. Everything
-below applies to work on your own copy.
+Issues and pull requests for timeLink are all here, on GitHub. **timeLink is not taking outside pull requests for
+now**; this may change later. Issues are welcome, and so is a fork of your own under the GPL. The pull request steps
+below are how changes reach timeLink's `main`, and the rest applies to work on your own copy.
 
 ## The rule with no exceptions
 
@@ -68,7 +69,7 @@ break.
 | **Test on other hardware** | NVIDIA cards are the most tested; the README's [status table](README.md#project-status) says what works where, and the [tested configurations catalogue](docs/tested-configurations.md) lists the runs behind it. Reports from AMD and Intel cards, other drivers, other distributions and SteamOS help even when everything works. |
 | **Play further** | The tested area is the start of the game. Reaching new areas, cutscenes, menus and items finds problems nobody has seen. |
 | **Report what is broken** | Use the [issue forms](https://github.com/HanYolo1/timeLink/issues/new/choose): game problem, install or build problem, save problem or idea. Include the version, your hardware, where you were and `timeLink_log.txt`. |
-| **Send a fix** | Branch, fix, test, and open a pull request ([how](#commits-and-pull-requests)). Small, focused changes are the easiest to review. |
+| **Send a fix** | Not open to outside pull requests for now. Report the problem as an issue, with what you found; a fix in your own fork can be linked there. |
 | **Improve the docs** | The README, the development guide and the design notes are part of the project. |
 
 ## Before you open an issue or a PR

@@ -3445,19 +3445,23 @@ void menu_debug_rows(int descriptor_reuse, int sampler_cache) {   // (vk_draw.h:
 }
 namespace {
 int desc_reuse_level() {
-    static int start = -1;
-    static bool env = false;
-    if (start < 0) {
+    // (timelink) the starting level read once, by whichever thread asks first: a static's initialisation, which C++ runs
+    // once for all threads (before, every thread that came first at the same time read the options file and logged)
+    struct Start {
+        int level;
+        bool env;
+    };
+    static const Start s = [] {
         const char* e = getenv("RX_VK_DESC_REUSE");
-        env = e != nullptr;
-        start = e && !strcmp(e, "never") ? 0 : menu_env_on("RX_VK_DESC_REUSE", "descriptor_reuse", true, 4) ? 2 : 1;
+        const int start = e && !strcmp(e, "never") ? 0 : menu_env_on("RX_VK_DESC_REUSE", "descriptor_reuse", true, 4) ? 2 : 1;
         if (start == 2)
             logf("vk: descriptor slotgen ready: draws keep their descriptors through the registrations of slots they do not "
                  "sample (menu: Descriptor reuse)");
         if (start == 0) logf("vk: RX_VK_DESC_REUSE=never: every draw builds its own descriptors");
-    }
-    const int row = env ? -1 : desc_reuse_row.load(std::memory_order_relaxed);
-    const int level = row < 0 ? start : row ? 2 : 1;
+        return Start{start, e != nullptr};
+    }();
+    const int row = s.env ? -1 : desc_reuse_row.load(std::memory_order_relaxed);
+    const int level = row < 0 ? s.level : row ? 2 : 1;
     static std::atomic<int> last{-1};
     if (last.load(std::memory_order_relaxed) != level && last.exchange(level, std::memory_order_relaxed) >= 0)
         logf("vk: Descriptor reuse %s (menu)", level == 2 ? "on: draws keep their descriptors through other slots' registrations"
@@ -3470,15 +3474,18 @@ bool desc_slotgen_on() { return desc_reuse_level() == 2; }
 /// The row applies in play (menu_debug_rows): what is kept is checked by the slot's version, so entries from before it was
 /// turned off and on again are still good while the slot was not registered anew. RX_VK_SAMPLER_CACHE holds it for the run
 bool sampler_cache_on() {
-    static int start = -1;
-    static bool env = false;
-    if (start < 0) {
-        env = getenv("RX_VK_SAMPLER_CACHE") != nullptr;
-        start = menu_env_on("RX_VK_SAMPLER_CACHE", "sampler_cache");
-        if (start) logf("vk: sampler cache ready: sampler ids answer their parameters without the registrations' lock (menu: Sampler cache)");
-    }
-    const int row = env ? -1 : sampler_cache_row.load(std::memory_order_relaxed);
-    return row < 0 ? start != 0 : row != 0;
+    // (timelink) read once for all threads, as desc_reuse_level's start
+    struct Start {
+        bool on;
+        bool env;
+    };
+    static const Start s = [] {
+        const bool on = menu_env_on("RX_VK_SAMPLER_CACHE", "sampler_cache");
+        if (on) logf("vk: sampler cache ready: sampler ids answer their parameters without the registrations' lock (menu: Sampler cache)");
+        return Start{on, getenv("RX_VK_SAMPLER_CACHE") != nullptr};
+    }();
+    const int row = s.env ? -1 : sampler_cache_row.load(std::memory_order_relaxed);
+    return row < 0 ? s.on : row != 0;
 }
 // (Descriptor reuse) What the descriptors being built read of the registrations: the version of every slot whose handle they
 // resolved. The next draw of the same bindings keeps them while none of those versions moved. A handle read as 0 is noted: of a

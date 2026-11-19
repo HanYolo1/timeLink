@@ -188,8 +188,17 @@ int hos_gpu_guest_ranges(uint64_t (*out)[2], int max) {
         maps_changed = 0;
         const int nall = nmaps + ntracked;   /* (the GPU mappings and the native NVN pools) */
         if (capmerged < nall) {
-            capmerged = nall + 64;
-            merged = (uint64_t (*)[2])realloc(merged, (size_t)capmerged * sizeof *merged);
+            uint64_t (*grown)[2] = (uint64_t (*)[2])realloc(merged, (size_t)(nall + 64) * sizeof *merged);
+            if (!grown) {   /* (out of host memory: the ranges merged before stay the answer, and the next call tries again;
+                               the generation moves so that a caller keeping the list by it asks again too) */
+                maps_changed = 1;
+                InterlockedIncrement(&maps_generation);
+                const int n = nmerged < max ? nmerged : max;
+                if (n) memcpy(out, merged, (size_t)n * sizeof *merged);
+                UNLOCK();
+                return n;
+            }
+            merged = grown, capmerged = nall + 64;
         }
         for (int i = 0; i < nmaps; i++) {
             merged[i][0] = maps[i].guest & ~0xFFFULL;
