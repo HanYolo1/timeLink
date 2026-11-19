@@ -104,9 +104,10 @@ static partial class Program
                 "Install: the program copied whole into place (the download stays), the leftovers of earlier updates gone.");
         var entry = registry.Read(Installer.UninstallKey)!;
         Require(Installer.UninstallKey == @"Software\Microsoft\Windows\CurrentVersion\Uninstall\timeLinkLauncher"
-                && (string)entry["DisplayName"] == "timeLink Launcher" && (string)entry["DisplayVersion"] == "1.0.0" && (string)entry["Publisher"] == "Magic Bean"
+                && (string)entry["DisplayName"] == "timeLink Launcher" && (string)entry["DisplayVersion"] == "1.0.0" && (string)entry["Publisher"] == "HanYolo1"
                 && (string)entry["DisplayIcon"] == installed + ",0" && (string)entry["UninstallString"] == $"\"{installed}\" --uninstall"
-                && entry["NoModify"] is 1 && entry["EstimatedSize"] is int, "The Apps & features entry.");
+                && entry["NoModify"] is 1 && entry["EstimatedSize"] is int
+                && (string)entry["URLInfoAbout"] == "https://github.com/HanYolo1/timeLink", "The Apps & features entry (its link is a page that exists).");
         Require(links.Links.TryGetValue(at.StartMenuLink, out var target) && target == installed, "The Start menu shortcut starts the installed program.");
         var inst = LauncherLayout.Of(Platform.Windows, installed, env);
         Require(inst.Kind == LauncherKind.Installed && !inst.OffersInstall("v1.0.0", env) && inst.UpdateKey == "windows-x64"

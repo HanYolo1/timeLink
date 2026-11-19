@@ -14,7 +14,7 @@
     <Product>timeLink Launcher</Product>
     <AssemblyTitle>timeLink Launcher</AssemblyTitle>
     <Description>Installs, builds, updates and starts timeLink</Description>
-    <Company>HanYolo</Company>
+    <Company>HanYolo1</Company>
     <Copyright>Copyright © the timeLink contributors. GPL-3.0-or-later</Copyright>
   </PropertyGroup>
   <ItemGroup>

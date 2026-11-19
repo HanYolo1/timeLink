@@ -1,4 +1,4 @@
-"""Save my pipeline list: the zip a player attaches to the "Submit your pipelines" issue (#14), made by the game's menu
+"""Save my pipeline list: the zip a player attaches to the "Submit your pipelines" issue (#13), made by the game's menu
 (gpu/vk/pipeline_share.h, vk_menu.cpp) and nx2/pipeline_share.py. Synthetic data only, no game:
 
   - the zip holds exactly timeLink_pipeline_states.bin (the bytes as the game wrote them) and timeLink_pipeline_report.txt, and
