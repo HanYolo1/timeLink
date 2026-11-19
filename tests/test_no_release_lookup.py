@@ -23,7 +23,7 @@ class NoLookup(unittest.TestCase):
     def test_no_builder_looks_for_a_release(self):
         for rel in SOURCES:
             text = (ROOT / rel).read_text(encoding="utf-8")
-            for pattern in (r"api\.github\.com", r"github\.com/[^/\s\"]+/(timeLink|Hookshot)/releases", r"releases/latest",
+            for pattern in (r"api\.github\.com", r"github\.com/[^/\s\"]+/[^/\s\"]+/releases", r"releases/latest",
                             r"NotRexed[/]timeLink", r"hos_update_check", r"TIMELINK_LATEST_TAG", r"TIMELINK_LINUX_LIST",
                             r"latest_tag", r"update.builder", r"--fetched", r"run_latest_setup"):
                 self.assertIsNone(re.search(pattern, text), "%s: %s" % (rel, pattern))

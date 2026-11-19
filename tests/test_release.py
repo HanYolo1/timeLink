@@ -242,7 +242,7 @@ class Bump(unittest.TestCase):
         self.git("tag", "v2.9.0")
         self.git("tag", "v3.0.0-rc.1")
         self.assertEqual(self.check("v3.0.0-rc.1"), [])
-        self.assertIn("is not vX.Y.Z", self.check("v2.9.0")[0])   # (Hookshot's numbers are not timeLink's)
+        self.assertIn("is not vX.Y.Z", self.check("v2.9.0")[0])   # (an earlier project's numbers are not timeLink's)
         self.assertEqual(release.next_tag([], 3, root=str(self.dir)), "v3.0.0-rc.1")
 
     def test_the_first_release_of_a_product_that_starts_at_zero(self):

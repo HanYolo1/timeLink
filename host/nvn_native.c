@@ -1149,8 +1149,7 @@ NV(nvnEventGetValue) {
            polled (profiled; removed). Answered at once, the
            presenting thread goes on to its present, where the render thread holds it while the present before is not
            replayed (RX_VK_PRESENTS_AHEAD), and holds the present itself until the main thread's signal for the frame. The
-           idea of answering the poll from the present's hand-over is Hookshot PR 2910's (rx_release_due):
-           https://git.notrexed.dev/Hookshot/Hookshot/pulls/2910. HOS_PRESENT_NOWAIT=0 with the render thread (a test): polled, as before */
+           poll is answered from the present's hand-over (rx_release_due). HOS_PRESENT_NOWAIT=0 with the render thread (a test): polled, as before */
         /* (timelink) whether the render thread runs is the renderer's to say, once (HOS_OPT_RENDER_THREAD: vk_replay.cpp
            async_on), not RX_VK_ASYNC read here: the Insert menu's Threaded rendering turns it on too, with the switch
            unset, and the poll must then be answered exactly as with RX_VK_ASYNC=1. Kept once the renderer has answered
