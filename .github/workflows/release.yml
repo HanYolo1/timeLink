@@ -163,7 +163,7 @@ jobs:
           fetch-depth: 0
           # (as in the version job: the `git fetch` below needs the job's token to read this private repository)
           persist-credentials: true
-      # (from Forgejo's public address behind Cloudflare, as the build jobs' upload: fetched once more when it failed)
+      # (fetched once more when it failed, like the build jobs' upload: a download can fail once on a dropped connection)
       - id: download_1
         continue-on-error: true
         uses: actions/download-artifact@v4   # v4 (4.1.4 with the GHES check off)
@@ -175,7 +175,7 @@ jobs:
         with:
           name: timeLink-linux-x86_64
           path: files
-      # (from Forgejo's public address behind Cloudflare, as the build jobs' upload: fetched once more when it failed)
+      # (fetched once more when it failed, like the build jobs' upload: a download can fail once on a dropped connection)
       - id: download_2
         continue-on-error: true
         uses: actions/download-artifact@v4   # v4 (4.1.4 with the GHES check off)
@@ -187,7 +187,7 @@ jobs:
         with:
           name: timeLinkBuilder-windows
           path: files
-      # (from Forgejo's public address behind Cloudflare, as the build jobs' upload: fetched once more when it failed)
+      # (fetched once more when it failed, like the build jobs' upload: a download can fail once on a dropped connection)
       - id: download_3
         continue-on-error: true
         uses: actions/download-artifact@v4   # v4 (4.1.4 with the GHES check off)

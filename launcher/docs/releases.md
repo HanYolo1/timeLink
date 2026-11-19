@@ -126,8 +126,8 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
   all, not even with a token, so the builder's setup and the AppImage could not fetch them. The name carries the digest and
   `tools.lock` checks it, so a replaced asset is caught; GitHub lets an asset be deleted and uploaded again, so never reuse
   a version string. Nothing prunes the release, so an older version's tools stay downloadable. Where an archive came from
-  (upstream for llvm-mingw, NotRexed/Hookshot's `builder-parts` release for those taken from Hookshot) is its fallback URL,
-  so no install depends on a repository we do not control alone. An archive timeLink makes itself (the CPM cache with dav1d,
+  is a fallback URL only for llvm-mingw (its maker's own release); no other project's releases are listed, so every other
+  archive comes from timeLink's copy alone. An archive timeLink makes itself (the CPM cache with dav1d,
   the prebuilt `third_party` files, the Linux tools) has no upstream: its release asset is the only copy.
 
   The launcher has no Cloudflare edge in front of it any more (`CdnFetcher` went with MagicBeanDev's Forgejo), so a release
@@ -138,7 +138,7 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
   refuses a `tools.lock` whose assets are not there with their size, or that lacks a tool the
   builder needs (`tools.py check --require`), in its first job, before anything is built.
 - **Today's lock.** Windows: Python, emsdk and wgpu-native are taken as they are from Hookshot v2.1.0's Windows builder
-  (NotRexed/Hookshot's `builder-parts` release), with their SHA-256; llvm-mingw is upstream's; the CPM cache is Hookshot
+  (checked against their SHA-256 when they were copied to `timeLink-tools`); llvm-mingw is upstream's; the CPM cache is Hookshot
   v2.1.0's with dav1d added (`scripts/windows/dav1d.sh`), and `third-party` the prebuilt files of Hookshot v2.1.0's
   `third_party` part (`assemble third-party`). Linux: `scripts/linux/deps.sh tools`'s. The lock has no play profile:
     play profiles are committed in `assets/profiles/`.

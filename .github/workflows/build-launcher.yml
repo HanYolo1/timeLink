@@ -76,7 +76,7 @@ jobs:
           out=$("$wine" "$RUNNER_TEMP/wine-check/timeLinkLauncher.exe" --self-check | tr -d '\r')
           echo "$out"
           grep -qxF "TimeLinkLauncher $TAG" <<<"$out" || { echo "::error::the Windows launcher does not answer --self-check with $TAG (it said: $out)"; exit 1; }
-      - uses: actions/upload-artifact@v4 # v4 (Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
+      - uses: actions/upload-artifact@v4 # v4
         with:
           name: timeLinkLauncher
           path: ${{ runner.temp }}/dist/timeLinkLauncher-*

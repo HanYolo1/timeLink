@@ -31,8 +31,9 @@ Files and signatures:
         for the launcher's Core/ReleaseTrust.cs and timeLink's scripts/release_keys.json
     python -I scripts/release.py key-id <.pem>
 
-The release on Forgejo ($RELEASE_TOKEN: in CI the job's own token, forgejo.token; $GITHUB_REPOSITORY or the repository
-this is; $FORGEJO_API, $FORGEJO_UPLOAD_API):
+The release on GitHub ($RELEASE_TOKEN: in CI the job's own token, github.token; $GITHUB_REPOSITORY or the repository
+this is; $RELEASE_API and $RELEASE_UPLOAD_API point it at another API, as the tests do: unset, api.github.com and
+uploads.github.com. The older names $FORGEJO_API and $FORGEJO_UPLOAD_API are still read when the new ones are unset):
     python -I scripts/release.py publish <tag> --target <commit> --notes <file> <file>...
         a draft release (pre-release unless a stable), every file uploaded and checked, then published: until that last step
         no launcher sees it. A draft left by a failed run of the same tag is reused. The page is the notes under a header
@@ -546,12 +547,22 @@ def repo_of(product):
     return os.environ.get("GITHUB_REPOSITORY") or PRODUCTS[product]["repo"]
 
 
+# (the API addresses were $FORGEJO_API and $FORGEJO_UPLOAD_API when the releases were on Forgejo: the old names are still
+# read, after the new ones, so a setup that set them keeps working)
+OLD_NAMES = {"RELEASE_API": "FORGEJO_API", "RELEASE_UPLOAD_API": "FORGEJO_UPLOAD_API"}
+
+
+def env(name):
+    """$name, or its older name's value when it is unset (OLD_NAMES); None when neither is set"""
+    return os.environ.get(name) or os.environ.get(OLD_NAMES.get(name, "")) or None
+
+
 def api(method, path, body=None, data=None, content_type=None, upload=False, missing_ok=False):
     # (every caller passes a path that already starts with /repos/<owner>/<repo>, so the base is the API root: appending
     # "/repos" here made it /repos/repos/..., which GitHub answers 404)
     # (a release asset is uploaded to uploads.github.com, not api.github.com: the same path on the API host answers 404,
     # which is what the release's upload_url names)
-    base = ((os.environ.get("FORGEJO_UPLOAD_API") if upload else None) or os.environ.get("FORGEJO_API")
+    base = ((env("RELEASE_UPLOAD_API") if upload else None) or env("RELEASE_API")
             or (UPLOAD_SERVER if upload else SERVER))
     headers = {"User-Agent": "timeLink-release", "Accept": "application/json"}
     token = os.environ.get("RELEASE_TOKEN")
@@ -643,9 +654,9 @@ def prune(keep, product):
 
 
 def download(url, limit=1 << 20):
-    """A release file's bytes (SHA256SUMS, its signature: small), from the address without Cloudflare when FORGEJO_UPLOAD_API
-    names one (the same server: only the scheme and host change), else from url"""
-    up = os.environ.get("FORGEJO_UPLOAD_API")
+    """A release file's bytes (SHA256SUMS, its signature: small), from the upload API's host when RELEASE_UPLOAD_API names
+    one (the tests' server: only the scheme and host change), else from url"""
+    up = env("RELEASE_UPLOAD_API")
     if up:
         u, base = urllib.parse.urlsplit(url), urllib.parse.urlsplit(up)
         url = urllib.parse.urlunsplit((base.scheme, base.netloc, u.path, u.query, ""))

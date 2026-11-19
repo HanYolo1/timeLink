@@ -33,8 +33,8 @@ passes with a notice listing what is left. The check applies once it is marked r
     python -I scripts/check_pr_description.py --file body.md [--title T] [--diff pr.diff] [--wip]
     python -I scripts/check_pr_description.py --pr 12 [--repo HanYolo1/timeLink] [--server https://github.com]
 
---pr reads the pull request, its title and its diff from the API, with the token in GITHUB_TOKEN or FORGEJO_TOKEN when
-one is set (a public repository needs none). Exit status 0 when it passes, 1 with the problems listed when it does not.
+--pr reads the pull request, its title and its diff from the API, with the token in GITHUB_TOKEN when
+one is set (a public repository needs none; the older FORGEJO_TOKEN is still read when GITHUB_TOKEN is unset). Exit status 0 when it passes, 1 with the problems listed when it does not.
 Standard library only; .github/workflows/pr-description.yml runs it on every pull request, and ci.yml's title check
 imports TYPES and strip_wip from here.
 """
@@ -702,7 +702,7 @@ def fetch(server, repo, number, suffix=""):
     accept = "application/vnd.github.v3.diff" if suffix == ".diff" else "application/json"
     req = urllib.request.Request(pull_url(server, repo, number, suffix),
                                  headers={"Accept": accept, "User-Agent": "timeLink-pr-check/1"})
-    token = os.environ.get("FORGEJO_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("FORGEJO_TOKEN")
     if token:
         req.add_header("Authorization", "Bearer " + token)
     with urllib.request.urlopen(req, timeout=30) as r:
