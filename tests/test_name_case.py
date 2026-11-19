@@ -29,9 +29,11 @@ ALLOWED = [
     ("scripts/oot_saves.py", "Program(\"timelink\""),          # its id; processes are matched lower case by design
     ("scripts/oot_saves.py", "[\"timelink\"], [])"),           # the process names, lower case by design (see its comment)
     ("launcher/Core/Saves.cs", "new[] { \"timelink\" }, Array.Empty"),   # process names, compared lower case (RunningFrom)
-    ("launcher/scripts/release.py", ""),                      # the release product's id ("timelink" vs "launcher")
-    ("launcher/tests/test_release.py", ""),                    # the same id, in its tests
-    ("tests/test_release.py", ""),                             # the same id, in its tests
+    ("scripts/release.py", "PRODUCT_ALIASES = "),             # an earlier spelling of the product, still taken by --product
+    ("scripts/release.py", "earlier names, still taken"),      # the comment naming it
+    ("launcher/scripts/release.py", "PRODUCT_ALIASES = "),    # the same file's copy
+    ("launcher/scripts/release.py", "earlier names, still taken"),
+    ("tests/test_release.py", ""),                             # the aliases, in the release script's tests
     ("tests/test_name_case.py", ""),                           # this file
 ]
 
