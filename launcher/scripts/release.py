@@ -360,7 +360,9 @@ def notes(tag, product, root=ROOT):
     p = subprocess.run(args, cwd=root, capture_output=True, text=True, encoding="utf-8")
     if p.returncode:
         fail("git-cliff: " + p.stderr.strip())
-    return p.stdout.strip() + "\n"
+    # (the name keeps its small t: cliff.toml's upper_first capitalises each title's first letter, and "docs: timeLink has
+    # no Discord" came out "TimeLink has no Discord" on v0.2.0-rc.1's page)
+    return re.sub(r"\bTimeLink", "timeLink", p.stdout.strip()) + "\n"
 
 
 # ---- the release page ----
