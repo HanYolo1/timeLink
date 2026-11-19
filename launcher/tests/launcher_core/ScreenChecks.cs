@@ -377,21 +377,22 @@ static partial class Program
         var zip = Zip(("timeLinkBuilder.exe", "MZ setup", null, 0x1A4), ("timeLinkBuilder/timeLinkBuilder.exe", "MZ builder", null, 0x1A4),
                       ("timeLinkBuilder/tools/nx2/make_game.py", "print('authored')\n", null, 0x1A4),
                       ("timeLinkBuilder/tools/third_party/a64-kit/lift/a64emit.cpp", "// source\n", null, 0x1A4));
-        var py = Zip(("HookshotBuilder/tools/python/python.exe", "MZ python", null, 0x1A4), ("HookshotBuilder/HookshotBuilder.exe", "not taken", null, 0x1A4));
+        var py = Zip(("timeLinkBuilder/tools/python/python.exe", "MZ python", null, 0x1A4), ("timeLinkBuilder/outside.exe", "not taken", null, 0x1A4));
         var tp = Zip(("third_party/a64-kit/lift/a64emit.dll", "MZ a64emit", null, 0x1A4), ("third_party/sdl2/SDL3.dll", "MZ SDL3", null, 0x1A4));
         var win = new FakeForgejo(Product.TimeLink);
         win.Server.Files["https://mirror/p.zip"] = py;
         win.Server.Files["https://packages/tp.zip"] = tp;
-        var lockText = $"tool python 3.14 windows-x64 {ShaOf(py)} {py.Length} timeLinkBuilder/tools/python HookshotBuilder/tools/python " +
+        var lockText = $"tool python 3.14 windows-x64 {ShaOf(py)} {py.Length} timeLinkBuilder/tools/python timeLinkBuilder/tools/python " +
                        "https://upstream-gone/p.zip https://mirror/p.zip\n" +
-                       $"tool third-party hookshot-v2.1.0 windows-x64 {ShaOf(tp)} {tp.Length} timeLinkBuilder/tools/third_party third_party " +
+                       $"tool third-party timeLink-1 windows-x64 {ShaOf(tp)} {tp.Length} timeLinkBuilder/tools/third_party third_party " +
                        "https://packages/tp.zip\n";
         win.Add("v3.2.0", key, files: new() { [ReleaseManifest.BuilderFile("v3.2.0", "windows-x64")] = zip, ["tools.lock"] = Encoding.UTF8.GetBytes(lockText) });
         var winChains = new Toolchains(Path.Combine(root, "toolchains-win"), win.Server);
         var wt = await ToolsSource.EnsureAsync(winChains, new Releases(win.Server, Platform.Windows, keys, NoWait), "v3.2.0");
         Require(wt.Kind == ListKind.Setup && File.ReadAllText(wt.MakeGame) == "print('authored')\n"
                 && File.ReadAllText(Path.Combine(wt.ToolsRoot, "python", "python.exe")) == "MZ python"
-                && !File.Exists(Path.Combine(wt.Folder, "timeLinkBuilder", "tools", "HookshotBuilder", "HookshotBuilder.exe")),
+                && !File.Exists(Path.Combine(wt.Folder, "timeLinkBuilder", "tools", "timeLinkBuilder", "outside.exe"))
+                && !File.Exists(Path.Combine(wt.ToolsRoot, "python", "outside.exe")),
                 "Windows: the builder's zip and its tools.lock's tools, from the mirror when upstream is gone.");
         var thirdParty = Path.Combine(wt.ToolsRoot, "third_party");
         Require(File.ReadAllText(Path.Combine(thirdParty, "a64-kit", "lift", "a64emit.cpp")) == "// source\n"

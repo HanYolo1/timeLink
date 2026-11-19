@@ -434,8 +434,8 @@ def assemble_third_party(source, prefix, out, tracked):
 # <sha256>-<name>.zip. The name carries the digest, and tools.lock checks it, so a replaced asset is caught; GitHub lets an
 # asset be deleted and uploaded again, so never reuse a version string. Nothing prunes the release: an older version's tools
 # stay downloadable. A private repository needs a token to read them (GITHUB_TOKEN or RELEASE_TOKEN); a public one does not.
-# Each system has its own asset because a tool's Windows and Linux builds have versions of their own (emsdk: Hookshot
-# v2.1.0's, LLVM 23.1.5).
+# Each system has its own asset because a tool's Windows and Linux builds have versions of their own (emsdk: the one the
+# builder before the fork packaged, LLVM 23.1.5).
 
 def file_name(tool):
     return "%s-%s.zip" % (tool.sha256, tool.name)
@@ -609,7 +609,7 @@ def main(argv=None):
     s.add_argument("--requirements")
     s.add_argument("--add")
     s.add_argument("--from", dest="source")
-    s.add_argument("--from-prefix", default="HookshotBuilder/tools/third_party")
+    s.add_argument("--from-prefix", default="timeLinkBuilder/tools/third_party")
     s.add_argument("--out", required=True)
     s.add_argument("--cache", default=CACHE)
     a = p.parse_args(argv)

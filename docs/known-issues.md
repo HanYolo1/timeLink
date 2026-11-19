@@ -104,9 +104,9 @@ are what the preparation produced.
 All 11 archives were downloaded from MagicBeanDev's store and verified against `tools.lock`'s SHA-256 and size
 (with `scripts/rehost_tools.py`, a one-off since removed: `scripts/tools.py fetch` and `mirror` do the same), then
 uploaded to the `tools` release of **`HanYolo1/timeLink-tools`** — a public repository that holds nothing but these
-archives. Every `tools.lock` line names it first. Only llvm-mingw keeps a fallback, its maker's own release: the
-Hookshot `builder-parts` fallbacks three lines had were removed, so timeLink's installs depend on no other project's
-releases.
+archives. Every `tools.lock` line names it first. Only llvm-mingw keeps a fallback, its maker's own release, so timeLink's
+installs depend on no other project's releases. python, emsdk and wgpu-native were later repacked there with their top
+folder renamed to `timeLinkBuilder`, every file unchanged (`timeLink-tools`' `scripts/rename_top_folder.py`).
 
 **Why a separate repository.** `HanYolo1/timeLink` was **private** when the tools were re-hosted, and GitHub does not serve
 `releases/download/` for a private repository at all. It is public again now, so the tools could move here - they stay in
@@ -213,7 +213,7 @@ Cloudflare any more, and nothing reaches the upstream repository for a build, a 
 
 | What | Comes from | Why not somewhere else |
 |---|---|---|
-| the 11 build tools | `HanYolo1/timeLink-tools`, then where each was originally published | Re-hosted because GitHub does not serve `releases/download/` for a private repository. `tools.lock` names ours first; the original is a fallback for provenance. Three of them (`python`, `emsdk` and Hookshot's `cpm`) carry build-specific patches and cannot be re-sourced from the vendor at all |
+| the 11 build tools | `HanYolo1/timeLink-tools`, then where each was originally published | Re-hosted because GitHub does not serve `releases/download/` for a private repository. `tools.lock` names ours first; the original is a fallback for provenance. Three of them (`python`, `emsdk` and the earlier builder's `cpm`) carry build-specific patches and cannot be re-sourced from the vendor at all |
 | releases, `SHA256SUMS`, the launcher's updates | this repository, `releases/download/<tag>/` | Signed with `774f1dc88462b913`, the only key `ReleaseTrust.cs` trusts |
 | the DLSS/NGX runtimes | `raw.githubusercontent.com/NVIDIA/DLSS` at a pinned commit, each file SHA-256 checked (`scripts/ngx_sdk.py`) | **Not ours to re-host.** NVIDIA's RTX SDKs licence allows redistributing the runtimes only as part of an application that uses them, not as a standalone download; publishing them on `timeLink-tools` would be a licence breach. The script fetches them from NVIDIA's own repository and they stay on the player's PC |
 | the NGX core, `_nvngx.dll` | NVIDIA's driver, already installed | Never shipped, by licence and by design |
