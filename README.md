@@ -1233,7 +1233,8 @@ Bigger ways to help:
 - **Linux testing.** The Linux build (`host/posix`) has been tested on several distributions and cards: reports from
   others still help.
 - **Fixes in your own fork.** The GPL lets you fork this and change it. Keep game files, keys and anything generated
-  from your game out of it, and do not expect a change to be merged back here.
+  from your game out of it. timeLink is not taking outside pull requests for now, so a fix stays in your fork; this
+  may change later. Problems and test results are welcome as [issues](https://github.com/HanYolo1/timeLink/issues).
 
 [CONTRIBUTING.md](CONTRIBUTING.md) has the setup, the test commands and the code conventions, for anyone working on
 their own copy.
