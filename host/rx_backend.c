@@ -79,6 +79,12 @@ static inline int marks_clear_256(const uint8_t *m) {
     for (int i = 0; i < 32; i++) any |= w[i];
     return !any;
 }
+/* (timelink) The list of pages found, kept per thread and reused: the scan ran at every submission and allocated 16 KB
+   for it each time, which the renderer then freed. Each caller takes the list, reads it and gives it back with
+   free_pages on the same thread before it collects again (gpu/vk/vk_memory.cpp memory_collect_written and the capture's
+   collect_written_in); host_free_pages leaves this list alone and frees any other. */
+static _Thread_local uint32_t *found_pages;
+static _Thread_local size_t found_cap;
 static int64_t collect_in(const uint64_t (*ranges)[2], int nranges, uint32_t **pages) {
     /* (HOS_COLLECT_WIDE=0: 32 marks a step at most, as before; the pages found are the same either way) */
     static int wide = -1;
@@ -86,8 +92,12 @@ static int64_t collect_in(const uint64_t (*ranges)[2], int nranges, uint32_t **p
         const char *e = getenv("HOS_COLLECT_WIDE");
         wide = !(e && e[0] == '0');
     }
-    size_t n = 0, cap = 4096;
-    uint32_t *out = malloc(cap * sizeof *out);
+    if (!found_pages) {
+        found_pages = malloc(4096 * sizeof *found_pages);
+        found_cap = found_pages ? 4096 : 0;
+    }
+    size_t n = 0, cap = found_cap;
+    uint32_t *out = found_pages;
     for (int r = 0; r < nranges; r++) {
         const uint64_t lo = ranges[r][0], hi = ranges[r][1] < hos_guest_size() ? ranges[r][1] : hos_guest_size();
         uint64_t p1 = (hi + 4095) >> 12;
@@ -115,7 +125,7 @@ static int64_t collect_in(const uint64_t (*ranges)[2], int nranges, uint32_t **p
             }
             if (__atomic_load_n(&a64_dirty[p], __ATOMIC_RELAXED) && __atomic_exchange_n(&a64_dirty[p], 0, __ATOMIC_ACQUIRE)) {
                 if (n == cap) {
-                    const size_t grown_cap = cap * 2;
+                    const size_t grown_cap = cap ? cap * 2 : 4096;
                     uint32_t *grown = realloc(out, grown_cap * sizeof *out);
                     if (!grown) break;   /* (out of host memory: the pages found so far are the answer) */
                     out = grown, cap = grown_cap;
@@ -125,13 +135,28 @@ static int64_t collect_in(const uint64_t (*ranges)[2], int nranges, uint32_t **p
             p++;
         }
     }
+    found_pages = out, found_cap = cap;
     *pages = out;
     return (int64_t)n;
 }
 static int64_t host_collect(uint32_t **pages) {
+    /* (timelink) The GPU-visible ranges asked for again only when the mappings changed: hos_gpu_guest_ranges takes the
+       mappings' lock and copies the merged list at every call, and this runs at every submission. The generation moves
+       with every mapping and pool change, and when the merge could not grow its list (host/nvdrv.c); one caller, the
+       submitting thread, as collect_in's own list */
     static uint64_t (*ranges)[2];
-    if (!ranges) ranges = malloc(sizeof *ranges * 4096);
-    return collect_in(ranges, hos_gpu_guest_ranges(ranges, 4096), pages);
+    static int nranges;
+    static uint32_t ranges_gen;
+    if (!ranges && !(ranges = malloc(sizeof *ranges * 4096))) {
+        *pages = 0;
+        return 0;
+    }
+    const uint32_t gen = hos_gpu_maps_generation();
+    if (gen != ranges_gen) {   /* (the generation starts at 1: the first call always asks) */
+        ranges_gen = gen;
+        nranges = hos_gpu_guest_ranges(ranges, 4096);
+    }
+    return collect_in(ranges, nranges, pages);
 }
 /* (only within the given guest ranges: the submit-time capture of the mirrored pools, a small part of the 20 ms the
    whole collection takes) */
@@ -144,7 +169,11 @@ static int64_t host_collect(uint32_t **pages) {
 }
 static int64_t host_collect_in(const uint64_t (*ranges)[2], int n, uint32_t **pages) { (void)ranges, (void)n; *pages = 0; return 0; }
 #endif
+#if defined(A64_WRITE_TRACK) && !defined(__EMSCRIPTEN__)
+static void host_free_pages(uint32_t *pages) { if (pages != found_pages) free(pages); }   /* (collect_in's list is kept) */
+#else
 static void host_free_pages(uint32_t *pages) { free(pages); }
+#endif
 static void host_mark_written(const void *p, uint64_t n) {
 #if defined(A64_WRITE_TRACK) && !defined(__EMSCRIPTEN__)
     hos_mark_written(p, (size_t)n);

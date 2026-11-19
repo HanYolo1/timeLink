@@ -3,7 +3,8 @@
 collect_in and its 256-mark test are cut out of the source and compiled against a small mark array. For random marks
 and ranges (aligned or not, short, empty, past the guest's end, past the array's end) the pages found, their order and
 the marks left must be those of a plain walk, with the wide step on and with HOS_COLLECT_WIDE=0. The fixture also
-checks that the wide step is really taken (a range of 4096 clear marks is walked in 16 steps).
+checks that the wide step is really taken (a range of 4096 clear marks is walked in 16 steps). The list of pages found is
+collect_in's own, kept per thread (tests/test_collect_reuse.py), so the fixture never frees it.
 
 python -I -B tests/test_collect_wide.py [--cc gcc]
 """
@@ -29,6 +30,7 @@ static uint64_t hos_guest_size(void) { return guest_size; }
 static int clear_calls;
 #define memcpy(d, s, n) (clear_calls += (n) == 256, memcpy(d, s, n))
 
+@FOUND@
 @MARKS_CLEAR@
 @COLLECT_IN@
 
@@ -88,7 +90,6 @@ int main(int argc, char **argv) {
             printf("round %d: %lld pages found, %zu expected, or other pages, or other marks left\n", round, (long long)got, k);
             return 1;
         }
-        free(pages);
     }
     /* (the wide step is taken: 4096 clear marks in 16 steps; and not with the switch off) */
     memset(a64_dirty, 0, sizeof a64_dirty);
@@ -97,7 +98,6 @@ int main(int argc, char **argv) {
     uint32_t *pages = 0;
     clear_calls = 0;
     if (collect_in(ranges, 1, &pages) != 0) return 1;
-    free(pages);
     if (clear_calls != (want_wide ? 16 : 0)) {
         printf("4096 clear marks: %d steps of 256, %d expected\n", clear_calls, want_wide ? 16 : 0);
         return 1;
@@ -122,7 +122,9 @@ def main():
     p.add_argument("--cc", default="gcc")
     a = p.parse_args()
     src = (ROOT / "host" / "rx_backend.c").read_text(encoding="utf-8")
-    fixture = (FIXTURE.replace("@MARKS_CLEAR@", block(src, "static inline int marks_clear_256("))
+    found = src[src.index("static _Thread_local uint32_t *found_pages;"):src.index("static int64_t collect_in(")]
+    fixture = (FIXTURE.replace("@FOUND@", found)
+               .replace("@MARKS_CLEAR@", block(src, "static inline int marks_clear_256("))
                .replace("@COLLECT_IN@", block(src, "static int64_t collect_in(")))
     with tempfile.TemporaryDirectory(prefix="collect-wide-") as tmp:
         c = Path(tmp) / "fixture.c"
