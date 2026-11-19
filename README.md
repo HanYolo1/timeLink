@@ -37,9 +37,6 @@
 
 timeLink is a static recompilation of a supported console game. The game's code is translated to C and compiled into a Windows or Linux program, rebuilding the graphics on Vulkan, with the console's system software reimplemented. All of this happens **on your PC, from your own copy of the game**.
 
-timeLink is a hard fork of Longshot, which is a hard fork of Hookshot. It exists thanks to the work of everyone in that
-chain.
-
 **[Report a problem](https://github.com/HanYolo1/timeLink/issues)!**
 <br>
 
@@ -50,8 +47,9 @@ chain.
 
 ## Project status
 
-Experimental. Players have reported on many PCs, from Kokiri Forest to the dungeons: the table says what works and
-what does not yet. Open problems are in the [issue tracker](https://github.com/HanYolo1/timeLink/issues).
+Experimental. The table says what works and what does not yet. It was carried over from Longshot at the fork: the
+reports in it are from Longshot's players, on many PCs, from Kokiri Forest to the dungeons. Open problems are in the
+[issue tracker](https://github.com/HanYolo1/timeLink/issues).
 
 | What | Status |
 |---|---|
@@ -71,6 +69,25 @@ what does not yet. Open problems are in the [issue tracker](https://github.com/H
 | Pre-rendered movies on a slow CPU | ⚠️ Shown rather than skipped when the decoder is slower than the movie, so the picture can fall behind the sound. With 4 logical processors or fewer the decoder uses 2 threads, leaving the game its own. The first picture can still be black on some PCs |
 | Cards without mesh shaders (such as NVIDIA GTX 10 and AMD RX 5000) | ⚠️ Run through the compute fallback, which runs the mesh programs as compute shaders on cards with buffer device addresses: slower, and it leaves out the mesh draws that take their count from a buffer |
 | Linux | ✅ Works with the AppImage. Tested on several distributions (CachyOS, Fedora, Bazzite, SteamOS) and cards, with open problems on some AMD cards |
+
+## What's different in timeLink
+
+timeLink split from Longshot on 2026-11-14. The game's code and renderer are Longshot's as they were then, with fixes
+since. What changed is mostly everything around them:
+
+- **Its own releases and signing key.** Releases are published on [this repository's releases page](https://github.com/HanYolo1/timeLink/releases),
+  signed with timeLink's own key, and the launcher checks them against it. Version numbers started over at v0.1.0.
+- **Its own launcher.** The timeLink Launcher is built from Longshot's launcher, copied into this repository
+  (`launcher/`) with timeLink's name, logo and release key.
+- **Its own build tools host.** The builder's tools come from the [timeLink-tools](https://github.com/HanYolo1/timeLink-tools)
+  repository and their makers' own releases, each checked by SHA-256.
+- **Nightlies on request.** A merged change no longer publishes a nightly; release candidates are the way to try
+  what's next.
+- **Issues instead of chat.** There is no Discord server: problems, test results and pipeline lists go in the
+  [issue tracker](https://github.com/HanYolo1/timeLink/issues).
+- **Game fixes since the fork:** a crash when Windows runs low on memory
+  ([#20](https://github.com/HanYolo1/timeLink/pull/20)), and a start-up race in two Debug settings
+  ([#22](https://github.com/HanYolo1/timeLink/pull/22)).
 
 ## Install and play
 
@@ -98,7 +115,8 @@ timeLink doesn't come ready to play: it is built on your PC, from your own copy 
    ([build times](docs/development.md#build-times)).
 4. Press **Play**. From then on the launcher keeps the game, and itself, [up to date](#updating).
 
-timeLink's first version is **v0.1.0**, and so is the launcher's: one tag names both products' releases.
+timeLink's versions started over at **v0.1.0**, and so did the launcher's: one tag names both products' releases. The
+newest is the release candidate **v0.2.0-rc.1**.
 
 ### What you need
 
@@ -141,7 +159,7 @@ there is nothing else to install.
    rights, with a Start menu shortcut) or **Run portable**. To skip the question, take
    [the portable zip](https://github.com/HanYolo1/timeLink/releases), unzip it and run
    `timeLinkLauncher.exe`.
-2. Press **Build the game** and choose the **Stable** channel.
+2. Press **Build the game** and choose the **Release candidate** channel (there is no stable release yet).
 3. Pick your game. The launcher finds `.nup` files in your Downloads, Desktop and Documents folders; if yours isn't
    listed, point it at the file, or at the `romfs` and `exefs` folders. It checks the version while the builder downloads.
 4. Choose where the game goes (`Games\timeLink` in your user folder by default), its language and the options.
@@ -177,7 +195,7 @@ building each shader when first drawn, until that file is deleted or a build pre
 3. Start it and build the game as [on Windows](#on-windows). The game goes to `~/Games/timeLink` by default, and the
    launcher can add it to your applications menu as "timeLink".
 
-Each version's builder is also released on its own, as `timeLink-<version>-x86_64.AppImage` (about 95 MB) on
+Each version's builder is also released on its own, as `timeLink-<version>-x86_64.AppImage` (about 87 MB) on
 [timeLink's releases](https://github.com/HanYolo1/timeLink/releases). It has no window: it is what the
 launcher builds with, and it builds and starts the game from the command line, over SSH or from a script (see
 [Linux, the AppImage from the command line](#build-from-source)). Its first `--cli` downloads its build tools (the
@@ -239,7 +257,7 @@ The launcher builds from one of three channels:
 |---|---|---|
 | **Stable** | The released version. Choose this to play. | a `vX.Y.Z` tag |
 | **Release candidate** | The next version, before it is released. | a `vX.Y.Z-rc.N` tag |
-| **Nightly** | Built from `main` after every change; the newest five stay on the releases page. Untested: it may break your saves or settings, so copy them first. | no tag |
+| **Nightly** | Built from `main` when the maintainer asks for one, not after every change; the newest five stay on the releases page, and there may be none. Untested: it may break your saves or settings, so copy them first. | no tag |
 
 The launcher is one program for every channel: it ships with each release, so there is nothing separate to download per channel. A nightly launcher builds timeLink's nightlies by default; any launcher can build from any channel. To go back, build a
 version from the **Stable** channel.
@@ -286,7 +304,8 @@ everything it does on the network or with other programs:
 
 - **Downloads, from GitHub.** The launcher reads the release list of this repository, downloads a
   version's files, and checks each one against the SHA-256 in the release's signed `SHA256SUMS`. The Windows builder's
-  tools come from the links in `tools.lock` (their makers' releases, or timeLink's `tools` release), and its compiler
+  tools come from the links in `tools.lock` (their makers' releases, or the `tools` release of the
+  [timeLink-tools](https://github.com/HanYolo1/timeLink-tools) repository), and its compiler
   from its makers' releases (llvm-mingw, Python), all checked by SHA-256. With **DLSS** on, NVIDIA's DLSS library comes
   from `github.com/NVIDIA/DLSS`. The game itself checks for nothing when it starts.
 - **Your Discord status, through the Discord app on this PC.** While Discord runs, it shows "Playing timeLink" with the
