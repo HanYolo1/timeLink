@@ -3,7 +3,7 @@ repository's sources of the list a release ships, and merge those into it.
 
 The repository keeps the list a release ships as separate sources in assets/pipeline_states/ (README.md there):
 
-    tour.bin.xz                 written only by the pipeline tour (scripts/pipeline_tour.py), replaced whole each time
+    tour.bin.xz                 written only by `pipeline_states.py tour` (below), replaced whole each time
     contrib/<name>.bin.xz       one per contributed list, added to and never edited by anyone else
     <source>.md                 beside each: where it comes from (who, GPU and driver, build, settings, route)
 
@@ -17,7 +17,7 @@ sources always merge into the same bytes.
         <name>, its pipelines are kept and the new ones added), and its note contrib/<name>.md. The lists are someone else's
         files: each must be exactly a list (read_sent), or nothing is written
     python -I nx2/pipeline_states.py tour <list>... --gpu ... --build ... --settings ... --route ...
-        tour.bin.xz and tour.md replaced by the lists' pipelines (the pipeline tour runs it)
+        tour.bin.xz and tour.md replaced by the lists' pipelines
     python -I nx2/pipeline_states.py merge --out <file>                    the merged list (xz when <file> ends in .xz)
     python -I nx2/pipeline_states.py check                                 each source whole, of this build's format, not empty,
                                                                           with its note; the merge the same twice (CI runs it)
@@ -521,7 +521,7 @@ def tour(d, lists, fields):
     os.makedirs(d, exist_ok=True)
     path = os.path.join(d, TOUR)
     write(path, recs)
-    write_note(note_path(path), "The pipeline tour", dict(fields, Who="the pipeline tour (scripts/pipeline_tour.py)"), recs)
+    write_note(note_path(path), "The pipeline tour", dict(fields, Who="the pipeline tour (nx2/pipeline_states.py tour)"), recs)
     print("%s: %s" % (TOUR, describe(recs)))
     return recs
 

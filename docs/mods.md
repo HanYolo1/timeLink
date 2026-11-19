@@ -1,7 +1,7 @@
 # RomFS mods: the existing file contract
 
 This is the file-replacement path timeLink already implements, the first tier proposed in
-[issue 42](https://github.com/HanYolo1/timeLink/issues/42). It is not a new manifest format or a promise of
+Longshot issue 42 (before the fork). It is not a new manifest format or a promise of
 chest tables, item/check events, native modules or Archipelago support. The example below uses invented text files,
 not a dump, a seed or a playable mod.
 

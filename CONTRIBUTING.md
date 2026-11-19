@@ -10,8 +10,7 @@ trouble. The [development guide](docs/development.md) has the full pipeline; the
 [design notes](docs/design.md) have the architecture.
 
 **timeLink is developed by HanYolo1.** It is a hard fork of Longshot, developed by MagicBean, which is a hard fork of
-Hookshot, developed by NotRexed. Issues are open here for problems with this fork's builds; pull requests are welcome
-but nothing is merged back automatically, and a fix that belongs upstream should go there. A fork of your own is
+Hookshot, developed by NotRexed. Issues and pull requests for timeLink are all here, on GitHub. A fork of your own is
 welcome under the GPL. Everything below applies to work on your own copy.
 
 ## The rule with no exceptions
@@ -69,7 +68,7 @@ break.
 | **Test on other hardware** | NVIDIA cards are the most tested; the README's [status table](README.md#project-status) says what works where, and the [tested configurations catalogue](docs/tested-configurations.md) lists the runs behind it. Reports from AMD and Intel cards, other drivers, other distributions and SteamOS help even when everything works. |
 | **Play further** | The tested area is the start of the game. Reaching new areas, cutscenes, menus and items finds problems nobody has seen. |
 | **Report what is broken** | Use the [issue forms](https://github.com/HanYolo1/timeLink/issues/new/choose): game problem, install or build problem, save problem or idea. Include the version, your hardware, where you were and `timeLink_log.txt`. |
-| **Send a fix** | Branch, fix, test, and open a pull request ([how](#commits-and-pull-requests)). Small, focused changes are the easiest to review. A fix that belongs upstream should go there. |
+| **Send a fix** | Branch, fix, test, and open a pull request ([how](#commits-and-pull-requests)). Small, focused changes are the easiest to review. |
 | **Improve the docs** | The README, the development guide and the design notes are part of the project. |
 
 ## Before you open an issue or a PR
@@ -159,7 +158,7 @@ On Windows, NVIDIA's static `nvsdk_ngx_s.lib` is linked into `timeLink_vk.dll` (
 `nvngx_dlssg.dll` into the game's `ngx` folder; never put NGX's core, `_nvngx.dll`, beside the game. On Linux it is
 `--platform linux` (or `scripts/linux/ngx-sdk.sh`). Never share a game folder built with the SDK. A change to the
 pinned SDK release updates `scripts/ngx_sdk.py`, `tests/test_ngx_sdk.py` and the release named in the timeLink
-Launcher's license text (MagicBeanDev/timeLink Launcher, `App/ViewModels/SettingsStepViewModel.cs`).
+Launcher's license text (`launcher/App/ViewModels/SettingsStepViewModel.cs`).
 
 ### timeLink Builder
 

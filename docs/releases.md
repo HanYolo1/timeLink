@@ -108,7 +108,7 @@ They are not in the release: `tools.lock` names them.
 
 ```
 tool <name> <version> <system> <sha256> <size> <dest> <prefix> <url> [<url> ...]
-tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/llvm-mingw llvm-mingw-20261104-ucrt-x86_64 https://github.com/HanYolo1/timeLink/releases/download/tools/5521…40f-llvm-mingw.zip https://github.com/mstorsjo/…
+tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/llvm-mingw llvm-mingw-20261104-ucrt-x86_64 https://github.com/HanYolo1/timeLink-tools/releases/download/tools/5521…40f-llvm-mingw.zip https://github.com/mstorsjo/…
 ```
 
 - **Installing.** The Windows builder's setup (`builder/setup/setup.c`), the Linux AppImage (`builder/linux/linux_tools.py`)
