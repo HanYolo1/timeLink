@@ -15,7 +15,7 @@ public sealed class LauncherService
     public IFetcher Fetcher { get; }
     /// timeLink's signed releases on GitHub (the builder of each version), checked against the keys this launcher trusts
     public Releases Releases { get; }
-    /// The launcher's own signed releases (HanYolo1/TimeLinkLauncher), checked the same way
+    /// The launcher's own signed releases (in HanYolo1/timeLink beside the game's: docs/releases.md), checked the same way
     public Releases LauncherReleases { get; }
     public Toolchains Tools { get; }
     /// This launcher's own version (SelfUpdate.OwnTag), and the one its channel (LauncherChannel) offers, if any

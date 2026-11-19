@@ -755,7 +755,7 @@ python -I nx2/pipeline_states.py merge --out merged.bin     # the list make_game
 A list depends on the settings it was recorded with: its records hold the target formats and draw state, so one recorded
 at 1440p with DLSS shares few pipelines with one recorded at 360p.
 
-Players send theirs to issue #14 with **Save my pipeline list** (the menu's Debug tab, under Developer: `gpu/vk/pipeline_share.h` and
+Players send theirs to issue #13 with **Save my pipeline list** (the menu's Debug tab, under Developer: `gpu/vk/pipeline_share.h` and
 `vk_menu.cpp` `share_pipeline_list`; from the command line: `nx2/pipeline_share.py`, `--json` for a program that runs it). It checks the list as `pipeline_states.py --check` does and writes
 `timeLink-pipelines-<date>.zip` to the Downloads folder with exactly two files, the list and `timeLink_pipeline_report.txt`
 (the issue's template filled in from the run or from the game folder's log and `timeLink_options.ini`), then copies the
