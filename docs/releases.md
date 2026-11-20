@@ -6,7 +6,7 @@ is `launcher/` there (vendored, [VENDORED.md](../launcher/VENDORED.md)). How to 
 (one file, covering both products).
 
 timeLink's numbers start at **v0.1.0**, and the launcher's do too: one tag names both products' releases. Nothing here reads or writes
-GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot's history is Hookshot's).
+GitHub, and nothing is compatible with the updates of the builds from before the fork.
 
 ## In short
 
@@ -108,7 +108,7 @@ They are not in the release: `tools.lock` names them.
 
 ```
 tool <name> <version> <system> <sha256> <size> <dest> <prefix> <url> [<url> ...]
-tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/llvm-mingw llvm-mingw-20261104-ucrt-x86_64 https://github.com/HanYolo1/timeLink/releases/download/tools/5521…40f-llvm-mingw.zip https://github.com/mstorsjo/…
+tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/llvm-mingw llvm-mingw-20261104-ucrt-x86_64 https://github.com/HanYolo1/timeLink-tools/releases/download/tools/5521…40f-llvm-mingw.zip https://github.com/mstorsjo/…
 ```
 
 - **Installing.** The Windows builder's setup (`builder/setup/setup.c`), the Linux AppImage (`builder/linux/linux_tools.py`)
@@ -127,17 +127,17 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
   token, so the builder's setup and the AppImage could not have fetched them. The name carries the digest and
   `tools.lock` checks it, so a replaced asset is caught; GitHub lets an asset be deleted and uploaded again, so never reuse
   a version string. Nothing prunes the release, so an older version's tools stay downloadable. Where an archive came from
-  (upstream for llvm-mingw, NotRexed/Hookshot's `builder-parts` release for those taken from Hookshot) is its fallback URL,
-  so no install depends on a repository we do not control alone. An archive timeLink makes itself (the CPM cache with dav1d,
+  is a fallback URL only for llvm-mingw (its maker's own release); no other project's releases are listed, so every other
+  archive comes from timeLink's copy alone. An archive timeLink makes itself (the CPM cache with dav1d,
   the prebuilt `third_party` files, the Linux tools) has no upstream: its release asset is the only copy.
 - **Bumping a tool** is a pull request that edits `tools.lock`, with the archive uploaded by `scripts/tools.py mirror`,
   `add` or `assemble`: a new asset in the `tools` release, then the line (RELEASING.md, "Bump a tool"). The release workflow
   refuses a `tools.lock` whose assets are not there with their size, or that lacks a tool the
   builder needs (`tools.py check --require`), in its first job, before anything is built.
-- **Today's lock.** Windows: Python, emsdk and wgpu-native are taken as they are from Hookshot v2.1.0's Windows builder
-  (NotRexed/Hookshot's `builder-parts` release), with their SHA-256; llvm-mingw is upstream's; the CPM cache is Hookshot
-  v2.1.0's with dav1d added (`scripts/windows/dav1d.sh`), and `third-party` the prebuilt files of Hookshot v2.1.0's
-  `third_party` part (`assemble third-party`). Linux: `scripts/linux/deps.sh tools`'s. The lock has no play profile:
+- **Today's lock.** Windows: Python, emsdk and wgpu-native are the vendors' Windows builds as the builder before the fork
+  packaged them, repacked in `timeLink-tools` under a `timeLinkBuilder` folder with every file unchanged; llvm-mingw is
+  upstream's; the CPM cache is that builder's with dav1d added (`scripts/windows/dav1d.sh`), and `third-party` the prebuilt
+  files of its `third_party` part (`assemble third-party`), built from the GPL sources in `third_party/`. Linux: `scripts/linux/deps.sh tools`'s. The lock has no play profile:
   play profiles are committed in `assets/profiles/`.
 - **Linux.** The AppImage carries only the builder: its Python (the tools' download and `make_game.py` run on it,
   and its packages follow `requirements.txt`, which changes with the version), and timeLink's sources (the player's build
@@ -238,8 +238,7 @@ The first release of each product only needs its first number (both `v0.1.0`).
 git-cliff writes them at release time from the commit titles since the previous tag, with the repository's `cliff.toml`.
 For a stable, that is since the previous stable, so its notes cover its release candidates. The headings are Features,
 Fixes, Performance, Reverted, Documentation, Code, Build and Tests; `ci` and `chore` are left out. The notes go on the
-release page only: nothing is committed back to `main`, and there is no changelog file to keep up (Hookshot's is in
-NotRexed/Hookshot).
+release page only: nothing is committed back to `main`, and there is no changelog file to keep up.
 
 `release.py publish` puts a header above the notes (`release_page`), so a player who lands on a release page downloads the
 right thing:

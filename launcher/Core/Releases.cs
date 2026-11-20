@@ -14,7 +14,9 @@ namespace TimeLinkLauncher.Core;
 public sealed class Releases
 {
     public const string Repo = Product.Server + "/HanYolo1/timeLink";
-    public const string LauncherRepo = Product.Server + "/HanYolo1/TimeLinkLauncher";
+    /// timeLink's page on GitHub, where the launcher's source and releases are (Windows' "Apps & features" links to it).
+    /// (It named a HanYolo1/TimeLinkLauncher repository that does not exist, and through the API's address, not a page)
+    public const string Page = "https://github.com/HanYolo1/timeLink";
     const long MaxSmall = 4 << 20;
 
     readonly IReadOnlyList<ReleaseKey> keys;

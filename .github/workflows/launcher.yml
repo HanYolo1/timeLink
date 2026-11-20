@@ -48,3 +48,5 @@ jobs:
         run: python3 -I -B tests/test_launcher_core.py --strict
       - name: The release script's tests
         run: python3 -I -B tests/test_release.py
+      - name: The publish's package check
+        run: python3 -I -B tests/test_check_packages.py

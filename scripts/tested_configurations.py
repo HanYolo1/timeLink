@@ -106,7 +106,7 @@ def render(root=ROOT):
 
 
 def unicode_output():
-    """Pipes get UTF-8; consoles keep their encoding, as in tests/run_all.py and team_chat.py."""
+    """Pipes get UTF-8; consoles keep their encoding, as in tests/run_all.py."""
     for stream in (sys.stdout, sys.stderr):
         if not hasattr(stream, "reconfigure"):   # A StringIO, as in the tests.
             continue

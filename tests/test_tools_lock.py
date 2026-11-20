@@ -94,8 +94,8 @@ class Lock(unittest.TestCase):
             tools.fetch(t, str(self.dir / "cache2"), lambda url: b"nothing right")
 
     def test_install_unpacks_only_the_prefix_and_stays_inside(self):
-        sha, size = zip_of(self.dir / "a.zip", {"HookshotBuilder/tools/python/python.exe": "py", "HookshotBuilder/app.exe": "no"})
-        t = tools.parse("tool python 3 windows-x64 %s %d timeLinkBuilder/tools/python HookshotBuilder/tools/python https://x/a"
+        sha, size = zip_of(self.dir / "a.zip", {"timeLinkBuilder/tools/python/python.exe": "py", "timeLinkBuilder/app.exe": "no"})
+        t = tools.parse("tool python 3 windows-x64 %s %d timeLinkBuilder/tools/python timeLinkBuilder/tools/python https://x/a"
                         % (sha, size))[0]
         data = (self.dir / "a.zip").read_bytes()
         tools.install(str(self.dir / "install"), [t], str(self.dir / "cache"), lambda url: data)
@@ -282,11 +282,11 @@ class Assemble(unittest.TestCase):
         self.addCleanup(ctx.__exit__, None, None, None)
 
     def test_cpm_gets_dav1d_once(self):
-        zip_of(self.dir / "cpm.zip", {"HookshotBuilder/tools/cpm/ffmpeg/9/lib/avcodec.lib": "ffmpeg"})
+        zip_of(self.dir / "cpm.zip", {"timeLinkBuilder/tools/cpm/ffmpeg/9/lib/avcodec.lib": "ffmpeg"})
         add = self.dir / "add" / "dav1d" / "1.5.4" / "lib"
         add.mkdir(parents=True)
         (add / "libdav1d.a").write_bytes(b"!<arch>\n")
-        t = tools.Tool("cpm", "1", "windows-x64", "a" * 64, 1, "timeLinkBuilder/tools/cpm", "HookshotBuilder/tools/cpm", ["https://x"])
+        t = tools.Tool("cpm", "1", "windows-x64", "a" * 64, 1, "timeLinkBuilder/tools/cpm", "timeLinkBuilder/tools/cpm", ["https://x"])
         first = tools.assemble_cpm(t, str(self.dir / "cpm.zip"), str(self.dir / "add"), str(self.dir / "new.zip"))
         with zipfile.ZipFile(self.dir / "new.zip") as z:
             self.assertEqual(sorted(z.namelist()), ["cpm/dav1d/1.5.4/lib/libdav1d.a", "cpm/ffmpeg/9/lib/avcodec.lib"])
@@ -296,11 +296,11 @@ class Assemble(unittest.TestCase):
         self.assertIsNone(tools.assemble_cpm(t2, str(self.dir / "new.zip"), str(self.dir / "add"), str(self.dir / "n.zip")))
 
     def test_python_gets_the_missing_pins_for_its_version(self):
-        zip_of(self.dir / "py.zip", {"HookshotBuilder/tools/python/python314.dll": "dll",
-                                     "HookshotBuilder/tools/python/Lib/site-packages/pillow-13.0.0.dist-info/METADATA": "m"})
+        zip_of(self.dir / "py.zip", {"timeLinkBuilder/tools/python/python314.dll": "dll",
+                                     "timeLinkBuilder/tools/python/Lib/site-packages/pillow-13.0.0.dist-info/METADATA": "m"})
         req = self.dir / "req.txt"
         req.write_text("pillow==13.0.0\nfonttools==4.68.0  # a comment\n")
-        t = tools.Tool("python", "1", "windows-x64", "a" * 64, 1, "timeLinkBuilder/tools/python", "HookshotBuilder/tools/python", ["https://x"])
+        t = tools.Tool("python", "1", "windows-x64", "a" * 64, 1, "timeLinkBuilder/tools/python", "timeLinkBuilder/tools/python", ["https://x"])
         ran = []
 
         def pip(args, check):
@@ -317,10 +317,10 @@ class Assemble(unittest.TestCase):
             self.assertIn("python/python314.dll", z.namelist())
 
     def test_third_party_keeps_only_prebuilt_files(self):
-        zip_of(self.dir / "tp.zip", {"HookshotBuilder/tools/third_party/a64-kit/lift/a64emit.dll": "dll",
-                                     "HookshotBuilder/tools/third_party/a64-kit/lift/a64_lift.py": "Hookshot's source",
-                                     "HookshotBuilder/tools/third_party/sdl2/SDL3.dll": "sdl"})
-        tools.assemble_third_party(str(self.dir / "tp.zip"), "HookshotBuilder/tools/third_party", str(self.dir / "o.zip"),
+        zip_of(self.dir / "tp.zip", {"timeLinkBuilder/tools/third_party/a64-kit/lift/a64emit.dll": "dll",
+                                     "timeLinkBuilder/tools/third_party/a64-kit/lift/a64_lift.py": "the source",
+                                     "timeLinkBuilder/tools/third_party/sdl2/SDL3.dll": "sdl"})
+        tools.assemble_third_party(str(self.dir / "tp.zip"), "timeLinkBuilder/tools/third_party", str(self.dir / "o.zip"),
                                    {"third_party/a64-kit/lift/a64_lift.py"})
         with zipfile.ZipFile(self.dir / "o.zip") as z:
             self.assertEqual(sorted(z.namelist()), ["third_party/a64-kit/lift/a64emit.dll", "third_party/sdl2/SDL3.dll"])

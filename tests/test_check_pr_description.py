@@ -595,10 +595,24 @@ class Api(unittest.TestCase):
             seen.append(request)
             return Reply(b'{"number": 7}')
 
-        with mock.patch.dict(os.environ, {"FORGEJO_TOKEN": "t"}, clear=False):
+        with mock.patch.dict(os.environ, {"GITHUB_TOKEN": "t"}, clear=False):
             with mock.patch.object(check.urllib.request, "urlopen", fake):
                 check.fetch("https://github.com", "o/r", 7)
         self.assertEqual("Bearer t", seen[0].get_header("Authorization"))   # (installation tokens need Bearer)
+
+    def test_the_older_token_name_is_still_read(self):
+        """(FORGEJO_TOKEN, from when the checks ran on Forgejo: read only when GITHUB_TOKEN is unset)"""
+        seen = []
+
+        def fake(request, timeout=None):
+            seen.append(request)
+            return Reply(b'{"number": 7}')
+
+        with mock.patch.dict(os.environ, {"FORGEJO_TOKEN": "old"}, clear=False):
+            os.environ.pop("GITHUB_TOKEN", None)
+            with mock.patch.object(check.urllib.request, "urlopen", fake):
+                check.fetch("https://github.com", "o/r", 7)
+        self.assertEqual("Bearer old", seen[0].get_header("Authorization"))
 
     def test_the_base_commit_whichever_api(self):
         self.assertEqual("abc", check.base_commit({"base": {"sha": "abc"}}))   # (GitHub)

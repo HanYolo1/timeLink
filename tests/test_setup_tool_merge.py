@@ -332,14 +332,14 @@ def main():
             (pkg / rel).write_bytes(data)
         (root / "setup.exe").write_bytes(b"MZ setup")
         package.make_zip(str(pkg), "v3.0.0-test", str(root / "setup.exe"), str(root / "builder.zip"))
-        # (the third-party tool: Hookshot's third_party part, with sources, made into the prebuilt files only)
+        # (the third-party tool: an earlier builder's third_party part, with sources, made into the prebuilt files only)
         prebuilt = {"a64-kit/lift/a64emit.dll": b"MZ a64emit", "a64-kit/tools/lld-link.exe": b"MZ lld-link",
                     "sdl2/SDL2.dll": b"MZ SDL2", "sdl2/SDL3.dll": b"MZ SDL3", "zbic/zbic.dll": b"MZ zbic"}
-        with zipfile.ZipFile(root / "hookshot-third-party.zip", "w") as z:
+        with zipfile.ZipFile(root / "prefork-third-party.zip", "w") as z:
             for rel, data in prebuilt.items():
-                z.writestr("HookshotBuilder/tools/third_party/" + rel, data)
-            z.writestr("HookshotBuilder/tools/third_party/a64-kit/lift/a64emit.cpp", b"// Hookshot's copy, not taken\n")
-        tools.assemble_third_party(str(root / "hookshot-third-party.zip"), "HookshotBuilder/tools/third_party",
+                z.writestr("timeLinkBuilder/tools/third_party/" + rel, data)
+            z.writestr("timeLinkBuilder/tools/third_party/a64-kit/lift/a64emit.cpp", b"// the earlier copy, not taken\n")
+        tools.assemble_third_party(str(root / "prefork-third-party.zip"), "timeLinkBuilder/tools/third_party",
                                    str(root / "third-party.zip"), set(sources))
 
         # 1. a fresh install: the builder zip unpacked into the staged version, then the tool merged into its third_party

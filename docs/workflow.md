@@ -39,10 +39,10 @@ pick from its top, and add new problems there with their three parts.
 Reach is the share of players on the hardware the problem affects (1.0 when it affects everyone). Two numbers feed it,
 and both change, so read them again rather than trusting old ones:
 
-- **Who reports problems:** `python -I scripts/hardware_report.py` counts the GPU vendor, card class and OS in the
-  issue forms (it needs the `gh` CLI). As of 2026-11-10, of 399 issues that named their hardware: AMD 51%, NVIDIA 35%,
-  Intel 3.5%; by class RX 6000 16%, AMD APUs and handhelds 12%, RX 9000 10%, RTX 40 9%, RTX 50 8.5%, RTX 30 7%, cards
-  without mesh shaders 14.5%; Windows 57%, Linux and SteamOS 17%. This over-counts hardware where things break.
+- **Who reports problems:** the hardware named in timeLink's own issues. `python -I scripts/hardware_report.py
+  <report.txt>` reads the GPU vendor, card class and OS from a bug report the game wrote; the `hw:` and `os:` labels
+  count them on the issue list. The tracker is young, so its numbers are small: weigh them with the survey below, and
+  remember they over-count hardware where things break.
 - **Who plays:** the [Steam Hardware Survey](https://store.steampowered.com/hwsurvey/) is the best public picture of
   PC gaming hardware (vendor, card, OS). Use its current numbers for the installed base.
 
@@ -111,9 +111,11 @@ Security comes first: a private report or a scan result is triaged before other 
 
 ## 5. Keeping the board readable
 
-Suggested labels (a maintainer creates them): `priority:P0` to `priority:P3` (from the score), `hw:nvidia`, `hw:amd`,
-`hw:intel`, `hw:no-mesh-shaders`, `os:linux`, `os:steamdeck`, `needs-log`, `reproduced`, `claimed`. With them, the
-next thing to work on is the top of `is:open label:reproduced -label:claimed sort:priority`.
+The labels: `priority:P0` to `priority:P3` (from the score), `hw:nvidia`, `hw:amd`, `hw:intel`,
+`hw:no-mesh-shaders`, `os:linux`, `os:steamdeck`, `needs-log`, `reproduced`, `claimed`, and for pull requests
+`testing wanted` and `needs measurements`. The next thing to work on is a reproduced, unclaimed issue of the highest
+priority: `is:open is:issue label:reproduced -label:claimed label:priority:P0` first, then `P1`, and so on (GitHub's
+search has no sort by label).
 
 ## For agents
 

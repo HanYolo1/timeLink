@@ -1,5 +1,4 @@
-"""The pipeline cache's fetches and builds take turns on Intel (gpu/vk/vk_draw.cpp PcacheFetch, PcacheUse;
-https://github.com/NotRexed/Hookshot/issues/999).
+"""The pipeline cache's fetches and builds take turns on Intel (gpu/vk/vk_draw.cpp PcacheFetch, PcacheUse).
 
 Intel's Windows driver faults in vkGetPipelineCacheData while other threads build pipelines with the cache. The check cuts the
 lock out of vk_draw.cpp and runs it with no Vulkan: a fetch that may not wait is refused while a build holds the cache and had

@@ -266,9 +266,9 @@ None of this is done yet. In order (one repository now, so one secret for both p
    can't delete a protected tag, so the prune would fail. `tools.py` and `release.py` run by hand (`mirror`, `add`,
    `prune`) take your own token as `RELEASE_TOKEN`.
 3. **The upload address.** Nothing to configure: GitHub's release uploads are not behind a proxy, and `release.py`
-   uploads straight to `uploads.github.com`. It reads `RELEASE_TOKEN` (CI passes `github.token`); the
-   `FORGEJO_UPLOAD_API`/`FORGEJO_API` variable names survive in the code because the upload path is unchanged, and
-   setting neither leaves every request at `https://api.github.com`.
+   uploads straight to `uploads.github.com`. It reads `RELEASE_TOKEN` (CI passes `github.token`). `RELEASE_API` and
+   `RELEASE_UPLOAD_API` point it at another API (the tests do); setting neither leaves every request at GitHub's. The
+   older names `FORGEJO_API` and `FORGEJO_UPLOAD_API` are still read when the new ones are unset.
 4. **The attachment limits.** GitHub takes a release asset up to 2 GB, and the largest builder is under 200 MB, so
    `.AppImage`, `.exe`, `.lock` and `SHA256SUMS` all go up directly with no per-type allow list to maintain.
 5. **Actions and runners.** Nothing to do: the workflows run on GitHub-hosted runners (`ubuntu-latest` and
@@ -289,11 +289,12 @@ None of this is done yet. In order (one repository now, so one secret for both p
 |---|---|---|
 | `release.yml` fails at *SHA256SUMS, signed*: "no RELEASE_SIGNING_KEY" | the secret is not set or not visible to the repository | One-time setup, step 2 |
 | ... "not signed by a trusted key" at `verify` | the secret's key is not the one in `ReleaseTrust.cs` / `release_keys.json` | put the matching key in the secret, or rotate (above) |
-| *Publish* fails with HTTP 413 or a cut connection | an upload over Cloudflare's 100 MB limit | set `RELEASE_UPLOAD_API` (One-time setup, step 3) |
+| *Publish* fails with a cut connection | the network dropped during an upload | re-run the job (the draft is reused); GitHub takes an asset up to 2 GB, so it is not a size limit |
 | *Publish* fails with HTTP 400/422 on an upload | the attachment size or type limits | One-time setup, step 4 |
 | *Publish* fails with HTTP 401/403 | the job's token is read-only: the run is not a push to this repository (a pull request from a fork, or another repository's workflow) | release from a push or a tag here only |
 | "is already published" | a run for a version that is out (a re-run of an old run) | nothing: a version's files never change |
 | *The version* fails: "tools.lock is missing: …" or "not in timeLink's store …" | `tools.lock` lacks a tool a builder needs, or names a package file that was not uploaded | Bump a tool (`tools.py add` or `mirror`) |
+| *Launcher* fails at `check_packages`: "downloaded, but neither packages.lock.json nor publish-packages.lock pins it", or "content hash …, but the repository pins …" | the publish downloaded a package nothing pins: usually a new .NET SDK, whose runtime packs are a new version; a changed hash is a package that is not the one pinned | a new SDK: one pull request that sets it in `scripts/dotnet-sdk.json` and puts the lines the run printed in `publish-packages.lock`, after checking they are Microsoft's. A changed hash with the same version: stop, and find out why before releasing |
 | A draft is left after a failed run | the run stopped before *Publish* | re-run it (the draft is reused), or delete the draft |
 | The launcher: "not signed by a key this launcher trusts" | a release signed with a key the launcher does not have (a new key, or a test key) | release the launcher with the key first (Rotate the key) |
 | The launcher offers nothing on a channel | no published release on it, or its newest was refused (the home says why) | `release.py channels`, then check that release's files |

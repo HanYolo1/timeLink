@@ -4,8 +4,7 @@ Most changes are written and measured on one PC. Before they merge they need a r
 another GPU maker, Linux or Windows, an 8 GB card, the Steam Deck. A pull request says what it still needs in its
 description's **Must be tested** items, and testers with that hardware run it and post the result on the pull request.
 
-Everything happens on GitHub. (The old Matrix room, its Discord cards and `scripts/test_requests.py` belonged to the
-upstream team's tooling and were removed from this fork: see [known-issues.md](known-issues.md).)
+Everything happens on GitHub: the pull request, its label and its comments.
 
 ## Finding something to test
 

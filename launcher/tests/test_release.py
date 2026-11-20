@@ -1,4 +1,4 @@
-"""scripts/release.py (docs/releases.md, RELEASING.md; the same file in HanYolo1/TimeLinkLauncher), with no network: keys,
+"""scripts/release.py (docs/releases.md, RELEASING.md; a copy of timeLink's scripts/release.py), with no network: keys,
 SHA256SUMS and its signature; the channels as the launcher reads them from the release list; the version a tag must reach
 (the bump from the commits since the last stable), in a git repository made here; the nightly's name; and publish and
 prune against a fake Forgejo on 127.0.0.1 (a draft first, every file uploaded and checked, published last; only nightlies
@@ -77,7 +77,7 @@ class Products(unittest.TestCase):
             ("v3.5.0", ["timeLinkBuilder-v3.5.0-windows-x64.zip"]),
             ("v1.9.0", ["timeLinkLauncher-v1.9.0-windows-x64-setup.exe"]))
         self.assertEqual(sorted(self.newest(listed, "launcher")), ["v1.0.0", "v1.9.0"])
-        self.assertEqual(sorted(self.newest(listed, "timelink")), ["v3.0.0", "v3.5.0"])
+        self.assertEqual(sorted(self.newest(listed, "timeLink")), ["v3.0.0", "v3.5.0"])
 
     def test_a_release_of_the_other_product_is_not_a_newer_one(self):
         listed = self.ship(("v1.0.0", ["timeLinkLauncher-v1.0.0-windows-x64-setup.exe"]),
@@ -88,7 +88,7 @@ class Products(unittest.TestCase):
     def test_a_release_that_ships_nothing_is_no_products(self):
         listed = self.ship(("v1.0.0", []), ("tools", ["tools.lock"]))
         self.assertEqual(release.product_tags(listed, "launcher", 1), [])
-        self.assertEqual(release.product_tags(listed, "timelink", 3), [])
+        self.assertEqual(release.product_tags(listed, "timeLink", 3), [])
 
 
 class Keys(unittest.TestCase):
@@ -160,7 +160,7 @@ class Keys(unittest.TestCase):
         (self.dir / "scripts" / "release_keys.json").write_text('{"keys": ["REVG"]}')
         cs.unlink()
         self.assertEqual(release.trusted_keys(str(self.dir)), [b"DEF"])
-        self.assertEqual(release.product_of(str(self.dir)), "timelink")
+        self.assertEqual(release.product_of(str(self.dir)), "timeLink")
 
 
 class Channels(unittest.TestCase):
@@ -209,7 +209,7 @@ class Bump(unittest.TestCase):
         self.git("tag", "v2.9.0")
         self.git("tag", "v3.0.0-rc.1")
         self.assertEqual(self.check("v3.0.0-rc.1"), [])
-        self.assertIn("is not vX.Y.Z", self.check("v2.9.0")[0])   # (Hookshot's numbers are not timeLink's)
+        self.assertIn("is not vX.Y.Z", self.check("v2.9.0")[0])   # (an earlier project's numbers are not timeLink's)
         self.assertEqual(release.next_tag([], 3, root=str(self.dir)), "v3.0.0-rc.1")
 
     def test_the_bump(self):
@@ -319,7 +319,7 @@ class ReleasePage(unittest.TestCase):
     def test_the_timeLink_page_sends_players_to_the_release_list(self):
         for tag, channel in (("v3.0.0", "stable"), ("v3.0.0-rc.1", "rc"), ("nightly-34-545618fc", "nightly")):
             with self.subTest(tag):
-                page = self.page(tag, "timelink", self.TIMELINK)
+                page = self.page(tag, "timeLink", self.TIMELINK)
                 head, notes = page.split("\n---\n", 1)
                 self.assertEqual(head.strip().split("\n\n")[:5], [
                     "# 🎮 To play, get the timeLink Launcher",
@@ -332,7 +332,7 @@ class ReleasePage(unittest.TestCase):
                 self.assertTrue(notes.strip().startswith("## " + tag))
 
     def test_no_page_names_a_domain_this_fork_does_not_own(self):
-        for tag, product, files in (("v1.0.0", "launcher", self.LAUNCHER), ("v3.0.0", "timelink", self.TIMELINK)):
+        for tag, product, files in (("v1.0.0", "launcher", self.LAUNCHER), ("v3.0.0", "timeLink", self.TIMELINK)):
             page = self.page(tag, product, files)
             for host in ("magicbean.dev", "git-cdn", "timeLink.magicbean"):
                 self.assertNotIn(host, page)
@@ -428,7 +428,7 @@ class Publish(unittest.TestCase):
         self.addCleanup(self.server.shutdown)
         self.dir = Path(tempfile.mkdtemp(prefix="release-publish-"))
         self.addCleanup(shutil.rmtree, self.dir, True)
-        env = {"FORGEJO_API": "http://127.0.0.1:%d/api/v1" % self.server.server_port, "RELEASE_TOKEN": "t",
+        env = {"RELEASE_API": "http://127.0.0.1:%d/api/v1" % self.server.server_port, "RELEASE_TOKEN": "t",
                "GITHUB_REPOSITORY": "HanYolo1/Test"}
         patcher = mock.patch.dict(os.environ, env)
         patcher.start()
@@ -440,16 +440,16 @@ class Publish(unittest.TestCase):
         a, b = self.dir / "timeLink-v3.0.0-rc.1-x86_64.AppImage", self.dir / "SHA256SUMS"
         a.write_bytes(b"\x7fELF builder")
         b.write_text("sums\n")
-        run("--product", "timelink", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a, b)
+        run("--product", "timeLink", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a, b)
         rel = FakeForgejo.releases[0]
         self.assertEqual((rel["tag_name"], rel["draft"], rel["prerelease"], rel["name"]), ("v3.0.0-rc.1", False, True, "timeLink v3.0.0-rc.1"))
         self.assertEqual([(n, p) for _, n, p in FakeForgejo.uploads], [(a.name, b"\x7fELF builder"), ("SHA256SUMS", b"sums\n")])
         with self.assertRaises(SystemExit):   # (a published version's files never change)
-            run("--product", "timelink", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a)
+            run("--product", "timeLink", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a)
         bad = self.dir / "image.bin"
         bad.write_bytes(b"x")
         with self.assertRaises(SystemExit):
-            run("--product", "timelink", "publish", "v3.0.1-rc.1", "--target", "abc", "--notes", notes, bad)
+            run("--product", "timeLink", "publish", "v3.0.1-rc.1", "--target", "abc", "--notes", notes, bad)
 
     def test_the_page_on_the_release(self):
         # (publish puts the notes under the page's header: timeLink's says to download the launcher of its channel)
@@ -457,7 +457,7 @@ class Publish(unittest.TestCase):
         notes.write_text("### Fixes\n\n- a fix\n")
         f = self.dir / "timeLinkBuilder-nightly-34-545618fc-windows-x64.zip"
         f.write_bytes(b"PK zip")
-        run("--product", "timelink", "publish", "nightly-34-545618fc", "--target", "abc", "--notes", notes, f)
+        run("--product", "timeLink", "publish", "nightly-34-545618fc", "--target", "abc", "--notes", notes, f)
         body = FakeForgejo.releases[0]["body"]
         self.assertTrue(body.startswith("# 🎮 To play, get the timeLink Launcher\n"))
         self.assertIn(release.SITE, body)
@@ -480,7 +480,7 @@ class Publish(unittest.TestCase):
         notes.write_text("notes\n")
         f = self.dir / "SHA256SUMS"
         f.write_text("x\n")
-        run("--product", "timelink", "publish", "v3.0.0", "--target", "abc", "--notes", notes, f)
+        run("--product", "timeLink", "publish", "v3.0.0", "--target", "abc", "--notes", notes, f)
         self.assertEqual(len(FakeForgejo.releases), 1)
         self.assertIn("/api/v1/repos/HanYolo1/Test/releases/1/assets/9", FakeForgejo.deleted)
         self.assertEqual((FakeForgejo.releases[0]["draft"], FakeForgejo.releases[0]["prerelease"]), (False, False))
@@ -489,7 +489,7 @@ class Publish(unittest.TestCase):
         """FakeForgejo's releases from (tag, draft, prerelease) rows; a published one has its tag, and every one a file named
         for the product its tag belongs to (Core/ReleaseManifest.cs's Ships: a release is one of a product's by its files)"""
         def asset(tag):
-            product = "launcher" if release.is_version(tag, 1) and not release.is_version(tag, 3) else "timelink"
+            product = "launcher" if release.is_version(tag, 1) and not release.is_version(tag, 3) else "timeLink"
             return [{"id": 1, "name": release.FILE_PREFIX[product] + tag + "-windows-x64.zip", "size": 1}]
         FakeForgejo.releases = [{"id": i + 1, "tag_name": t, "draft": d, "prerelease": p, "assets": asset(t)}
                                 for i, (t, d, p) in enumerate(rows)]
@@ -500,7 +500,7 @@ class Publish(unittest.TestCase):
         self.releases_of(*[(nightly(n), False, True) for n in (3, 12, 7, 100, 50, 9, 1)],
                          ("tools", False, True), ("v3.0.0", False, False), ("v3.1.0-rc.1", False, True), ("v2.9.0", False, False),
                          (nightly(4), True, True), (nightly(101), True, True))   # (drafts a failed run left; 101: still to come)
-        run("--product", "timelink", "prune", "--keep", "5")
+        run("--product", "timeLink", "prune", "--keep", "5")
         left = sorted(r["tag_name"] for r in FakeForgejo.releases)
         self.assertEqual(left, sorted([nightly(n) for n in (101, 100, 50, 12, 9, 7)] + ["tools", "v3.0.0", "v3.1.0-rc.1", "v2.9.0"]))
         self.assertIn("/api/v1/repos/HanYolo1/Test/tags/nightly-1-00000001", FakeForgejo.deleted)
@@ -534,10 +534,10 @@ class Publish(unittest.TestCase):
                 lambda *a, root=None, check=True, _g=release.git: _g(*a, root=str(repo), check=check)):
             err = io.StringIO()
             with contextlib.redirect_stderr(err):
-                self.assertEqual(run("--product", "timelink", "check-tag", "v3.0.0-rc.1", "--main", "main")[0], 1)
+                self.assertEqual(run("--product", "timeLink", "check-tag", "v3.0.0-rc.1", "--main", "main")[0], 1)
             self.assertIn("not above every release there is: v3.0.0", err.getvalue())
             FakeForgejo.releases[0]["draft"] = True   # (back to a draft: no longer in the way)
-            self.assertEqual(run("--product", "timelink", "check-tag", "v3.0.0-rc.1", "--main", "main")[0], 0)
+            self.assertEqual(run("--product", "timeLink", "check-tag", "v3.0.0-rc.1", "--main", "main")[0], 0)
 
     def test_publish_refuses_a_published_tag_on_a_later_page(self):
         self.releases_of(("v3.0.0", False, False), *[("nightly-%d-%08x" % (n, n), False, True) for n in range(1, 80)])
@@ -546,7 +546,7 @@ class Publish(unittest.TestCase):
         f = self.dir / "SHA256SUMS"
         f.write_text("x\n")
         with self.assertRaises(SystemExit) as e:
-            run("--product", "timelink", "publish", "v3.0.0", "--target", "abc", "--notes", notes, f)
+            run("--product", "timeLink", "publish", "v3.0.0", "--target", "abc", "--notes", notes, f)
         self.assertIn("already published", str(e.exception))
         self.assertEqual(FakeForgejo.uploads, [])
 
@@ -565,11 +565,11 @@ class ReleasedAs(unittest.TestCase):
         self.dir = Path(tempfile.mkdtemp(prefix="release-as-"))
         self.addCleanup(shutil.rmtree, self.dir, True)
         self.base = "http://127.0.0.1:%d" % self.server.server_port
-        patcher = mock.patch.dict(os.environ, {"FORGEJO_API": self.base + "/api/v1", "RELEASE_TOKEN": "t",
+        patcher = mock.patch.dict(os.environ, {"RELEASE_API": self.base + "/api/v1", "RELEASE_TOKEN": "t",
                                                "GITHUB_REPOSITORY": "HanYolo1/Test"})
         patcher.start()
         self.addCleanup(patcher.stop)
-        os.environ.pop("FORGEJO_UPLOAD_API", None)
+        os.environ.pop("RELEASE_UPLOAD_API", None)
         run("keygen", self.dir / "keys")
         run("keygen", self.dir / "other")
         self.repo = self.dir / "repo"
@@ -605,7 +605,7 @@ class ReleasedAs(unittest.TestCase):
         FakeForgejo.releases.append({"id": rid, "tag_name": tag, "draft": draft, "prerelease": True, "assets": assets})
 
     def released_as(self, commit, but=None):
-        return release.released_as(commit, "timelink", root=str(self.repo), but=but)
+        return release.released_as(commit, "timeLink", root=str(self.repo), but=but)
 
     def nightly(self, n, commit):
         return "nightly-%d-%s" % (n, commit[:8])
@@ -662,11 +662,11 @@ class ReleasedAs(unittest.TestCase):
             self.released_as(self.b)
 
     def test_the_files_come_from_the_address_without_cloudflare(self):
-        # (FORGEJO_UPLOAD_API: the same server by its own address; the release list's links name the public one)
+        # (RELEASE_UPLOAD_API: the same server by its own address; the release list's links name the public one)
         self.release(self.nightly(1, self.b), self.b)
         for a in FakeForgejo.releases[0]["assets"]:
             a["browser_download_url"] = a["browser_download_url"].replace(self.base, "https://git.example.invalid")
-        with mock.patch.dict(os.environ, FORGEJO_UPLOAD_API="http://localhost:%d/api/v1" % self.server.server_port):
+        with mock.patch.dict(os.environ, RELEASE_UPLOAD_API="http://localhost:%d/api/v1" % self.server.server_port):
             self.assertEqual(self.released_as(self.b), self.nightly(1, self.b))
         self.assertEqual(FakeForgejo.fetched, ["localhost:%d" % self.server.server_port] * 2)
 
@@ -675,10 +675,10 @@ class ReleasedAs(unittest.TestCase):
         with mock.patch.object(release, "ROOT", str(self.repo)), mock.patch.object(release, "git",
                 lambda *a, root=None, check=True, _g=release.git: _g(*a, root=str(self.repo), check=check)), \
                 mock.patch.object(release, "trusted_keys", lambda root=None, _t=release.trusted_keys: _t(str(self.repo))):
-            self.assertEqual(run("--product", "timelink", "released-as", self.b, "--not", "v3.0.0-rc.1"), (0, self.nightly(1, self.b) + "\n"))
-            self.assertEqual(run("--product", "timelink", "released-as", self.a), (0, "\n"))
+            self.assertEqual(run("--product", "timeLink", "released-as", self.b, "--not", "v3.0.0-rc.1"), (0, self.nightly(1, self.b) + "\n"))
+            self.assertEqual(run("--product", "timeLink", "released-as", self.a), (0, "\n"))
             with self.assertRaises(SystemExit):
-                run("--product", "timelink", "released-as", self.b[:8])
+                run("--product", "timeLink", "released-as", self.b[:8])
 
 
 class TokenStaysHome(unittest.TestCase):
@@ -720,7 +720,7 @@ class TokenStaysHome(unittest.TestCase):
             self.addCleanup(s.shutdown)
         url = "http://127.0.0.1:%d/o/r/releases/download/v1/SHA256SUMS" % forge.server_port
         with mock.patch.dict(os.environ, RELEASE_TOKEN="secret"):
-            os.environ.pop("FORGEJO_UPLOAD_API", None)
+            os.environ.pop("RELEASE_UPLOAD_API", None)
             self.assertEqual(release.download(url), b"the sums")
         self.assertEqual(seen, {"forge": "Bearer secret", "store": None})
 

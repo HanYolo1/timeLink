@@ -41,24 +41,23 @@ def run(*args):
 
 class Copies(unittest.TestCase):
     """scripts/release.py and launcher/scripts/release.py are one file in two places: the launcher is vendored, so a change
-    to the release script has to reach both, or a release made by hand with the other copy writes a different page. They may
-    differ only in the product key the game has (product_of() names it by where the file sits) and in their own docstring."""
-
-    def normalize(self, text):
-        for key in ("longshot", "timelink"):
-            text = text.replace('"%s": {"repo"' % key, '"PRODUCT": {"repo"')
-            text = text.replace('else "%s"' % key, 'else "PRODUCT"')
-            text = text.replace('PRODUCTS["%s"]["since"]' % key, 'PRODUCTS["PRODUCT"]["since"]')
-            text = text.replace('{"%s": "timeLinkBuilder-"' % key, '{"PRODUCT": "timeLinkBuilder-"')
-        return text
+    to the release script has to reach both, or a release made by hand with the other copy writes a different page. They are
+    byte for byte the same (product_of() tells the products apart by where the file sits, not by a key that differs).
+    (They used to differ in the game's product key, "longshot" in one and "timelink" in the other: both are "timeLink" now)"""
 
     def test_the_two_copies_are_one_file(self):
         root = ROOT / "scripts" / "release.py"
         vendored = ROOT / "launcher" / "scripts" / "release.py"
         self.assertTrue(root.is_file() and vendored.is_file())
-        differ = [a for a, b in zip(self.normalize(root.read_text(encoding="utf-8")).splitlines(),
-                                    self.normalize(vendored.read_text(encoding="utf-8")).splitlines()) if a != b]
-        self.assertEqual(differ[:5], [], "scripts/release.py and launcher/scripts/release.py have drifted apart")
+        self.assertEqual(root.read_bytes(), vendored.read_bytes(),
+                         "scripts/release.py and launcher/scripts/release.py have drifted apart: copy one over the other")
+
+    def test_the_products_are_timeLink_and_the_launcher(self):
+        """(the game's product is "timeLink", with the capital L; its earlier names are still taken by --product)"""
+        self.assertEqual(sorted(release.PRODUCTS), ["launcher", "timeLink"])
+        self.assertEqual(release.PRODUCT_ALIASES, {"longshot": "timeLink", "timelink": "timeLink"})
+        self.assertEqual(release.product_of(str(ROOT)), "timeLink")
+        self.assertEqual(release.product_of(str(ROOT / "launcher")), "launcher")
 
     def load(self, path):
         """(the module at path, loaded fresh: the launcher copy is a different file with a different product key)"""
@@ -68,8 +67,7 @@ class Copies(unittest.TestCase):
         return module
 
     def test_every_product_key_is_named_in_every_table(self):
-        """(the half-rename this caught: the launcher copy renamed PRODUCTS' key to timelink but left FILE_PREFIX and
-        product_of() saying longshot, so ships() raised KeyError and every product check failed. A key in one table and not
+        """(the half-rename this caught: a copy renamed PRODUCTS' key but left FILE_PREFIX and product_of() on the old one, so ships() raised KeyError and every product check failed. A key in one table and not
         another is never meant, so each copy must name the same products in PRODUCTS and FILE_PREFIX)"""
         for name in ("scripts/release.py", "launcher/scripts/release.py"):
             module = self.load(ROOT / name)
@@ -92,7 +90,7 @@ class Copies(unittest.TestCase):
     def test_no_release_file_starts_with_a_byte_order_mark(self):
         """(PowerShell 5.1's Set-Content -Encoding utf8 writes a BOM. A BOM on a .py is tolerated, but on a file that is read
         line by line, like tools.lock, the first line stops matching and the tool it names is invisible)"""
-        for name in ("tools.lock", "scripts/tools.py", "scripts/release.py", "scripts/rehost_tools.py",
+        for name in ("tools.lock", "scripts/tools.py", "scripts/release.py",
                      "launcher/scripts/release.py", "tests/test_tools_lock.py", "tests/test_release.py",
                      "docs/known-issues.md", "docs/releases.md"):
             path = ROOT / name
@@ -100,6 +98,30 @@ class Copies(unittest.TestCase):
                 continue
             with self.subTest(name):
                 self.assertFalse(path.read_bytes()[:3] == b"\xef\xbb\xbf", "%s starts with a UTF-8 BOM" % name)
+
+
+class ApiNames(unittest.TestCase):
+    """$RELEASE_API and $RELEASE_UPLOAD_API point the script at another API (the tests' server). Their older names, from the
+    releases' Forgejo days, are still read when the new ones are unset; unset, it is GitHub's."""
+
+    def test_the_new_names_win_and_the_old_ones_still_work(self):
+        names = ("RELEASE_API", "RELEASE_UPLOAD_API", "FORGEJO_API", "FORGEJO_UPLOAD_API")
+        with mock.patch.dict(os.environ, {}, clear=False):
+            for n in names:
+                os.environ.pop(n, None)
+            self.assertIsNone(release.env("RELEASE_API"))
+            os.environ["FORGEJO_API"] = "http://old/api"
+            os.environ["FORGEJO_UPLOAD_API"] = "http://old-up/api"
+            self.assertEqual(release.env("RELEASE_API"), "http://old/api")
+            self.assertEqual(release.env("RELEASE_UPLOAD_API"), "http://old-up/api")
+            os.environ["RELEASE_API"] = "http://new/api"
+            os.environ["RELEASE_UPLOAD_API"] = "http://new-up/api"
+            self.assertEqual(release.env("RELEASE_API"), "http://new/api")
+            self.assertEqual(release.env("RELEASE_UPLOAD_API"), "http://new-up/api")
+
+    def test_no_workflow_sets_the_old_names(self):
+        for wf in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            self.assertNotIn("FORGEJO_", wf.read_text(encoding="utf-8"), wf.name)
 
 
 class Keys(unittest.TestCase):
@@ -171,7 +193,7 @@ class Keys(unittest.TestCase):
         (self.dir / "scripts" / "release_keys.json").write_text('{"keys": ["REVG"]}')
         cs.unlink()
         self.assertEqual(release.trusted_keys(str(self.dir)), [b"DEF"])
-        self.assertEqual(release.product_of(str(self.dir)), "longshot")
+        self.assertEqual(release.product_of(str(self.dir)), "timeLink")
 
 
 class Channels(unittest.TestCase):
@@ -220,7 +242,7 @@ class Bump(unittest.TestCase):
         self.git("tag", "v2.9.0")
         self.git("tag", "v3.0.0-rc.1")
         self.assertEqual(self.check("v3.0.0-rc.1"), [])
-        self.assertIn("is not vX.Y.Z", self.check("v2.9.0")[0])   # (Hookshot's numbers are not timeLink's)
+        self.assertIn("is not vX.Y.Z", self.check("v2.9.0")[0])   # (an earlier project's numbers are not timeLink's)
         self.assertEqual(release.next_tag([], 3, root=str(self.dir)), "v3.0.0-rc.1")
 
     def test_the_first_release_of_a_product_that_starts_at_zero(self):
@@ -285,21 +307,23 @@ class Bump(unittest.TestCase):
         self.assertEqual(release.previous_tag("v3.1.0", 3, str(self.dir)), "v3.0.0")   # (a stable: since the stable before)
 
 
-    def cliff_stub(self, folder):
+    def cliff_stub(self, folder, lines=()):
         """The environment for a git-cliff in folder that prints its arguments, one a line. Windows runs no #! script: a
         .cmd hands its arguments to Python. The .cmd stays ASCII and reads Python's and the script's paths from the
         environment, which cmd.exe keeps as Unicode: written into the file, a path with an accented letter was read in
         the console's code page and Python got a broken path. It prints in UTF-8, as git-cliff does (a pipe's default
-        on Windows is the ANSI code page)"""
+        on Windows is the ANSI code page). lines (ASCII, no quotes) are printed first, as git-cliff's notes would be"""
         if os.name == "nt":
             script = folder / "git-cliff-stub.py"
-            script.write_text("import sys\nsys.stdout.reconfigure(encoding='utf-8')\nfor a in sys.argv[1:]: print(a)\n",
+            script.write_text("import sys\nsys.stdout.reconfigure(encoding='utf-8')\n" +
+                              "".join("print(%r)\n" % line for line in lines) + "for a in sys.argv[1:]: print(a)\n",
                               encoding="utf-8")
             stub = folder / "git-cliff-stub.cmd"
             stub.write_text('@"%GIT_CLIFF_STUB_PYTHON%" -I "%GIT_CLIFF_STUB_SCRIPT%" %*\n', encoding="ascii")
             return {"GIT_CLIFF": str(stub), "GIT_CLIFF_STUB_PYTHON": sys.executable, "GIT_CLIFF_STUB_SCRIPT": str(script)}
         stub = folder / "git-cliff-stub"
-        stub.write_text("#!/bin/sh\nfor a in \"$@\"; do echo \"$a\"; done\n", encoding="utf-8")
+        stub.write_text("#!/bin/sh\n" + "".join("echo '%s'\n" % line for line in lines) +
+                        "for a in \"$@\"; do echo \"$a\"; done\n", encoding="utf-8")
         stub.chmod(0o755)
         return {"GIT_CLIFF": str(stub)}
 
@@ -316,6 +340,16 @@ class Bump(unittest.TestCase):
         with mock.patch.dict(os.environ, stub), mock.patch.dict(release.PRODUCTS["launcher"], since=None):
             args = release.notes("nightly-3-0123abcd", "launcher", root=str(self.dir)).split()
         self.assertEqual(args[-1], "v1.0.0..HEAD")
+
+    def test_the_notes_keep_the_name_with_a_small_t(self):
+        # (cliff.toml's upper_first capitalises each title's first letter: "docs: timeLink has no Discord" was "TimeLink has
+        # no Discord" on v0.2.0-rc.1's page. The notes spell the name as it is, wherever it is in a line)
+        self.commit("docs: timeLink has no Discord")
+        stub = self.cliff_stub(self.dir, ["- TimeLink has no Discord", "- **linux:** Spell TimeLink right", "- timeLink kept"])
+        with mock.patch.dict(os.environ, stub), mock.patch.dict(release.PRODUCTS["launcher"], since=None):
+            text = release.notes("nightly-2-0123abcd", "launcher", root=str(self.dir))
+        self.assertNotIn("TimeLink", text)
+        self.assertEqual(text.splitlines()[:3], ["- timeLink has no Discord", "- **linux:** Spell timeLink right", "- timeLink kept"])
 
     def test_the_git_cliff_stand_in_runs_from_a_unicode_path(self):
         # (a temporary folder under a user name such as "Zoë": the stand-in still gets its arguments through)
@@ -363,7 +397,7 @@ class ReleasePage(unittest.TestCase):
     def test_the_longshot_page_sends_players_to_the_release_list(self):
         for tag, channel in (("v3.0.0", "stable"), ("v3.0.0-rc.1", "rc"), ("nightly-34-545618fc", "nightly")):
             with self.subTest(tag):
-                page = self.page(tag, "longshot", self.LONGSHOT)
+                page = self.page(tag, "timeLink", self.LONGSHOT)
                 head, notes = page.split("\n---\n", 1)
                 self.assertEqual(head.strip().split("\n\n")[:5], [
                     "# 🎮 To play, get the timeLink Launcher",
@@ -376,7 +410,7 @@ class ReleasePage(unittest.TestCase):
                 self.assertTrue(notes.strip().startswith("## " + tag))
 
     def test_no_page_names_a_domain_this_fork_does_not_own(self):
-        for tag, product, files in (("v1.0.0", "launcher", self.LAUNCHER), ("v3.0.0", "longshot", self.LONGSHOT)):
+        for tag, product, files in (("v1.0.0", "launcher", self.LAUNCHER), ("v3.0.0", "timeLink", self.LONGSHOT)):
             page = self.page(tag, product, files)
             for host in ("magicbean.dev", "git-cdn", "longshot.magicbean"):
                 self.assertNotIn(host, page)
@@ -471,7 +505,7 @@ class Publish(unittest.TestCase):
         self.addCleanup(self.server.shutdown)
         self.dir = Path(tempfile.mkdtemp(prefix="release-publish-"))
         self.addCleanup(shutil.rmtree, self.dir, True)
-        env = {"FORGEJO_API": "http://127.0.0.1:%d/api/v1" % self.server.server_port, "RELEASE_TOKEN": "t",
+        env = {"RELEASE_API": "http://127.0.0.1:%d/api/v1" % self.server.server_port, "RELEASE_TOKEN": "t",
                "GITHUB_REPOSITORY": "MagicBeanDev/Test"}
         patcher = mock.patch.dict(os.environ, env)
         patcher.start()
@@ -483,16 +517,16 @@ class Publish(unittest.TestCase):
         a, b = self.dir / "timeLink-v3.0.0-rc.1-x86_64.AppImage", self.dir / "SHA256SUMS"
         a.write_bytes(b"\x7fELF builder")
         b.write_bytes(b"sums\n")
-        run("--product", "longshot", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a, b)
+        run("--product", "timeLink", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a, b)
         rel = FakeForgejo.releases[0]
         self.assertEqual((rel["tag_name"], rel["draft"], rel["prerelease"], rel["name"]), ("v3.0.0-rc.1", False, True, "timeLink v3.0.0-rc.1"))
         self.assertEqual([(n, p) for _, n, p in FakeForgejo.uploads], [(a.name, b"\x7fELF builder"), ("SHA256SUMS", b"sums\n")])
         with self.assertRaises(SystemExit):   # (a published version's files never change)
-            run("--product", "longshot", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a)
+            run("--product", "timeLink", "publish", "v3.0.0-rc.1", "--target", "abc", "--notes", notes, a)
         bad = self.dir / "image.bin"
         bad.write_bytes(b"x")
         with self.assertRaises(SystemExit):
-            run("--product", "longshot", "publish", "v3.0.1-rc.1", "--target", "abc", "--notes", notes, bad)
+            run("--product", "timeLink", "publish", "v3.0.1-rc.1", "--target", "abc", "--notes", notes, bad)
 
     def test_the_page_on_the_release(self):
         # (publish puts the notes under the page's header: timeLink's says to download the launcher of its channel)
@@ -500,7 +534,7 @@ class Publish(unittest.TestCase):
         notes.write_text("### Fixes\n\n- a fix\n")
         f = self.dir / "timeLinkBuilder-nightly-34-545618fc-windows-x64.zip"
         f.write_bytes(b"PK zip")
-        run("--product", "longshot", "publish", "nightly-34-545618fc", "--target", "abc", "--notes", notes, f)
+        run("--product", "timeLink", "publish", "nightly-34-545618fc", "--target", "abc", "--notes", notes, f)
         body = FakeForgejo.releases[0]["body"]
         self.assertTrue(body.startswith("# 🎮 To play, get the timeLink Launcher\n"))
         self.assertIn(release.SITE, body)
@@ -523,7 +557,7 @@ class Publish(unittest.TestCase):
         notes.write_text("notes\n")
         f = self.dir / "SHA256SUMS"
         f.write_text("x\n")
-        run("--product", "longshot", "publish", "v3.0.0", "--target", "abc", "--notes", notes, f)
+        run("--product", "timeLink", "publish", "v3.0.0", "--target", "abc", "--notes", notes, f)
         self.assertEqual(len(FakeForgejo.releases), 1)
         self.assertIn("/api/v1/repos/MagicBeanDev/Test/releases/1/assets/9", FakeForgejo.deleted)
         self.assertEqual((FakeForgejo.releases[0]["draft"], FakeForgejo.releases[0]["prerelease"]), (False, False))
@@ -532,7 +566,7 @@ class Publish(unittest.TestCase):
         """FakeForgejo's releases from (tag, draft, prerelease) rows; a published one has its tag, and every one a file named
         for the product its tag belongs to (Core/ReleaseManifest.cs's Ships: a release is one of a product's by its files)"""
         def asset(tag):
-            product = "launcher" if release.is_version(tag, 1) and not release.is_version(tag, 3) else "longshot"
+            product = "launcher" if release.is_version(tag, 1) and not release.is_version(tag, 3) else "timeLink"
             return [{"id": 1, "name": release.FILE_PREFIX[product] + tag + "-windows-x64.zip", "size": 1}]
         FakeForgejo.releases = [{"id": i + 1, "tag_name": t, "draft": d, "prerelease": p, "assets": asset(t)}
                                 for i, (t, d, p) in enumerate(rows)]
@@ -543,7 +577,7 @@ class Publish(unittest.TestCase):
         self.releases_of(*[(nightly(n), False, True) for n in (3, 12, 7, 100, 50, 9, 1)],
                          ("tools", False, True), ("v3.0.0", False, False), ("v3.1.0-rc.1", False, True), ("v2.9.0", False, False),
                          (nightly(4), True, True), (nightly(101), True, True))   # (drafts a failed run left; 101: still to come)
-        run("--product", "longshot", "prune", "--keep", "5")
+        run("--product", "timeLink", "prune", "--keep", "5")
         left = sorted(r["tag_name"] for r in FakeForgejo.releases)
         self.assertEqual(left, sorted([nightly(n) for n in (101, 100, 50, 12, 9, 7)] + ["tools", "v3.0.0", "v3.1.0-rc.1", "v2.9.0"]))
         self.assertIn("/api/v1/repos/MagicBeanDev/Test/tags/nightly-1-00000001", FakeForgejo.deleted)
@@ -577,10 +611,10 @@ class Publish(unittest.TestCase):
                 lambda *a, root=None, check=True, _g=release.git: _g(*a, root=str(repo), check=check)):
             err = io.StringIO()
             with contextlib.redirect_stderr(err):
-                self.assertEqual(run("--product", "longshot", "check-tag", "v3.0.0-rc.1", "--main", "main")[0], 1)
+                self.assertEqual(run("--product", "timeLink", "check-tag", "v3.0.0-rc.1", "--main", "main")[0], 1)
             self.assertIn("not above every release there is: v3.0.0", err.getvalue())
             FakeForgejo.releases[0]["draft"] = True   # (back to a draft: no longer in the way)
-            self.assertEqual(run("--product", "longshot", "check-tag", "v3.0.0-rc.1", "--main", "main")[0], 0)
+            self.assertEqual(run("--product", "timeLink", "check-tag", "v3.0.0-rc.1", "--main", "main")[0], 0)
 
     def test_publish_refuses_a_published_tag_on_a_later_page(self):
         self.releases_of(("v3.0.0", False, False), *[("nightly-%d-%08x" % (n, n), False, True) for n in range(1, 80)])
@@ -589,7 +623,7 @@ class Publish(unittest.TestCase):
         f = self.dir / "SHA256SUMS"
         f.write_text("x\n")
         with self.assertRaises(SystemExit) as e:
-            run("--product", "longshot", "publish", "v3.0.0", "--target", "abc", "--notes", notes, f)
+            run("--product", "timeLink", "publish", "v3.0.0", "--target", "abc", "--notes", notes, f)
         self.assertIn("already published", str(e.exception))
         self.assertEqual(FakeForgejo.uploads, [])
 
@@ -608,11 +642,11 @@ class ReleasedAs(unittest.TestCase):
         self.dir = Path(tempfile.mkdtemp(prefix="release-as-"))
         self.addCleanup(shutil.rmtree, self.dir, True)
         self.base = "http://127.0.0.1:%d" % self.server.server_port
-        patcher = mock.patch.dict(os.environ, {"FORGEJO_API": self.base + "/api/v1", "RELEASE_TOKEN": "t",
+        patcher = mock.patch.dict(os.environ, {"RELEASE_API": self.base + "/api/v1", "RELEASE_TOKEN": "t",
                                                "GITHUB_REPOSITORY": "MagicBeanDev/Test"})
         patcher.start()
         self.addCleanup(patcher.stop)
-        os.environ.pop("FORGEJO_UPLOAD_API", None)
+        os.environ.pop("RELEASE_UPLOAD_API", None)
         run("keygen", self.dir / "keys")
         run("keygen", self.dir / "other")
         self.repo = self.dir / "repo"
@@ -648,7 +682,7 @@ class ReleasedAs(unittest.TestCase):
         FakeForgejo.releases.append({"id": rid, "tag_name": tag, "draft": draft, "prerelease": True, "assets": assets})
 
     def released_as(self, commit, but=None):
-        return release.released_as(commit, "longshot", root=str(self.repo), but=but)
+        return release.released_as(commit, "timeLink", root=str(self.repo), but=but)
 
     def nightly(self, n, commit):
         return "nightly-%d-%s" % (n, commit[:8])
@@ -703,11 +737,11 @@ class ReleasedAs(unittest.TestCase):
             self.released_as(self.b)
 
     def test_the_files_come_from_the_address_without_cloudflare(self):
-        # (FORGEJO_UPLOAD_API: the same server by its own address; the release list's links name the public one)
+        # (RELEASE_UPLOAD_API: the same server by its own address; the release list's links name the public one)
         self.release(self.nightly(1, self.b), self.b)
         for a in FakeForgejo.releases[0]["assets"]:
             a["browser_download_url"] = a["browser_download_url"].replace(self.base, "https://git.example.invalid")
-        with mock.patch.dict(os.environ, FORGEJO_UPLOAD_API="http://localhost:%d/api/v1" % self.server.server_port):
+        with mock.patch.dict(os.environ, RELEASE_UPLOAD_API="http://localhost:%d/api/v1" % self.server.server_port):
             self.assertEqual(self.released_as(self.b), self.nightly(1, self.b))
         self.assertEqual(FakeForgejo.fetched, ["localhost:%d" % self.server.server_port] * 2)
 
@@ -716,10 +750,10 @@ class ReleasedAs(unittest.TestCase):
         with mock.patch.object(release, "ROOT", str(self.repo)), mock.patch.object(release, "git",
                 lambda *a, root=None, check=True, _g=release.git: _g(*a, root=str(self.repo), check=check)), \
                 mock.patch.object(release, "trusted_keys", lambda root=None, _t=release.trusted_keys: _t(str(self.repo))):
-            self.assertEqual(run("--product", "longshot", "released-as", self.b, "--not", "v3.0.0-rc.1"), (0, self.nightly(1, self.b) + "\n"))
-            self.assertEqual(run("--product", "longshot", "released-as", self.a), (0, "\n"))
+            self.assertEqual(run("--product", "timeLink", "released-as", self.b, "--not", "v3.0.0-rc.1"), (0, self.nightly(1, self.b) + "\n"))
+            self.assertEqual(run("--product", "timeLink", "released-as", self.a), (0, "\n"))
             with self.assertRaises(SystemExit):
-                run("--product", "longshot", "released-as", self.b[:8])
+                run("--product", "timeLink", "released-as", self.b[:8])
 
 
 class TokenStaysHome(unittest.TestCase):
@@ -761,7 +795,7 @@ class TokenStaysHome(unittest.TestCase):
             self.addCleanup(s.shutdown)
         url = "http://127.0.0.1:%d/o/r/releases/download/v1/SHA256SUMS" % forge.server_port
         with mock.patch.dict(os.environ, RELEASE_TOKEN="secret"):
-            os.environ.pop("FORGEJO_UPLOAD_API", None)
+            os.environ.pop("RELEASE_UPLOAD_API", None)
             self.assertEqual(release.download(url), b"the sums")
         # (Bearer: uploads.github.com answers 404 to `token` with a GitHub App installation token, which is what
         # GITHUB_TOKEN is - see scripts/release.py api. The point of this test is that the store gets no header at all)

@@ -6,7 +6,7 @@ is `launcher/` there (vendored, [VENDORED.md](../VENDORED.md)). How to make a re
 (one file, covering both products).
 
 timeLink's numbers start at **v0.1.0**, and the launcher's do too: one tag names both products' releases. Nothing here reads or writes
-GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot's history is Hookshot's).
+GitHub, and nothing is compatible with the updates of the builds from before the fork.
 
 ## In short
 
@@ -24,10 +24,10 @@ GitHub, and nothing is compatible with Hookshot's 2.x updates (NotRexed/Hookshot
 
 Each version is one GitHub release, made by `.github/workflows/release.yml`:
 
-| timeLink (HanYolo1/timeLink) | The launcher (HanYolo1/TimeLinkLauncher) |
+| timeLink's builders | The launcher (the same release) |
 |---|---|
-| `timeLinkBuilder-<v>-windows-x64.zip`: the Windows builder (its setup as `timeLinkBuilder.exe`, the builder and timeLink's sources in `timeLinkBuilder\`, `tools.lock`, `VERSION`, and `recomplauncher.json` at the top) | `TimeLinkLauncher-<v>-windows-x64-setup.exe`: one self-contained program that installs itself (below); `TimeLinkLauncher-<v>-windows-x64-portable.zip`: the same program as `timeLinkLauncher.exe` with its `portable` file |
-| `timeLink-<v>-x86_64.AppImage`: the Linux builder (the builder, its Python, timeLink's sources, the Vulkan back end, its `tools.lock` and `recomplauncher.json`); its build tools are not inside | `TimeLinkLauncher-<v>-x86_64.AppImage` |
+| `timeLinkBuilder-<v>-windows-x64.zip`: the Windows builder (its setup as `timeLinkBuilder.exe`, the builder and timeLink's sources in `timeLinkBuilder\`, `tools.lock`, `VERSION`, and `recomplauncher.json` at the top) | `timeLinkLauncher-<v>-windows-x64-setup.exe`: one self-contained program that installs itself (below); `timeLinkLauncher-<v>-windows-x64-portable.zip`: the same program as `timeLinkLauncher.exe` with its `portable` file |
+| `timeLink-<v>-x86_64.AppImage`: the Linux builder (the builder, its Python, timeLink's sources, the Vulkan back end, its `tools.lock` and `recomplauncher.json`); its build tools are not inside | `timeLinkLauncher-<v>-x86_64.AppImage` |
 | `tools.lock`: the tools the builders download | |
 | `SHA256SUMS`, `SHA256SUMS.sig` | `SHA256SUMS`, `SHA256SUMS.sig` |
 
@@ -126,8 +126,8 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
   all, not even with a token, so the builder's setup and the AppImage could not fetch them. The name carries the digest and
   `tools.lock` checks it, so a replaced asset is caught; GitHub lets an asset be deleted and uploaded again, so never reuse
   a version string. Nothing prunes the release, so an older version's tools stay downloadable. Where an archive came from
-  (upstream for llvm-mingw, NotRexed/Hookshot's `builder-parts` release for those taken from Hookshot) is its fallback URL,
-  so no install depends on a repository we do not control alone. An archive timeLink makes itself (the CPM cache with dav1d,
+  is a fallback URL only for llvm-mingw (its maker's own release); no other project's releases are listed, so every other
+  archive comes from timeLink's copy alone. An archive timeLink makes itself (the CPM cache with dav1d,
   the prebuilt `third_party` files, the Linux tools) has no upstream: its release asset is the only copy.
 
   The launcher has no Cloudflare edge in front of it any more (`CdnFetcher` went with MagicBeanDev's Forgejo), so a release
@@ -137,10 +137,10 @@ tool llvm-mingw 20261104 windows-x64 5521…40f 191037046 timeLinkBuilder/tools/
   `add` or `assemble`: a new asset in the `tools` release, then the line (RELEASING.md, "Bump a tool"). The release workflow
   refuses a `tools.lock` whose assets are not there with their size, or that lacks a tool the
   builder needs (`tools.py check --require`), in its first job, before anything is built.
-- **Today's lock.** Windows: Python, emsdk and wgpu-native are taken as they are from Hookshot v2.1.0's Windows builder
-  (NotRexed/Hookshot's `builder-parts` release), with their SHA-256; llvm-mingw is upstream's; the CPM cache is Hookshot
-  v2.1.0's with dav1d added (`scripts/windows/dav1d.sh`), and `third-party` the prebuilt files of Hookshot v2.1.0's
-  `third_party` part (`assemble third-party`). Linux: `scripts/linux/deps.sh tools`'s. The lock has no play profile:
+- **Today's lock.** Windows: Python, emsdk and wgpu-native are the vendors' Windows builds as the builder before the fork
+  packaged them, repacked in `timeLink-tools` under a `timeLinkBuilder` folder with every file unchanged; llvm-mingw is
+  upstream's; the CPM cache is that builder's with dav1d added (`scripts/windows/dav1d.sh`), and `third-party` the prebuilt
+  files of its `third_party` part (`assemble third-party`), built from the GPL sources in `third_party/`. Linux: `scripts/linux/deps.sh tools`'s. The lock has no play profile:
     play profiles are committed in `assets/profiles/`.
 - **Linux.** The AppImage carries only the builder: its Python (the tools' download and `make_game.py` run on it,
   and its packages follow `requirements.txt`, which changes with the version), timeLink's sources and the prebuilt Vulkan
@@ -249,8 +249,7 @@ The first release of each product only needs its first number (both `v0.1.0`).
 git-cliff writes them at release time from the commit titles since the previous tag, with the repository's `cliff.toml`.
 For a stable, that is since the previous stable, so its notes cover its release candidates. The headings are Features,
 Fixes, Performance, Reverted, Documentation, Code, Build and Tests; `ci` and `chore` are left out. The notes go on the
-release page only: nothing is committed back to `main`, and there is no changelog file to keep up (Hookshot's is in
-NotRexed/Hookshot).
+release page only: nothing is committed back to `main`, and there is no changelog file to keep up.
 
 `release.py publish` puts a header above the notes (`release_page`), so a player who lands on a release page downloads the
 right thing:
