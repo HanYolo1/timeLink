@@ -9,6 +9,12 @@ public enum StartKind { Window, Launch, Play }
 /// Unknown arguments are kept in Ignored (and do not stop the start).
 public sealed record StartRequest(StartKind Kind, string? Folder, IReadOnlyList<string> Ignored, string? Problem)
 {
+    /// A shortcut's start (--play) when the player chose that shortcuts open the launcher (LauncherSettings.ShortcutsOpenLauncher):
+    /// the window, on the shortcut's build when it names one (as --launch &lt;folder&gt;), else as a plain start. Anything else as it was
+    public StartRequest ForShortcuts(bool openLauncher) =>
+        !openLauncher || Kind != StartKind.Play || Problem != null ? this
+            : this with { Kind = Folder != null ? StartKind.Launch : StartKind.Window };
+
     public static StartRequest Parse(IReadOnlyList<string> args)
     {
         StartKind kind = StartKind.Window;

@@ -600,5 +600,10 @@
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "Impossible de se connecter à {0}. Vérifiez que ce PC est connecté à Internet et qu'aucun pare-feu, VPN ou antivirus ne bloque le site.",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "Ce PC est réglé pour passer par le proxy {1}, qui n'a pas répondu : {0} n'a donc pas été joint. Vérifiez les paramètres du proxy, ou désactivez-le.",
   "No version is out on the {0} channel yet.": "Aucune version n'est encore disponible sur le canal {0}.",
-  "Your game settings from your other versions now apply to this one too.": "Les réglages de jeu de tes autres versions s'appliquent désormais aussi à celle-ci."
+  "Your game settings from your other versions now apply to this one too.": "Les réglages de jeu de tes autres versions s'appliquent désormais aussi à celle-ci.",
+  "STARTING THE GAME": "LANCEMENT DU JEU",
+  "Shortcuts open the launcher": "Les raccourcis ouvrent le lanceur",
+  "They show the launcher first: its Play button, and any update.": "Ils affichent d'abord le lanceur : son bouton Jouer et toute mise à jour.",
+  "They start the game straight away.": "Ils démarrent le jeu directement.",
+  "Shortcuts open the launcher instead of starting the game": "Les raccourcis ouvrent le lanceur au lieu de démarrer le jeu"
 }

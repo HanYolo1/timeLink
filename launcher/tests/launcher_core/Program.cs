@@ -799,6 +799,14 @@ static partial class Program
         Require(LauncherSettings.Load(path).BuildChannel("nightly-8-3b243d73") == "nightly", "The migrated settings.json changes on its next load.");
         File.WriteAllText(path, """{"format":1,"defaultChannel":"rc"}""");
         Require(LauncherSettings.Load(path).DefaultChannel == "rc", "An old settings.json's pick of rc is lost.");
+
+        // (the shortcuts: the game with no window until the player picks)
+        Require(new LauncherSettings().ShortcutsOpenLauncher == null, "The shortcuts start unpicked.");
+        File.WriteAllText(path, """{"format":2,"checkUpdates":true}""");
+        Require(LauncherSettings.Load(path).ShortcutsOpenLauncher == null, "A settings.json from before the choice reads as not picked.");
+        new LauncherSettings { ShortcutsOpenLauncher = true }.Save(path);
+        Require(File.ReadAllText(path).Contains("\"shortcutsOpenLauncher\": true") && LauncherSettings.Load(path).ShortcutsOpenLauncher == true,
+                "The shortcuts' choice round trips.");
     }
 
     // ---- make_game.py's lines and the overall bar ----
@@ -1057,6 +1065,13 @@ static partial class Program
         Require(P("--update", "/g") is { Kind: StartKind.Window, Folder: null, Problem: null } u && u.Ignored.SequenceEqual(new[] { "--update", "/g" }),
                 "--update is no start mode: an unknown argument, the window opens.");
         Require(P("--some-avalonia-flag", "--launch", "/g").Ignored.SequenceEqual(new[] { "--some-avalonia-flag" }), "Unknown arguments are kept aside.");
+        // (a shortcut, --play, opens the window when the player chose so: on its build when it names one)
+        Require(P("--play").ForShortcuts(true) is { Kind: StartKind.Window, Folder: null, Problem: null }, "A shortcut opening the launcher: the window.");
+        Require(P("--play", "/g").ForShortcuts(true) is { Kind: StartKind.Launch, Folder: "/g" }, "A build's shortcut opening the launcher: on that build.");
+        Require(P("--play").ForShortcuts(false) is { Kind: StartKind.Play } && P("--play", "/g").ForShortcuts(false) is { Kind: StartKind.Play, Folder: "/g" },
+                "Not chosen, a shortcut starts the game as before.");
+        Require(P().ForShortcuts(true) is { Kind: StartKind.Window } && P("--launch", "/g").ForShortcuts(true) is { Kind: StartKind.Launch, Folder: "/g" }
+                && P("--play", "/g", "--launch", "/h").ForShortcuts(true).Problem != null, "Only --play changes; a start with a problem stays as it was.");
     }
 
     // ---- a folder named outside any one code page ----

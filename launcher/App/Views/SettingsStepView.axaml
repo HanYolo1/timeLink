@@ -197,6 +197,18 @@
           </Grid>
         </Border>
 
+        <!-- starting the game: what the Desktop and Start menu shortcuts do (both systems) -->
+        <TextBlock Classes="glabel" Text="{c:T 'STARTING THE GAME'}"/>
+        <Border Classes="card">
+          <Grid Classes="srow" ColumnDefinitions="*,Auto">
+            <StackPanel VerticalAlignment="Center" Spacing="1">
+              <TextBlock Classes="rtitle" Text="{c:T 'Shortcuts open the launcher'}"/>
+              <TextBlock Classes="rdesc" Text="{Binding ShortcutsDesc}"/>
+            </StackPanel>
+            <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding ShortcutsOpenLauncher}" VerticalAlignment="Center"/>
+          </Grid>
+        </Border>
+
         <!-- advanced: closed by default -->
         <Border Classes="card" Margin="0,12,0,0">
           <StackPanel>
