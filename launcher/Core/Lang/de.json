@@ -584,5 +584,10 @@
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "Keine Verbindung zu {0} möglich. Prüfe, ob dieser PC online ist und ob keine Firewall, kein VPN und kein Virenschutz die Seite blockiert.",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "Dieser PC ist so eingestellt, dass er über den Proxy {1} geht, der nicht geantwortet hat; {0} wurde deshalb nicht erreicht. Prüfe die Proxy-Einstellungen oder schalte den Proxy aus.",
   "No version is out on the {0} channel yet.": "Im Kanal {0} ist noch keine Version erschienen.",
-  "Your game settings from your other versions now apply to this one too.": "Deine Spieleinstellungen aus deinen anderen Versionen gelten jetzt auch für diese."
+  "Your game settings from your other versions now apply to this one too.": "Deine Spieleinstellungen aus deinen anderen Versionen gelten jetzt auch für diese.",
+  "STARTING THE GAME": "SPIELSTART",
+  "Shortcuts open the launcher": "Verknüpfungen öffnen den Launcher",
+  "They show the launcher first: its Play button, and any update.": "Sie zeigen zuerst den Launcher: seine Spielen-Schaltfläche und jedes Update.",
+  "They start the game straight away.": "Sie starten das Spiel sofort.",
+  "Shortcuts open the launcher instead of starting the game": "Verknüpfungen öffnen den Launcher, statt das Spiel zu starten"
 }

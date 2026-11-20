@@ -568,5 +568,10 @@
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "无法连接到 {0}。请检查这台电脑是否已联网，以及防火墙、VPN 或杀毒软件是否屏蔽了该网站。",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "这台电脑设置为通过代理 {1} 联网，但该代理没有响应，因此无法连接到 {0}。请检查代理设置，或关闭代理。",
   "No version is out on the {0} channel yet.": "{0}通道尚未发布任何版本。",
-  "Your game settings from your other versions now apply to this one too.": "你其他版本的游戏设置现在也会应用到这个版本。"
+  "Your game settings from your other versions now apply to this one too.": "你其他版本的游戏设置现在也会应用到这个版本。",
+  "STARTING THE GAME": "启动游戏",
+  "Shortcuts open the launcher": "快捷方式打开启动器",
+  "They show the launcher first: its Play button, and any update.": "先显示启动器：其中有“开始游戏”按钮和可用更新。",
+  "They start the game straight away.": "直接启动游戏。",
+  "Shortcuts open the launcher instead of starting the game": "快捷方式打开启动器，而不是直接启动游戏"
 }

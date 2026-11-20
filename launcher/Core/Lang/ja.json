@@ -568,5 +568,10 @@
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "{0} に接続できませんでした。この PC がインターネットに接続されているか、ファイアウォール、VPN、ウイルス対策ソフトがサイトをブロックしていないか確認してください。",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "この PC はプロキシ {1} を経由する設定ですが、プロキシが応答しなかったため {0} に接続できませんでした。プロキシの設定を確認するか、プロキシをオフにしてください。",
   "No version is out on the {0} channel yet.": "{0} チャンネルにはまだバージョンが公開されていません。",
-  "Your game settings from your other versions now apply to this one too.": "ほかのバージョンのゲーム設定が、このバージョンにも引き継がれます。"
+  "Your game settings from your other versions now apply to this one too.": "ほかのバージョンのゲーム設定が、このバージョンにも引き継がれます。",
+  "STARTING THE GAME": "ゲームの起動",
+  "Shortcuts open the launcher": "ショートカットでランチャーを開く",
+  "They show the launcher first: its Play button, and any update.": "まずランチャーを表示します（プレイボタンとアップデート）。",
+  "They start the game straight away.": "すぐにゲームを起動します。",
+  "Shortcuts open the launcher instead of starting the game": "ショートカットでゲームを起動せず、ランチャーを開く"
 }

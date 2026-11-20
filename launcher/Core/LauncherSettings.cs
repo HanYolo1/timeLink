@@ -41,6 +41,9 @@ public sealed class LauncherSettings
     public string? BuildsFolder { get; set; }
     /// Ask GitHub for each channel's newest version when the launcher starts
     public bool CheckUpdates { get; set; } = true;
+    /// What the Desktop and Start menu shortcuts do: open the launcher, on its Play button (true), or start the game with no
+    /// window (false). Asked in the build settings, changed in Settings. null: not asked yet, so they start the game, as they did
+    public bool? ShortcutsOpenLauncher { get; set; }
     /// Each build folder's log already shown on the problem page, by its write time: a crash is shown once
     public Dictionary<string, long> SeenCrashLogs { get; set; } = new();
     /// When the launcher first looked for crashes (UTC ticks; null: not yet): a log from before then is not offered, so the first

@@ -126,13 +126,14 @@ next time it starts. If `timeLinkLauncher.exe` itself is missing, rename `timeLi
 1. **Build another version** (or, the first time, **Build the game**) opens the wizard. Pick the channel: *Stable* for
    playing, *Release candidate* to try the next version, *Nightly* for the newest changes.
 2. **Game files**: the launcher looks for your dump on this PC; point it at the folder if it doesn't find it.
-3. **Settings**: where the game goes, the language, and DLSS or FSR 4 (their licences are shown first). Your saves come
-   along: every build shares them.
+3. **Settings**: where the game goes, the language, and DLSS or FSR 4 (their licences are shown first), and what the
+   shortcuts do (*Starting the game*). Your saves come along: every build shares them.
 4. **Build**: about 15 to 30 minutes the first time, shaders included. An update compiles only what changed.
-5. **Play**. Ready can also make desktop and menu shortcuts, which start the default version.
+5. **Play**. Ready can also make desktop and menu shortcuts, which start the default version, or open the launcher on
+   its Play button when *Shortcuts open the launcher* is on.
 
 The cog on the home opens the launcher's settings: the **launcher's language**, the channel for new builds, the
-**launcher's own channel**, where builds go, the build files folder (and *Free up space*), the update check at start, and on
+**launcher's own channel**, where builds go, the build files folder (and *Free up space*), the update check at start, what the shortcuts open, and on
 Linux the launcher's entry in the applications menu.
 
 The launcher speaks the game's sixteen languages. It starts in the system's (Windows' display language; on Linux `LANGUAGE`,
@@ -227,7 +228,7 @@ dotnet run --project App
 | `TIMELINK_LAUNCHER_OFFLINE=1` | No update check |
 | `TIMELINK_LAUNCHER_TRUST=<public key .pem>` | Trust one more release key, for a release signed with a test key |
 | `--launch <folder>` | Opens on that build |
-| `--play [<folder>]` | Starts the game with no window (the shortcuts use it) |
+| `--play [<folder>]` | Starts the game with no window (the shortcuts use it); with *Shortcuts open the launcher* on, opens the window instead, on that build when it names one |
 | `--self-check` | Prints `TimeLinkLauncher <version>` (a new launcher answers it before it is put in place) |
 | `--rollback` | Puts back the launcher the last update replaced |
 | `--install` | Windows: installs this launcher without asking ([Installing](#installing)), then starts the installed copy |

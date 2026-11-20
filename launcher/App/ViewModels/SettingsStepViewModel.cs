@@ -197,6 +197,24 @@ public sealed class SettingsStepViewModel : ViewModelBase, IWizardPage
 
     public string PrepareDesc => s.PrepareShaders ? Tr.T("Adds about 8 min here, so the game starts smoothly.") : Tr.T("The game prepares them at its first start.");
 
+    // ---- starting the game ----
+
+    /// What the Desktop and Start menu shortcuts do (LauncherSettings.ShortcutsOpenLauncher; also in Settings)
+    public bool ShortcutsOpenLauncher
+    {
+        get => s.ShortcutsOpenLauncher == true;
+        set
+        {
+            s.ShortcutsOpenLauncher = value;
+            Save();
+            RaiseAll(nameof(ShortcutsOpenLauncher), nameof(ShortcutsDesc));
+        }
+    }
+
+    public string ShortcutsDesc => ShortcutsOpenLauncher
+        ? Tr.T("They show the launcher first: its Play button, and any update.")
+        : Tr.T("They start the game straight away.");
+
     // ---- advanced ----
 
     public bool AdvancedOpen

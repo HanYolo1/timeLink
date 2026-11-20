@@ -97,6 +97,7 @@
           </StackPanel>
         </Grid>
         <CheckBox Classes="tick" Content="{c:T 'Check for updates when the launcher starts'}" IsChecked="{Binding CheckUpdates}"/>
+        <CheckBox Classes="tick" Content="{c:T 'Shortcuts open the launcher instead of starting the game'}" IsChecked="{Binding ShortcutsOpenLauncher}"/>
       </StackPanel>
     </ScrollViewer>
   </DockPanel>
