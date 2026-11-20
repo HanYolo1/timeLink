@@ -1,0 +1,16 @@
+# The packages a launcher release's publish downloads beyond what packages.lock.json pins: the Windows and Linux runtime packs of
+# a self-contained single-file program. scripts/package.sh checks every one with scripts/check_packages.py, which fails the
+# release on a package missing here or with another content hash, and prints the line that would pin it.
+#
+# They follow the .NET SDK (scripts/dotnet-sdk.json): moving the SDK is one reviewed change to both files.
+#
+# <id> <version> <NuGet content hash: SHA-512 without the signature, base64, as packages.lock.json's contentHash>
+
+# .NET SDK 11.0.100 (scripts/dotnet-sdk.json), building net10.0: runtime 10.0.15. The ASP.NET Core packs are downloaded by the
+# SDK for every self-contained publish of a system, though the launcher does not use them; nothing of them is shipped.
+microsoft.aspnetcore.app.runtime.linux-x64 10.0.15 /F3wBWfXxqWBQMZBAe8KjjPSQD7OLjrBBC/8nbA4ZVweHKdsZR8Ta8qZkoFdHop3JNZgD+y03GCQ4Fw1zQohWg==
+microsoft.aspnetcore.app.runtime.win-x64 10.0.15 iOp/XLbRe/wvAeKpYZXPdAtK1WZnCl7C5XZJsm6otvS2AYun+9ODisD9eZYXv/KdT/CtKZn3ITaL3X75EFwsMQ==
+microsoft.net.illink.tasks 10.0.15 u0WnRcZgBZYHlVFpbe/3Adpmb9rmNJ8/fmEwqc/xjB7fFppq+gfaLJd3Sdaw+J02zV0eP/T9dneQ3Dv5jWw6bw==
+microsoft.netcore.app.host.win-x64 10.0.15 0V8Y4723H7JCI61sq+tOxSRGceDs2MTMZw4H4L+gBJiX92Db5DohcqYugYEqpoqdPYEeBxrfirlx1ji7kDIX3Q==
+microsoft.netcore.app.runtime.linux-x64 10.0.15 ALsQzH86bVhGmWjv/sESo973cpasVCDicswfJt3bDB7/IUkEs17ilOCyxXbiAGDyCFylNDSAEaFyNwdoU/mAQw==
+microsoft.netcore.app.runtime.win-x64 10.0.15 vzCVKwBmeXZ31VkaU956oQE1zda/pweaw1q0vtnRWzivoPa4jyz9zVrmhrora1UJlPkzfBteQHf9bOYAF2ZuVw==

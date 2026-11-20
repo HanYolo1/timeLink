@@ -93,7 +93,7 @@ There is no installer program: the launcher installs itself.
   administrator rights), adds a *timeLink Launcher* shortcut to the Start menu and an entry in *Apps & features*
   (publisher Magic Bean), then starts the installed copy. After each of its own updates it makes the Start menu shortcut
   (and the *timeLink* shortcuts it made) again, so they start the updated program. Its data goes in `%LOCALAPPDATA%\TimeLinkLauncher`. You can
-  delete the setup file afterwards. `TimeLinkLauncher-<v>-windows-x64-setup.exe --install` does the same without asking.
+  delete the setup file afterwards. `timeLinkLauncher-<v>-windows-x64-setup.exe --install` does the same without asking.
 - **Run portable** puts a file named `portable` beside the program, and from then on the launcher keeps everything in a
   `timeLinkLauncher-data` folder beside it: its settings, its list of builds, the builder's tools, the build files, and by
   default the builds and the save backups too. It never writes the registry or makes a shortcut of its own. The portable
@@ -212,9 +212,9 @@ dotnet run --project App
 | `Core/` | `TimeLinkLauncher.Core`: the logic, no UI and no package. Versions and channels (`Versions`), the signed releases of timeLink and of the launcher (`Releases`, `ReleaseTrust`, `ReleaseManifest`), its own update (`SelfUpdate`), each version's builder and its tools.lock (`Toolchains`, `ToolsSource`, `ToolsLock`), game folders, `builds.json` (`BuildRegistry`), remembered settings, make_game.py's command line, `@@` lines, run and check (`MakeGameCommand`, `MakeGameProtocol`, `MakeGameRun`), the game files found on this PC (`GameFiles`), update offers (`UpdatePolicy`), saves (`Saves`, a port of timeLink's `scripts/oot_saves.py`; `SaveText`) and Hookshot's (`HookshotSaves`), the game settings brought to a new build (`SettingsCarry`), disk space (`Disk`), this PC (`SystemInfo`), shortcuts (`Shortcuts`), installed or portable (`LauncherLayout`, `Installer`), one launcher per home (`InstanceLock`), the launcher's home and command line |
 | `Core/Lang/` | The launcher's translations, one catalog per language (`Tr`, [Translations](#translations)) |
 | `App/` | `TimeLinkLauncher`: the Avalonia window. `ViewModels/` (one per page and dialog), `Views/` (one .axaml each, compiled bindings), `Controls/` (icons, bars and spinner), `App.axaml` (the palette and the styles), `Assets/` (the timeLink logo and icon, the Inter font with its licence) |
-| `tests/` | `test_launcher_core.py` (builds `launcher_core/`, which compiles `Core/` and checks it), `test_release.py` (`scripts/release.py`), `fixtures/` (signed test releases, fake Hookshot saves) |
-| `scripts/` | `package.sh` (both release programs, from Linux), `make_icon.py` (`App/Assets/timeLink.ico` from the logo), `release.py` (the signed release files, the keys, the uploads; the same file as timeLink's), `translations.py` (the window's texts against each catalog) |
-| `.github/workflows/` | `launcher.yml` (compile and test, on a change that touches `launcher/`), `build-launcher.yml` (the release programs, called by `release.yml`) |
+| `tests/` | `test_launcher_core.py` (builds `launcher_core/`, which compiles `Core/` and checks it), `test_release.py` (`scripts/release.py`), `test_check_packages.py` (`scripts/check_packages.py`), `fixtures/` (signed test releases, fake Hookshot saves) |
+| `scripts/` | `package.sh` (both release programs, from Linux), `make_icon.py` (`App/Assets/timeLink.ico` from the logo), `release.py` (the signed release files, the keys, the uploads; the same file as timeLink's), `translations.py` (the window's texts against each catalog), `check_packages.py` (every package a release's publish downloads, against `publish-packages.lock`), `dotnet-sdk.json` (the .NET SDK the release is built with) |
+| `.github/workflows/` (at the repository's root) | `launcher.yml` (compile and test, on a change that touches `launcher/`), `build-launcher.yml` (the release programs, called by `release.yml`) |
 | `docs/` | [releases.md](docs/releases.md), [saves.md](docs/saves.md) (with the Saves page's screenshots), and the screenshots in this README |
 
 ### Environment and command line

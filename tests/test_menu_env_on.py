@@ -8,7 +8,9 @@ Off; 0 never) and sampler_cache (off by default, no version rule):
 - no file: the default; a file without the line: the default;
 - options_version 3 with descriptor_reuse=0: on (the old default, moved); 4 with 0: off (chosen); 4 with 1: on;
 - RX_VK_DESC_REUSE over all of it, with the row's values (0/off its Off, 1 its On) and never;
-- the rows applying in play (menu_debug_rows): the menu's values over the file's, unless RX_VK_DESC_REUSE holds the level.
+- the rows applying in play (menu_debug_rows): the menu's values over the file's, unless RX_VK_DESC_REUSE holds the level;
+- the first reads from 8 threads at once, the options file slowed down: each switch reads the file once and says it is
+  ready once (before, every thread that came first at the same time read the file and logged).
 
 python -I -B tests/test_menu_env_on.py [--cxx clang++]
 """
@@ -35,18 +37,44 @@ def block(text, marker):
 
 FIXTURE = r"""
 #include <atomic>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <thread>
+#include <vector>
 #include "timeLink_env.h"
 using DWORD = unsigned long;
 constexpr int MAX_PATH = 260;
-static DWORD game_module_path(char *path, DWORD size) { return snprintf(path, size, "./timeLink.exe"); }
-static void logf(const char*, ...) {}
+static std::atomic<int> file_reads{0}, log_lines{0};
+static DWORD game_module_path(char *path, DWORD size) {   // (the options file's read: counted, and slowed for the threads' case)
+    file_reads++;
+    if (getenv("FIXTURE_SLOW_FILE")) std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    return snprintf(path, size, "./timeLink.exe");
+}
+static void logf(const char*, ...) { log_lines++; }
 BODY
 LEVEL
 int main(int argc, char **argv) {
+    if (argc == 2 && !strcmp(argv[1], "threads")) {   // (8 threads ask first at once: one read and one line a switch)
+        std::atomic<bool> go{false};
+        std::vector<std::thread> threads;
+        for (int i = 0; i < 8; i++)
+            threads.emplace_back([&go] {
+                while (!go.load()) std::this_thread::yield();
+                (void)desc_reuse_level();
+                (void)sampler_cache_on();
+            });
+        go = true;
+        for (auto& t : threads) t.join();
+        if (file_reads != 2 || log_lines != 1) {
+            fprintf(stderr, "FAIL: 8 threads at once: the options file read %d times (2 expected), %d lines logged (1)\n",
+                    file_reads.load(), log_lines.load());
+            return 1;
+        }
+        return 0;
+    }
     if (argc != 3) return 2;
     const int reuse = desc_reuse_level();
     const bool sampler = sampler_cache_on();
@@ -100,7 +128,7 @@ def main():
         work = Path(tmp)
         source, exe = work / "fixture.cpp", work / "fixture.exe"
         source.write_text(FIXTURE.replace("BODY", body).replace("LEVEL", level), encoding="utf-8")
-        subprocess.run([args.cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror", "-D_CRT_SECURE_NO_WARNINGS",
+        subprocess.run([args.cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror", "-D_CRT_SECURE_NO_WARNINGS", "-pthread",
                         "-I", str(ROOT / "gpu/vk/compat"), str(source), "-o", str(exe)], check=True)
         for text, env_value, reuse, sampler in CASES:
             ini = work / "timeLink_options.ini"
@@ -114,8 +142,14 @@ def main():
             if env_value is not None:
                 env["RX_VK_DESC_REUSE"] = env_value
             subprocess.run([str(exe), str(reuse), str(sampler)], cwd=work, env=env, check=True)
+        (work / "timeLink_options.ini").unlink(missing_ok=True)
+        env = os.environ.copy()
+        env.pop("RX_VK_DESC_REUSE", None)
+        env.pop("RX_VK_SAMPLER_CACHE", None)
+        env["FIXTURE_SLOW_FILE"] = "1"
+        subprocess.run([str(exe), "threads"], cwd=work, env=env, check=True)
     print("PASS: Descriptor reuse on by default and for options files before version 4; a version 4 choice kept; "
-          "RX_VK_DESC_REUSE with the row's values, and never; Sampler cache unchanged; both rows in play")
+          "RX_VK_DESC_REUSE with the row's values, and never; Sampler cache unchanged; both rows in play; read once from 8 threads")
 
 
 if __name__ == "__main__":

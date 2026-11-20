@@ -14,7 +14,10 @@
 # that copy is what runs here. Whether the shipped file starts is a Windows tester's.
 name: Launcher
 on:
-  # (no pull_request trigger: release.yml calls this one for a tag; build a branch by hand with Run workflow)
+  # (no pull_request trigger: release.yml calls this one for a tag; build a branch by hand with Run workflow, which has no
+  # inputs: it builds the branch it was started on, stamped "dev", the version a build from a checkout has. A dev launcher
+  # never updates itself (Core/SelfUpdate.cs), so a test build stays what was tested, and its files are an artifact of the
+  # run, never a release's)
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -44,20 +47,23 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
+      # (the SDK scripts/dotnet-sdk.json pins: the runtime packs a publish downloads follow it, and package.sh checks them against
+      # launcher/publish-packages.lock)
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: launcher/scripts/dotnet-sdk.json
       - name: The Windows setup, the portable zip and the AppImage
         env:
           WINE_CHECK_EXE: ${{ runner.temp }}/wine-check/timeLinkLauncher.exe
-        run: scripts/package.sh "${{ inputs.tag }}" "$RUNNER_TEMP/dist"
+          TAG: ${{ inputs.tag || 'dev' }}
+        run: scripts/package.sh "$TAG" "$RUNNER_TEMP/dist"
       # (the same code built to unpack itself to disk: Wine cannot load the shipped program, whose code .NET maps from the
       # uncompressed file, "Incorrect alignment (0x8007046C)". The shipped file is not started here: launcher/RELEASING.md)
       - name: The Windows program starts (--self-check, under Wine)
         env:
-          TAG: ${{ inputs.tag }}
+          TAG: ${{ inputs.tag || 'dev' }}
         run: |
           export DEBIAN_FRONTEND=noninteractive
           sudo=; [[ $(id -u) == 0 ]] || sudo=sudo
@@ -70,7 +76,7 @@ jobs:
           out=$("$wine" "$RUNNER_TEMP/wine-check/timeLinkLauncher.exe" --self-check | tr -d '\r')
           echo "$out"
           grep -qxF "TimeLinkLauncher $TAG" <<<"$out" || { echo "::error::the Windows launcher does not answer --self-check with $TAG (it said: $out)"; exit 1; }
-      - uses: actions/upload-artifact@v4 # v4 (Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
+      - uses: actions/upload-artifact@v4 # v4
         with:
           name: timeLinkLauncher
           path: ${{ runner.temp }}/dist/timeLinkLauncher-*

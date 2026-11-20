@@ -37,40 +37,57 @@
 
 timeLink is a static recompilation of a supported console game. The game's code is translated to C and compiled into a Windows or Linux program, rebuilding the graphics on Vulkan, with the console's system software reimplemented. All of this happens **on your PC, from your own copy of the game**.
 
-timeLink is a hard fork of Longshot, which is a hard fork of Hookshot. It exists thanks to the work of everyone in that
-chain.
-
 **[Report a problem](https://github.com/HanYolo1/timeLink/issues)!**
 <br>
 
 > [!IMPORTANT]
 > This repository **does not contain the game, keys or an executable**, and it does not explain how to get them. You
-> need your own copy. Everything the build creates (`timeLink.exe`, the generated code, the shader caches and your
-> saves) comes from your game and stays on your PC. Never share those files.
+> need your own legally obtained copy. Everything the build creates (`timeLink.exe`, the generated code, the shader caches and your
+> saves) comes from your game and stays on your PC. Never share those files. Do not ask for a copy.
 
 ## Project status
 
-Experimental. Players have reported on many PCs, from Kokiri Forest to the dungeons: the table says what works and
-what does not yet. Open problems are collected in tracking issues, linked below.
+Experimental. The table says what works and what does not yet. It was carried over from Longshot at the fork: the
+reports in it are from Longshot's players, on many PCs, from Kokiri Forest to the dungeons. Open problems are in the
+[issue tracker](https://github.com/HanYolo1/timeLink/issues).
 
 | What | Status |
 |---|---|
 | Kokiri Forest: reaching gameplay and walking around | ✅ Works |
 | Sound, controller, keyboard and saves | ✅ Works |
 | In-game menu, frame generation and upscaling | ✅ Works |
-| Flicker (the picture flashing too bright while moving) | ✅ Fixed in v2.0.2 (#645) |
-| Ground fog vanishing when looking down | ✅ Fixed in v2.0.2 (#638) |
+| Flicker (the picture flashing too bright while moving) | ✅ Fixed |
+| Ground fog vanishing when looking down | ✅ Fixed |
 | Models with missing pieces (doors, fences, parts of trees) | ✅ Fixed where tested, more play needed |
 | Stutter when entering new areas | ⚠️ Still happens the first time you visit a place. The next visits are smooth |
 | Performance | ⚠️ Depends on the PC: some reach a steady 60 fps, others stay below it, more so in Hyrule Field |
 | Hyrule Field, Castle Town, Kakariko and the dungeons | ⚠️ Players got there, with open bugs: lighting and shadows, crashes and freezes |
 | Ultrawide and 4:3 | ✅ Works. The Aspect ratio row's default, Monitor's shape, widens the 3D to the screen and keeps the HUD and movies in the middle 16:9 |
 | NVIDIA cards | ✅ Works. The most tested |
-| AMD cards | ⚠️ Many tested: reports from the RX 6600, RX 6800 XT, RX 7800 XT, RX 7900 XTX and RX 9070 XT. On Windows, the RX 6600 to RX 6950 XT and their mobile and Pro models (Navi 21, 22 and 23) draw task and mesh shaders through the compute fallback by default: the driver lost the GPU on their own mesh shaders on an RX 6700 XT, an RX 6800 XT and, in one report in Mako, an RX 6600 (#1747, #1992, #2215); another RX 6600 played 15-20 minutes on them. The RX 6400 and 6500 XT (Navi 24) keep their own mesh shaders, as no report has them losing the GPU; `RX_VK_TASK_MESH_FALLBACK=1` tries the fallback. Driver crashes and device lost are still reported |
+| AMD cards | ⚠️ Many tested: reports from the RX 6600, RX 6800 XT, RX 7800 XT, RX 7900 XTX and RX 9070 XT. On Windows, the RX 6600 to RX 6950 XT and their mobile and Pro models (Navi 21, 22 and 23) draw task and mesh shaders through the compute fallback by default: the driver lost the GPU on their own mesh shaders on an RX 6700 XT, an RX 6800 XT and, in one report, an RX 6600; another RX 6600 played 15-20 minutes on them. The RX 6400 and 6500 XT (Navi 24) keep their own mesh shaders, as no report has them losing the GPU; `RX_VK_TASK_MESH_FALLBACK=1` tries the fallback. Driver crashes and device lost are still reported |
 | Intel cards | ❓ Few reports, many of them black screens or crashes. On Windows, Intel's shader compiler is entered by one thread, and a shader it faults on is left out instead of closing the game, on later starts too. Made for an Intel UHD laptop with 4 threads and 16 GB that crashed in `igvk64.dll` (see [Intel laptops](#intel-laptops)): not yet tested on an Intel GPU |
 | Pre-rendered movies on a slow CPU | ⚠️ Shown rather than skipped when the decoder is slower than the movie, so the picture can fall behind the sound. With 4 logical processors or fewer the decoder uses 2 threads, leaving the game its own. The first picture can still be black on some PCs |
-| Cards without mesh shaders (such as NVIDIA GTX 10 and AMD RX 5000) | ⚠️ Run through the compute fallback (since v2.0.6), which runs the mesh programs as compute shaders on cards with buffer device addresses: slower, and it leaves out the mesh draws that take their count from a buffer (#640) |
+| Cards without mesh shaders (such as NVIDIA GTX 10 and AMD RX 5000) | ⚠️ Run through the compute fallback, which runs the mesh programs as compute shaders on cards with buffer device addresses: slower, and it leaves out the mesh draws that take their count from a buffer |
 | Linux | ✅ Works with the AppImage. Tested on several distributions (CachyOS, Fedora, Bazzite, SteamOS) and cards, with open problems on some AMD cards |
+
+## What's different in timeLink
+
+timeLink split from Longshot on 2026-11-14. The game's code and renderer are Longshot's as they were then, with fixes
+since. What changed is mostly everything around them:
+
+- **Its own releases and signing key.** Releases are published on [this repository's releases page](https://github.com/HanYolo1/timeLink/releases),
+  signed with timeLink's own key, and the launcher checks them against it. Version numbers started over at v0.1.0.
+- **Its own launcher.** The timeLink Launcher is built from Longshot's launcher, copied into this repository
+  (`launcher/`) with timeLink's name, logo and release key.
+- **Its own build tools host.** The builder's tools come from the [timeLink-tools](https://github.com/HanYolo1/timeLink-tools)
+  repository and their makers' own releases, each checked by SHA-256.
+- **Nightlies on request.** A merged change no longer publishes a nightly; release candidates are the way to try
+  what's next.
+- **Issues instead of chat.** There is no Discord server: problems, test results and pipeline lists go in the
+  [issue tracker](https://github.com/HanYolo1/timeLink/issues).
+- **Game fixes since the fork:** a crash when Windows runs low on memory
+  ([#20](https://github.com/HanYolo1/timeLink/pull/20)), and a start-up race in two Debug settings
+  ([#22](https://github.com/HanYolo1/timeLink/pull/22)).
 
 ## Install and play
 
@@ -98,7 +115,8 @@ timeLink doesn't come ready to play: it is built on your PC, from your own copy 
    ([build times](docs/development.md#build-times)).
 4. Press **Play**. From then on the launcher keeps the game, and itself, [up to date](#updating).
 
-timeLink's first version is **v0.1.0**, and so is the launcher's: one tag names both products' releases.
+timeLink's versions started over at **v0.1.0**, and so did the launcher's: one tag names both products' releases. The
+newest is the release candidate **v0.2.0-rc.1**.
 
 ### What you need
 
@@ -141,7 +159,7 @@ there is nothing else to install.
    rights, with a Start menu shortcut) or **Run portable**. To skip the question, take
    [the portable zip](https://github.com/HanYolo1/timeLink/releases), unzip it and run
    `timeLinkLauncher.exe`.
-2. Press **Build the game** and choose the **Stable** channel.
+2. Press **Build the game** and choose the **Release candidate** channel (there is no stable release yet).
 3. Pick your game. The launcher finds `.nup` files in your Downloads, Desktop and Documents folders; if yours isn't
    listed, point it at the file, or at the `romfs` and `exefs` folders. It checks the version while the builder downloads.
 4. Choose where the game goes (`Games\timeLink` in your user folder by default), its language and the options.
@@ -177,7 +195,7 @@ building each shader when first drawn, until that file is deleted or a build pre
 3. Start it and build the game as [on Windows](#on-windows). The game goes to `~/Games/timeLink` by default, and the
    launcher can add it to your applications menu as "timeLink".
 
-Each version's builder is also released on its own, as `timeLink-<version>-x86_64.AppImage` (about 95 MB) on
+Each version's builder is also released on its own, as `timeLink-<version>-x86_64.AppImage` (about 87 MB) on
 [timeLink's releases](https://github.com/HanYolo1/timeLink/releases). It has no window: it is what the
 launcher builds with, and it builds and starts the game from the command line, over SSH or from a script (see
 [Linux, the AppImage from the command line](#build-from-source)). Its first `--cli` downloads its build tools (the
@@ -239,7 +257,7 @@ The launcher builds from one of three channels:
 |---|---|---|
 | **Stable** | The released version. Choose this to play. | a `vX.Y.Z` tag |
 | **Release candidate** | The next version, before it is released. | a `vX.Y.Z-rc.N` tag |
-| **Nightly** | Built from `main` after every change; the newest five stay on the releases page. Untested: it may break your saves or settings, so copy them first. | no tag |
+| **Nightly** | Built from `main` when the maintainer asks for one, not after every change; the newest five stay on the releases page, and there may be none. Untested: it may break your saves or settings, so copy them first. | no tag |
 
 The launcher is one program for every channel: it ships with each release, so there is nothing separate to download per channel. A nightly launcher builds timeLink's nightlies by default; any launcher can build from any channel. To go back, build a
 version from the **Stable** channel.
@@ -286,7 +304,8 @@ everything it does on the network or with other programs:
 
 - **Downloads, from GitHub.** The launcher reads the release list of this repository, downloads a
   version's files, and checks each one against the SHA-256 in the release's signed `SHA256SUMS`. The Windows builder's
-  tools come from the links in `tools.lock` (their makers' releases, or timeLink's `tools` release), and its compiler
+  tools come from the links in `tools.lock` (their makers' releases, or the `tools` release of the
+  [timeLink-tools](https://github.com/HanYolo1/timeLink-tools) repository), and its compiler
   from its makers' releases (llvm-mingw, Python), all checked by SHA-256. With **DLSS** on, NVIDIA's DLSS library comes
   from `github.com/NVIDIA/DLSS`. The game itself checks for nothing when it starts.
 - **Your Discord status, through the Discord app on this PC.** While Discord runs, it shows "Playing timeLink" with the
@@ -315,13 +334,13 @@ line with the video memory in use against what the driver allows, and DLSS's det
 | "timeLink supports build e0f3ccfa" or "This version isn't supported" | Check that you chose the right game, with its update installed. |
 | "Your antivirus removed part of the build tools" | A false alarm on unsigned programs. Restore the files from Windows Security's Protection history, and add `%LOCALAPPDATA%\timeLink Launcher` and `%LOCALAPPDATA%\Programs\timeLink Launcher` to its exclusions, then build again ([common problems](docs/common-issues.md#your-antivirus-removed-part-of-the-build-tools)). |
 | **Starting** | |
-| The game opens and closes, or the log says "device lost" | Update your graphics driver. AMD cards have known crashes (#708, #614). |
+| The game opens and closes, or the log says "device lost" | Update your graphics driver. AMD cards have known crashes. |
 | Windows, Intel: the game closes in the first scene, and the log names `igvk64.dll` | Keep the Debug tab's **Intel shader compiles** row on **One at a time** (the default) and update the graphics driver. See [Intel laptops](#intel-laptops). |
 | The build said "the GPU driver stopped responding", or the log says `the shaders' preparation was skipped at the build` | The game then builds every shader when it is first drawn, and stutters or leaves things out for a long time. Delete `timeLink_prepare_skipped` from the game folder's `cache` folder so that the next start prepares them, or build again with **Prepare shaders now** ticked. |
 | Linux: the game doesn't start, or the picture is broken | The game needs a Vulkan 1.3 driver, ideally with mesh shaders: `vulkaninfo \| grep mesh` should list `VK_EXT_mesh_shader`. Update Mesa or the NVIDIA driver. |
 | Linux: low-memory warning, or the whole desktop becomes unresponsive while loading | Close other programs and check `free -h`: the `Mem` and `Swap` rows are separate. Below 10 GiB of physical RAM the game warns even with plenty of swap; absence of that warning does not mean a run will fit. Do not keep retrying a load that locks up the PC. After restarting, keep the failed session's log before launching again, and check `journalctl -k -b -1` for an out-of-memory kill or a GPU reset (if the previous boot's journal was saved). |
 | **Graphics** | |
-| Parts of the picture are missing, or a message says your card has no mesh shader support | The card or its driver has no mesh shaders, so timeLink draws through its compute fallback, which leaves some draws out. Update the driver; a card with mesh shaders draws everything (#640). |
+| Parts of the picture are missing, or a message says your card has no mesh shader support | The card or its driver has no mesh shaders, so timeLink draws through its compute fallback, which leaves some draws out. Update the driver; a card with mesh shaders draws everything. |
 | A place has a wrong texture, or a floor or wall is missing | Look for `timeLink_damaged_files.txt` in the game folder. The build writes it when your dump is incomplete (about 23.3 GB instead of 23.8 GB), listing each damaged file and what was put in its place. Dump the game again and build from the new dump; the file is then removed. |
 | AMD: blocky textures, solid rectangles in the sky or unusually dark courtyard surfaces | Try the [AMD texture workaround](#amd-texture-workaround). It uses more graphics memory. |
 | **Performance** | |
@@ -329,7 +348,7 @@ line with the video memory in use against what the driver allows, and DLSS's det
 | Windows, NVIDIA: stutter on every start, in places you have seen | The driver's shader cache is too small to keep them all (the first start builds about 2 GB of pipelines). In the NVIDIA Control Panel, under Manage 3D settings, set **Shader Cache Size** to **Unlimited** (or 10 GB). On Linux the game raises the driver's limit itself. |
 | Low FPS | See [Low FPS or stutter](#low-fps-or-stutter) below. |
 | A movie stutters, falls behind its sound, or starts on a black picture | On a CPU with 4 logical processors or fewer, the decoder uses 2 threads; `HOS_DAV1D_THREADS=<n>` in `timeLink_env.txt` sets another count. Run once with `HOS_VIDEO_LOG=1` and attach the log: its `video:` lines say how long each picture took to decode and how far the picture was behind the sound. |
-| Steam Deck: the game freezes and closes in Kokiri Forest or the Great Deku Tree (`gfx_0.0.0 timeout` in `journalctl -k`) | Add `RX_VK_MESH_NOCULL=2c56dc1006942f74` to `timeLink_env.txt`: it gets past it with every model drawn, by turning off the culling pass that runs for seconds. `RX_VK_SKIP_CODE=2c56dc1006942f74` also gets past it, but the models those draws make go missing ([development guide](docs/development.md#switches-for-testing-and-debugging), #817). |
+| Steam Deck: the game freezes and closes in Kokiri Forest or the Great Deku Tree (`gfx_0.0.0 timeout` in `journalctl -k`) | Add `RX_VK_MESH_NOCULL=2c56dc1006942f74` to `timeLink_env.txt`: it gets past it with every model drawn, by turning off the culling pass that runs for seconds. `RX_VK_SKIP_CODE=2c56dc1006942f74` also gets past it, but the models those draws make go missing ([development guide](docs/development.md#switches-for-testing-and-debugging)). |
 | **Other** | |
 | The game is in the wrong language | Change the code in `language.txt` in the game folder. The file lists them all, and an update keeps the one you set. |
 
@@ -376,8 +395,7 @@ It has not been tested on an Intel GPU yet. On such a PC:
 
 #### AMD texture workaround
 
-Some AMD texture artifacts go away when decoded ASTC textures are kept as RGBA8 instead of being re-encoded to BC3
-(#57):
+Some AMD texture artifacts go away when decoded ASTC textures are kept as RGBA8 instead of being re-encoded to BC3:
 turn on **ASTC as RGBA8** in the menu's Debug tab, under Developer, and restart the game. It is a workaround for these
 artifacts, not a lighting fix, and it can use much more graphics memory, causing stalls when the card runs out. To undo
 it, turn the row off and restart.
@@ -530,7 +548,7 @@ HDR, Detail, and GPU and memory (last: the rows to change when something is wron
 - **Game frame rate cap** limits the frames the game renders. With a cap of 60 and Frame generation at 2x, the output
   can reach 120 FPS. Choose **Auto** in Frame generation to target the display's refresh rate instead of a fixed multiplier.
   A cap **past 60 is experimental**: the game keeps real time, but some cutscenes and bosses still count frames and can
-  misbehave (Gohma running into the wall, the intro's narration running ahead: #1742). 60 is the safe choice.
+  misbehave (Gohma running into the wall, the intro's narration running ahead). 60 is the safe choice.
   Scarecrow's Song keeps the timing of its eight-note recording and playback above 60. Saved songs are not retimed;
   re-record a song after updating if its recorded rhythm was lost.
   **Uncapped** renders as fast as the PC can (the game still keeps real time). A display that waits for its refresh still
@@ -1150,7 +1168,7 @@ unchanged.
 `RX_VK_SKIP_CODE=<prefix,...>` leaves out the draws of every program with a stage whose native code key starts with one
 of the prefixes (the keys the log prints after "its code:"). On a Steam Deck, `RX_VK_SKIP_CODE=2c56dc1006942f74`
 avoids a GPU hang in Kokiri Forest and the Great Deku Tree: the GPU runs for seconds in the programs that share that
-task shader (a culling pass) until the kernel resets it (#817).
+task shader (a culling pass) until the kernel resets it.
 It is a workaround, not a fix: those are task + mesh programs, so the geometry they draw goes with them, and key models
 are missing while it is set. Off unless set.
 
@@ -1201,7 +1219,7 @@ pipelines before the title, and every player's play adds to it. To send yours:
 1. In the game, open the menu (Insert or F1), go to the **Debug** tab and choose **Save my pipeline list** (under Developer). Or,
    from a clone, run `python -I nx2/pipeline_share.py <game folder>`.
 2. It saves `timeLink-pipelines-<date>.zip` in your Downloads folder, copies a filled-in report to the clipboard and
-   opens the upstream project's pipeline issue in your browser.
+   opens timeLink's [Submit your pipelines](https://github.com/HanYolo1/timeLink/issues/13) issue in your browser.
 3. Attach the zip to a comment there, paste the report and fill in where you played.
 
 The zip holds only `timeLink_pipeline_states.bin` (shader hashes, formats and draw state, and the hashes of the compute
@@ -1215,7 +1233,8 @@ Bigger ways to help:
 - **Linux testing.** The Linux build (`host/posix`) has been tested on several distributions and cards: reports from
   others still help.
 - **Fixes in your own fork.** The GPL lets you fork this and change it. Keep game files, keys and anything generated
-  from your game out of it, and do not expect a change to be merged back here.
+  from your game out of it. timeLink is not taking outside pull requests for now, so a fix stays in your fork; this
+  may change later. Problems and test results are welcome as [issues](https://github.com/HanYolo1/timeLink/issues).
 
 [CONTRIBUTING.md](CONTRIBUTING.md) has the setup, the test commands and the code conventions, for anyone working on
 their own copy.

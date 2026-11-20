@@ -5,8 +5,7 @@ OoT's clustered lights sample each light's shadow map with a handle read per pix
 the pixel's list, then the light's 96-byte entry). The translation now makes that a descriptor array of the table's first
 entries, whose handle program computes entry k's handle (HandleOp::Index), and the shader indexes the array per pixel.
 Before, the samples took the light table's address word for the handle and bound no texture: the lights' shadow tests read
-nothing (dark and green blocks on Zora's Domain's ice and snow, https://github.com/HanYolo1/timeLink/issues/52,
-https://github.com/NotRexed/Hookshot/issues/2509).
+nothing (dark and green blocks on Zora's Domain's ice and snow, Longshot issue 52 from before the fork).
 
 Built from the sources' own text: shader_info.h's HandleOp and EvaluateHandleProgram, texture_pass.cpp's TrimTrailingTees,
 vk_shader.cpp's stage_handle / stage_handles, with stubs for the banks and memory; then checks of the code that has no
@@ -153,7 +152,7 @@ int main() {
  return failures ? 1 : 0;
 }
 '''
-    with tempfile.TemporaryDirectory(prefix='hookshot-handle-tables-') as tmp:
+    with tempfile.TemporaryDirectory(prefix='timeLink-handle-tables-') as tmp:
         src = Path(tmp) / 'check.cpp'
         exe = Path(tmp) / ('check.exe' if os.name == 'nt' else 'check')
         src.write_text(prelude + extracted + checks, encoding='utf-8')
@@ -192,7 +191,7 @@ int main() {
     m = re.search(r'constexpr u32 HANDLE_TABLE_SIZE = (\d+);', texture_pass)
     assert m and 1 < int(m.group(1)) <= 1024, 'HANDLE_TABLE_SIZE must be an array of 2..1024'
     tp = block(texture_pass, 'void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo& host_info) {')
-    require(tp, 'if (cbuf.handle_program == ~0U) {', 'the stage cap (1 with Hookshot\'s host_info) must not cut a handle table')
+    require(tp, 'if (cbuf.handle_program == ~0U) {', 'the stage cap (1 with the earlier host_info) must not cut a handle table')
     require(tp, '.handle_is_pointer_word = texture_inst.pointer_word,', 'the descriptor carries the pointer word')
     require(tp, 'g_handle_tables = host_info.support_handle_table_arrays;', 'the handle builder sees the host\'s switch')
 

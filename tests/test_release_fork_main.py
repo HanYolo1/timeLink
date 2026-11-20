@@ -89,7 +89,7 @@ class ForkMain(unittest.TestCase):
                         "git@github.com:HanYolo1/timeLink.git", "ssh://git@github.com/HanYolo1/timeLink",
                         "https://x-access-token:abc@github.com/HanYolo1/timeLink.git", "https://github.com/HanYolo1/timeLink/"):
                 self.assertTrue(release.this_repository(url), url)
-            for url in ("https://github.com/NotRexed/Hookshot.git", "https://github.com/HanYolo1/timeLink-tools",
+            for url in ("https://github.com/example/other.git", "https://github.com/HanYolo1/timeLink-tools",
                         "https://gitlab.com/HanYolo1/timeLink", "https://github.com/HanYolo1/timeLink/extra", "", None):
                 self.assertFalse(release.this_repository(url), url)
 

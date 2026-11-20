@@ -233,18 +233,18 @@ jobs:
           grep -q "with AMD FSR 4" "$RUNNER_TEMP/vk-fsr.log"
           test -f "$RUNNER_TEMP/vk-fsr/sa/build/timeLink_vk.so"
 
-      # (an artifact goes to Forgejo by its public address, ROOT_URL, behind Cloudflare, whatever address the runner has: a
-      # request there can fail once, and the action does not send a block again (2026-11-13, the launcher's nightly: one
-      # 8 MB block, "SSL alert bad record mac"). Sent once more when it failed: Forgejo takes the same name again)
+      # (sent once more when it failed: an upload can fail once on a dropped connection and the action does not send a
+      # block again. This was seen on the Forgejo the releases used to run on (2026-11-13, "SSL alert bad record mac");
+      # on GitHub it costs nothing when the first try works)
       - id: upload_1
         continue-on-error: true
-        uses: actions/upload-artifact@v4   # v4 (4.3.1 with the GHES check off; Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
+        uses: actions/upload-artifact@v4   # v4
         with:
           name: timeLink-linux-x86_64
           path: build-linux/*.AppImage
           if-no-files-found: error
       - if: steps.upload_1.outcome == 'failure'
-        uses: actions/upload-artifact@v4   # v4 (4.3.1 with the GHES check off; Forgejo's: GitHub's v4 and later refuse a server that is not github.com)
+        uses: actions/upload-artifact@v4   # v4
         with:
           name: timeLink-linux-x86_64
           path: build-linux/*.AppImage

@@ -57,7 +57,7 @@
 #ifndef TIMELINK_ENV_H   // (env_on: the switches' one rule)
 #include "timeLink_env.h"
 #endif
-#include "pipeline_share.h"   // (Save my pipeline list: the zip for issue 14)
+#include "pipeline_share.h"   // (Save my pipeline list: the zip for issue 13)
 #ifndef _WIN32   // (Save my pipeline list: the desktop's programs. On Windows, shell32 and ole32 are loaded when it is used)
 #include <fcntl.h>
 #include <spawn.h>
@@ -2106,7 +2106,7 @@ namespace ps = pipeline_share;
 std::string share_said;    // (the help box's line after a save: where the zip went and what to do, or why there is none)
 std::string share_value;   // (the row's value after a save: Saved, or Not saved)
 constexpr const char* kShareSaidLongest = "Saved timeLink-pipelines-2026-12-31.zip (123456 pipelines) in Downloads. The report "
-    "is in the zip. Open github.com/HanYolo1/timeLink/issues/14 and attach the zip to a comment, then paste the report and say "
+    "is in the zip. Open github.com/HanYolo1/timeLink/issues/13 and attach the zip to a comment, then paste the report and say "
     "where you played.";   // (measure_help: the help box's room)
 std::string share_saved;   // (the first sentence: the zip's name, its pipelines and its folder)
 std::atomic<bool> share_busy{false};   // (the worker is copying and opening: presses wait for it)
@@ -2116,7 +2116,7 @@ void share_finish() {
     const int r = share_result.exchange(-1);
     if (r < 0) return;
     share_said = share_saved + ((r & 1) ? "The report is copied. " : "The report is in the zip. ") +
-                 ((r & 2) ? "Issue 14 is open in your browser: attach" : "Open github.com/HanYolo1/timeLink/issues/14 and attach") +
+                 ((r & 2) ? "Issue 13 is open in your browser: attach" : "Open github.com/HanYolo1/timeLink/issues/13 and attach") +
                  " the zip to a comment, then paste the report and say where you played.";
     share_busy.store(false);
     menu_refresh = true;

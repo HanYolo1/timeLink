@@ -35,21 +35,21 @@ def is_ancestor(commit, of="HEAD"):
 
 class Anchor(unittest.TestCase):
     def test_the_anchor_is_a_commit_that_exists(self):
-        since = release.PRODUCTS["longshot"]["since"]
+        since = release.PRODUCTS["timeLink"]["since"]
         self.assertRegex(since, r"^[0-9a-f]{40}$", "the anchor is a full commit SHA")
         self.assertTrue(git("cat-file", "-t", since) == "commit", "the anchor names a commit that is here")
 
     def test_the_anchor_is_an_ancestor_of_main(self):
         """A rewrite moves it. A stale anchor does not fail loudly: it counts all of upstream and hides every release."""
-        since = release.PRODUCTS["longshot"]["since"]
+        since = release.PRODUCTS["timeLink"]["since"]
         self.assertTrue(is_ancestor(since, "HEAD"),
                         "the anchor %s is no longer an ancestor of HEAD: a history rewrite moved it, so the nightly "
                         "number counts upstream history and after_fork() rejects every real release. Find the rewritten "
-                        "commit with the same tree and subject and update PRODUCTS['longshot']['since']." % since[:8])
+                        "commit with the same tree and subject and update PRODUCTS['timeLink']['since']." % since[:8])
 
     def test_the_nightly_number_matches_the_last_published_tag(self):
         """The number is commits since the anchor, so it only makes sense while the anchor is right."""
-        since = release.PRODUCTS["longshot"]["since"]
+        since = release.PRODUCTS["timeLink"]["since"]
         counted = int(git("rev-list", "--count", "%s..HEAD" % since) or 0)
         self.assertGreater(counted, 0, "the anchor is behind HEAD, so the count is real")
 

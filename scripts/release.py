@@ -1,8 +1,9 @@
-"""Releases on GitHub (docs/releases.md, RELEASING.md), for both products: timeLink (its builders, released from
-MagicBeanDev/Longshot) and the timeLink Launcher (MagicBeanDev/LongshotLauncher). The same file is in both repositories; it
-finds out which one it is in. Python's standard library, git, and the openssl command line (for keys and signatures) only.
+"""Releases on GitHub (docs/releases.md, RELEASING.md), for both products: timeLink (its builders) and the timeLink Launcher,
+both released from HanYolo1/timeLink. The same file is at scripts/release.py and launcher/scripts/release.py, byte for byte
+(tests/test_release.py checks it); it finds out which product it is run for from where it is. Python's standard library,
+git, and the openssl command line (for keys and signatures) only.
 
-A release is a Forgejo release of the repository: a tag, a page with the notes, and the product's files, with SHA256SUMS (each
+A release is a GitHub release of the repository: a tag, a page with the notes, and the product's files, with SHA256SUMS (each
 file's SHA-256) and SHA256SUMS.sig (an ECDSA P-256 signature of SHA256SUMS by the release key, base64 DER). The channels are
 read from the list of published releases: stable is the newest vX.Y.Z, rc the newest vX.Y.Z-rc.N or vX.Y.Z, nightly the
 newest nightly-<count>-<commit>.
@@ -31,8 +32,9 @@ Files and signatures:
         for the launcher's Core/ReleaseTrust.cs and timeLink's scripts/release_keys.json
     python -I scripts/release.py key-id <.pem>
 
-The release on Forgejo ($RELEASE_TOKEN: in CI the job's own token, forgejo.token; $GITHUB_REPOSITORY or the repository
-this is; $FORGEJO_API, $FORGEJO_UPLOAD_API):
+The release on GitHub ($RELEASE_TOKEN: in CI the job's own token, github.token; $GITHUB_REPOSITORY or the repository
+this is; $RELEASE_API and $RELEASE_UPLOAD_API point it at another API, as the tests do: unset, api.github.com and
+uploads.github.com. The older names $FORGEJO_API and $FORGEJO_UPLOAD_API are still read when the new ones are unset):
     python -I scripts/release.py publish <tag> --target <commit> --notes <file> <file>...
         a draft release (pre-release unless a stable), every file uploaded and checked, then published: until that last step
         no launcher sees it. A draft left by a failed run of the same tag is reused. The page is the notes under a header
@@ -70,10 +72,13 @@ UPLOAD_SERVER = "https://uploads.github.com"
 # fork, 24c902e9 "Rename the project to Longshot"; the launcher from its repository's first commit. Both start at v0.1.0:
 # one tag names both products' releases, which ship different files. The anchor is a SHA, so a history rewrite moves it: tests/test_release_anchor.py checks it keeps counting right)
 PRODUCTS = {
-    "longshot": {"repo": "HanYolo1/timeLink", "first_major": 0, "first_version": "v0.1.0", "display": "timeLink",
+    "timeLink": {"repo": "HanYolo1/timeLink", "first_major": 0, "first_version": "v0.1.0", "display": "timeLink",
                  "since": "24c902e9a244fe49b77f00926d1a2561c18ee1f3"},
     "launcher": {"repo": "HanYolo1/timeLink", "first_major": 0, "first_version": "v0.1.0", "display": "timeLink Launcher", "since": None},
 }
+# (the product's earlier names, still taken by --product: "longshot", from before the fork's rename, and "timelink", the
+# launcher's copy's spelling. Nothing in the repository passes either; they keep a command typed from memory working)
+PRODUCT_ALIASES = {"longshot": "timeLink", "timelink": "timeLink"}
 CHANNELS = ("stable", "rc", "nightly")
 # (the first version of every product: a product's first release is this, not "v<first_major>.0.0", which would be v0.0.0.
 # The default only; a product whose first number is not 1 gives its own, below)
@@ -97,8 +102,8 @@ def fail(message):
 
 
 def product_of(root=ROOT):
-    """launcher in the launcher's repository (it has Core/ReleaseTrust.cs), else timeLink"""
-    return "launcher" if os.path.isfile(os.path.join(root, "Core", "ReleaseTrust.cs")) else "longshot"
+    """launcher in the launcher's folder (it has Core/ReleaseTrust.cs), else timeLink"""
+    return "launcher" if os.path.isfile(os.path.join(root, "Core", "ReleaseTrust.cs")) else "timeLink"
 
 
 # ---- versions ----
@@ -128,7 +133,7 @@ def is_version(tag, first_major):
 # Core/ReleaseManifest.cs, which the launcher reads at runtime. Both products are released from one repository, and their
 # version numbers alone do not tell them apart: is_version reads "at least this product's first number", so the launcher's
 # v0.x and timeLink's v0.x are the same numbers. The files a release ships do tell them apart)
-FILE_PREFIX = {"longshot": "timeLinkBuilder-", "launcher": "timeLinkLauncher-"}
+FILE_PREFIX = {"timeLink": "timeLinkBuilder-", "launcher": "timeLinkLauncher-"}
 
 
 def ships(release, product):
@@ -152,7 +157,7 @@ def channel_of(tag, first_major):
 
 
 def newest(releases, channel, first_major):
-    """What a channel offers, from a list of releases ({tag_name, draft, prerelease}) as Forgejo's API gives them: drafts never;
+    """What a channel offers, from a list of releases ({tag_name, draft, prerelease}) as GitHub's API gives them: drafts never;
     stable the newest vX.Y.Z that is not a pre-release; rc the newest vX.Y.Z-rc.N or vX.Y.Z; nightly the newest nightly by
     its count. The launcher's Core/Releases.cs reads the list by the same rules"""
     tags = [r["tag_name"] for r in releases if not r.get("draft")]
@@ -178,8 +183,8 @@ def tags_merged(root=ROOT, ref="HEAD"):
 
 
 def since_fork(root=ROOT):
-    """The commit timeLink's own history starts at (PRODUCTS' "since"): a tag on a commit before it is Hookshot's or
-    Longshot's, not timeLink's, and is no version of this product however its number reads. None when the commit is not
+    """The commit timeLink's own history starts at (PRODUCTS' "since"): a tag on a commit before it belongs to the
+    projects timeLink was forked from, not timeLink, and is no version of this product however its number reads. None when the commit is not
     here (a shallow clone, or a checkout without it): then nothing is filtered"""
     since = next((p["since"] for p in PRODUCTS.values() if p["since"]), None)
     return since if since and git("cat-file", "-e", since + "^{commit}", root=root, check=False) is not None else None
@@ -228,7 +233,7 @@ def after_fork(tag, root=ROOT, since=None):
 def last_stable(first_major, root=ROOT, ref="HEAD", below=None):
     """The newest stable tag of the product's numbers on ref's history (lower than below, when given: the tag being checked
     is not its own last stable). A tag from before the fork is not one: timeLink's numbers start at v0.1.0, and the 2.x and
-    3.x tags a clone of the upstream repository carries are Hookshot's and Longshot's"""
+    3.x tags an older clone may carry belong to the projects timeLink was forked from"""
     since = since_fork(root)
     return max((t for t in tags_merged(root, ref) if STABLE.match(t) and is_version(t, first_major)
                 and after_fork(t, root, since)
@@ -355,17 +360,18 @@ def notes(tag, product, root=ROOT):
     p = subprocess.run(args, cwd=root, capture_output=True, text=True, encoding="utf-8")
     if p.returncode:
         fail("git-cliff: " + p.stderr.strip())
-    return p.stdout.strip() + "\n"
+    # (the name keeps its small t: cliff.toml's upper_first capitalises each title's first letter, and "docs: timeLink has
+    # no Discord" came out "TimeLink has no Discord" on v0.2.0-rc.1's page)
+    return re.sub(r"\bTimeLink", "timeLink", p.stdout.strip()) + "\n"
 
 
 # ---- the release page ----
 
-# (the fork's own release list. There is no website in front of it any more: longshot.magicbean.dev was MagicBeanDev's, and
-# nothing here may point a player at a domain this fork does not own. Both products' files sit on one releases page, told apart
+# (timeLink's own release list: nothing here may point a player at a domain timeLink does not own. Both products' files sit on one releases page, told apart
 # by their names, which is why the launcher's links are the list's rather than a per-channel address)
 SITE = "https://github.com/HanYolo1/timeLink/releases"
 # (a release file: GitHub serves it from the release itself, /<owner>/<repo>/releases/download/<tag>/<name>. It used to be
-# (the CDN that fronted MagicBeanDev's Forgejo is gone; GitHub's own edge needs no such address here)
+# (release files are downloaded from GitHub itself)
 DOWNLOADS = "https://github.com"
 LAUNCHER_FILES = {"setup": "-windows-x64-setup.exe", "portable": "-windows-x64-portable.zip", "appimage": "-x86_64.AppImage"}
 CHANNEL_SAYS = {"stable": "This is a stable release: it builds timeLink's stable versions by default.",
@@ -540,10 +546,20 @@ def read_sums(text):
     return out
 
 
-# ---- Forgejo ----
+# ---- GitHub ----
 
 def repo_of(product):
     return os.environ.get("GITHUB_REPOSITORY") or PRODUCTS[product]["repo"]
+
+
+# (the API addresses were $FORGEJO_API and $FORGEJO_UPLOAD_API when the releases were on Forgejo: the old names are still
+# read, after the new ones, so a setup that set them keeps working)
+OLD_NAMES = {"RELEASE_API": "FORGEJO_API", "RELEASE_UPLOAD_API": "FORGEJO_UPLOAD_API"}
+
+
+def env(name):
+    """$name, or its older name's value when it is unset (OLD_NAMES); None when neither is set"""
+    return os.environ.get(name) or os.environ.get(OLD_NAMES.get(name, "")) or None
 
 
 def api(method, path, body=None, data=None, content_type=None, upload=False, missing_ok=False):
@@ -551,7 +567,7 @@ def api(method, path, body=None, data=None, content_type=None, upload=False, mis
     # "/repos" here made it /repos/repos/..., which GitHub answers 404)
     # (a release asset is uploaded to uploads.github.com, not api.github.com: the same path on the API host answers 404,
     # which is what the release's upload_url names)
-    base = ((os.environ.get("FORGEJO_UPLOAD_API") if upload else None) or os.environ.get("FORGEJO_API")
+    base = ((env("RELEASE_UPLOAD_API") if upload else None) or env("RELEASE_API")
             or (UPLOAD_SERVER if upload else SERVER))
     headers = {"User-Agent": "timeLink-release", "Accept": "application/json"}
     token = os.environ.get("RELEASE_TOKEN")
@@ -576,11 +592,11 @@ def api(method, path, body=None, data=None, content_type=None, upload=False, mis
 
 def releases(repo, pages=1000):
     """Every release of repo, page by page until an empty one: published ones, and drafts too with a writer token (each
-    says which it is in draft and prerelease). No draft= or pre-release= filter is sent: on Forgejo they keep only the
-    releases whose field equals the value (draft=true lists the drafts alone)"""
+    says which it is in draft and prerelease). No draft= or pre-release= filter is sent: every release is listed, and
+    the caller picks"""
     out, seen = [], set()
     for page in range(1, pages + 1):
-        # (GitHub pages with per_page; Forgejo used limit. GitHub caps per_page at 100 and ignores an unknown one)
+        # (GitHub pages with per_page, which it caps at 100)
         items = api("GET", "/repos/%s/releases?per_page=50&page=%d" % (repo, page)) or []
         new = [r for r in items if r["id"] not in seen]
         if not new:
@@ -643,9 +659,9 @@ def prune(keep, product):
 
 
 def download(url, limit=1 << 20):
-    """A release file's bytes (SHA256SUMS, its signature: small), from the address without Cloudflare when FORGEJO_UPLOAD_API
-    names one (the same server: only the scheme and host change), else from url"""
-    up = os.environ.get("FORGEJO_UPLOAD_API")
+    """A release file's bytes (SHA256SUMS, its signature: small), from the upload API's host when RELEASE_UPLOAD_API names
+    one (the tests' server: only the scheme and host change), else from url"""
+    up = env("RELEASE_UPLOAD_API")
     if up:
         u, base = urllib.parse.urlsplit(url), urllib.parse.urlsplit(up)
         url = urllib.parse.urlunsplit((base.scheme, base.netloc, u.path, u.query, ""))
@@ -663,8 +679,8 @@ def download(url, limit=1 << 20):
 
 
 class _TokenStaysHome(urllib.request.HTTPRedirectHandler):
-    """The token goes to the forge only. Forgejo answers a release file with a redirect to a signed link of its file store
-    (Cloudflare R2), which refuses a request that also carries a token (HTTP 400); urllib would pass the header on."""
+    """The token goes to the API's host only. GitHub answers a release file with a redirect to a signed link on another host,
+    which must not receive the token; urllib would pass the header on."""
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         new = super().redirect_request(req, fp, code, msg, headers, newurl)
@@ -678,7 +694,7 @@ _OPENER = urllib.request.build_opener(_TokenStaysHome)
 
 def released_as(commit, product, root=ROOT, but=None):
     """The tag of the published release CI made of commit (a nightly, or for a stable its release candidate), or None.
-    Forgejo's list says a release's tag, git (the tags fetched) which commit it is. CI publishes a release only when every
+    GitHub's list says a release's tag, git (the tags fetched) which commit it is. CI publishes a release only when every
     job of its run passed, and signs its SHA256SUMS: a release of commit is taken only with SHA256SUMS signed by a key the
     launcher trusts and naming exactly its files. One that is not stops this (fail): a bad release of the commit is never
     passed over"""
@@ -718,13 +734,14 @@ def released_as(commit, product, root=ROOT, but=None):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    p.add_argument("--product", choices=sorted(PRODUCTS), default=None, help="(default: the repository this file is in)")
+    p.add_argument("--product", choices=sorted(PRODUCTS) + sorted(PRODUCT_ALIASES), default=None,
+                   help="(default: the folder this file is in)")
     sub = p.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("next")
     s.add_argument("--tag")
     s = sub.add_parser("check-tag")
     s.add_argument("tag")
-    s.add_argument("--releases", help="the releases as Forgejo's API lists them (a JSON file), instead of asking it")
+    s.add_argument("--releases", help="the releases as GitHub's API lists them (a JSON file), instead of asking it")
     s.add_argument("--main", default="github/main")
     sub.add_parser("nightly-name")
     s = sub.add_parser("notes")
@@ -760,7 +777,7 @@ def main(argv=None):
     s = sub.add_parser("git-cliff")
     s.add_argument("folder")
     a = p.parse_args(argv)
-    product = a.product or product_of()
+    product = PRODUCT_ALIASES.get(a.product, a.product) or product_of()
     first = PRODUCTS[product]["first_major"]
 
     if a.cmd == "next":
