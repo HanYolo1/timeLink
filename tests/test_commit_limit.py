@@ -37,7 +37,10 @@ def main():
     reserve = block(tex, "static uint64_t commit_reserve()")
     if "RX_VK_COMMIT_RESERVE_MB" not in reserve or "2560ull << 20" not in reserve:
         raise SystemExit("FAIL: commit_reserve is not RX_VK_COMMIT_RESERVE_MB with a 2560 MB default")
-    rule = re.search(r"if \(reserve && commit_headroom\(&commit_free\) && commit_free < reserve\) \{(.*?)\n        \}", tex, re.S)
+    # (below the reserve, with the headroom known: texture_reserve::give_back, which also lets the textures' held blocks go first)
+    if "const bool headroom_known = reserve && commit_headroom(&commit_free);" not in tex:
+        raise SystemExit("FAIL: the commit rule does not read the headroom only with a reserve set")
+    rule = re.search(r"if \(texture_reserve::give_back\(headroom_known, commit_free, reserve\)\) \{(.*?)\n        \}", tex, re.S)
     if not rule:
         raise SystemExit("FAIL: the textures' budget has no commit rule")
     body = rule.group(1)
