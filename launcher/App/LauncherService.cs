@@ -207,7 +207,7 @@ public sealed class LauncherService
             catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException) { }
         }
         if (CarrySettings(folder) is { } carried) said = said == null ? carried : said + " " + carried;
-        using var _ = Process.Start(GamePlay.StartInfo(folder, Platform, user: user));
+        using var _ = Process.Start(GamePlay.StartInfo(folder, Platform, user: user, switches: GamePlay.Switches(Settings, Gpus, Platform)));
         return said;
     }
 

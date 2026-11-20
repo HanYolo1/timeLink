@@ -584,5 +584,14 @@
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "Kan geen verbinding maken met {0}. Controleer of deze pc online is en of geen firewall, vpn of antivirusprogramma de site blokkeert.",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "Deze pc is ingesteld om via de proxy {1} te gaan, die niet antwoordde, dus {0} is niet bereikt. Controleer de proxy-instellingen of zet de proxy uit.",
   "No version is out on the {0} channel yet.": "Er is nog geen versie uit op het kanaal {0}.",
-  "Your game settings from your other versions now apply to this one too.": "Je spelinstellingen uit je andere versies gelden nu ook voor deze versie."
+  "Your game settings from your other versions now apply to this one too.": "Je spelinstellingen uit je andere versies gelden nu ook voor deze versie.",
+  "STARTING THE GAME": "HET SPEL STARTEN",
+  "Shortcuts open the launcher": "Snelkoppelingen openen de launcher",
+  "They show the launcher first: its Play button, and any update.": "Ze tonen eerst de launcher: de knop Spelen en elke update.",
+  "They start the game straight away.": "Ze starten het spel meteen.",
+  "Keep texture memory reserved": "Textuurgeheugen gereserveerd houden",
+  "Recommended for your GPU": "Aanbevolen voor je GPU",
+  "Fewer stutters where new areas load on AMD cards. Uses more memory: up to 15% of your graphics card's, held in Windows' memory all session.": "Minder haperingen bij het laden van nieuwe gebieden op AMD-kaarten. Gebruikt meer geheugen: tot 15% van dat van je videokaart, de hele sessie vastgehouden in het geheugen van Windows.",
+  "Frees that memory when Windows runs low. AMD cards may stutter where new areas load.": "Geeft dat geheugen vrij als Windows krap komt te zitten. AMD-kaarten kunnen haperen bij het laden van nieuwe gebieden.",
+  "Shortcuts open the launcher instead of starting the game": "Snelkoppelingen openen de launcher in plaats van het spel te starten"
 }

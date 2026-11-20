@@ -600,5 +600,14 @@
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "No se ha podido conectar con {0}. Comprueba que este PC esté conectado a Internet y que ningún cortafuegos, VPN o antivirus bloquee el sitio.",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "Este PC está configurado para pasar por el proxy {1}, que no ha respondido, así que no se ha llegado a {0}. Revisa los ajustes del proxy o desactívalo.",
   "No version is out on the {0} channel yet.": "Todavía no hay ninguna versión en el canal {0}.",
-  "Your game settings from your other versions now apply to this one too.": "Los ajustes de juego de tus otras versiones ahora se aplican también a esta."
+  "Your game settings from your other versions now apply to this one too.": "Los ajustes de juego de tus otras versiones ahora se aplican también a esta.",
+  "STARTING THE GAME": "INICIO DEL JUEGO",
+  "Shortcuts open the launcher": "Los accesos directos abren el launcher",
+  "They show the launcher first: its Play button, and any update.": "Primero muestran el launcher: su botón Jugar y cualquier actualización.",
+  "They start the game straight away.": "Inician el juego directamente.",
+  "Keep texture memory reserved": "Mantener reservada la memoria de texturas",
+  "Recommended for your GPU": "Recomendado para tu GPU",
+  "Fewer stutters where new areas load on AMD cards. Uses more memory: up to 15% of your graphics card's, held in Windows' memory all session.": "Menos tirones al cargar zonas nuevas en tarjetas AMD. Usa más memoria: hasta el 15 % de la de tu tarjeta gráfica, retenida en la memoria de Windows durante toda la sesión.",
+  "Frees that memory when Windows runs low. AMD cards may stutter where new areas load.": "Libera esa memoria cuando a Windows le falta. Las tarjetas AMD pueden dar tirones al cargar zonas nuevas.",
+  "Shortcuts open the launcher instead of starting the game": "Los accesos directos abren el launcher en lugar de iniciar el juego"
 }

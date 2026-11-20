@@ -41,6 +41,13 @@ public sealed class LauncherSettings
     public string? BuildsFolder { get; set; }
     /// Ask GitHub for each channel's newest version when the launcher starts
     public bool CheckUpdates { get; set; } = true;
+    /// What the Desktop and Start menu shortcuts do: open the launcher, on its Play button (true), or start the game with no
+    /// window (false). Asked in the build settings, changed in Settings. null: not asked yet, so they start the game, as they did
+    public bool? ShortcutsOpenLauncher { get; set; }
+    /// Keep the textures' memory reserved for the whole session in the game the launcher starts (RX_VK_KEEP_TEXTURE_RESERVE=1,
+    /// gpu/vk/texture_reserve.h): fewer hitches where new ground loads on AMD, more of Windows' memory in use all session.
+    /// null: not chosen, so it follows the GPU (KeepTextureReserveFor)
+    public bool? KeepTextureReserve { get; set; }
     /// Each build folder's log already shown on the problem page, by its write time: a crash is shown once
     public Dictionary<string, long> SeenCrashLogs { get; set; } = new();
     /// When the launcher first looked for crashes (UTC ticks; null: not yet): a log from before then is not offered, so the first
@@ -50,6 +57,10 @@ public sealed class LauncherSettings
     /// The channel new builds start on: the one the player picked, else the launcher's own (a nightly launcher builds nightlies, an rc
     /// launcher release candidates; LauncherChannel when set, else its own version's track)
     public string BuildChannel(string ownTag) => DefaultChannel ?? SelfUpdate.ChannelOf(ownTag, LauncherChannel);
+
+    /// Whether the textures' memory stays reserved: the player's choice, else on with an AMD GPU (its Windows driver takes ~170 ms
+    /// to make a block, a hitch where new ground loads), which the build settings recommend whatever the RAM
+    public bool KeepTextureReserveFor(IReadOnlyCollection<string> gpus) => KeepTextureReserve ?? gpus.Contains(SystemInfo.Amd);
 
     /// The folder builds go in when none was chosen: make_game.py's own default game folder's parent, ~/Games/timeLink
     /// (%USERPROFILE%\Games\timeLink on Windows)

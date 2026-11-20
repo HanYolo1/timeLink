@@ -49,6 +49,8 @@ static class Program
         Layout = LauncherLayout.Current(platform);
         Home = LauncherHome.Resolve(platform, null, Layout);
         Start = StartRequest.Parse(args);
+        // (a shortcut opens the launcher when the player chose so, Settings; else it starts the game with no window, as it did)
+        if (Start.Kind == StartKind.Play) Start = Start.ForShortcuts(LauncherSettings.Load(Home.Settings).ShortcutsOpenLauncher == true);
         if (Start.Kind == StartKind.Play) return PlayWithoutWindow(Start);
         Uninstalling = platform == Platform.Windows && Start.Ignored.Contains(Installer.UninstallArgument);
 

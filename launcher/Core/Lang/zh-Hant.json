@@ -568,5 +568,14 @@
   "Could not connect to {0}. Check that this PC is online, and that no firewall, VPN or antivirus blocks the site.": "無法連線至 {0}。請檢查這台電腦是否已連上網際網路，以及防火牆、VPN 或防毒軟體是否封鎖了該網站。",
   "This PC is set to go through the proxy {1}, which did not answer, so {0} was not reached. Check the proxy settings, or turn the proxy off.": "這台電腦設定為透過代理伺服器 {1} 連線，但該代理伺服器沒有回應，因此無法連線至 {0}。請檢查代理伺服器設定，或關閉代理伺服器。",
   "No version is out on the {0} channel yet.": "{0}通道尚未推出任何版本。",
-  "Your game settings from your other versions now apply to this one too.": "你其他版本的遊戲設定現在也會套用到這個版本。"
+  "Your game settings from your other versions now apply to this one too.": "你其他版本的遊戲設定現在也會套用到這個版本。",
+  "STARTING THE GAME": "啟動遊戲",
+  "Shortcuts open the launcher": "捷徑開啟啟動器",
+  "They show the launcher first: its Play button, and any update.": "先顯示啟動器：其中有「開始遊戲」按鈕和可用更新。",
+  "They start the game straight away.": "直接啟動遊戲。",
+  "Keep texture memory reserved": "保留材質記憶體",
+  "Recommended for your GPU": "建議用於你的 GPU",
+  "Fewer stutters where new areas load on AMD cards. Uses more memory: up to 15% of your graphics card's, held in Windows' memory all session.": "在 AMD 顯示卡上進入新區域時頓挫更少。佔用更多記憶體：最多為顯示卡記憶體的 15%，整個遊戲過程中都佔用 Windows 記憶體。",
+  "Frees that memory when Windows runs low. AMD cards may stutter where new areas load.": "在 Windows 記憶體不足時釋放這部分記憶體。AMD 顯示卡在進入新區域時可能會頓挫。",
+  "Shortcuts open the launcher instead of starting the game": "捷徑開啟啟動器，而不是直接啟動遊戲"
 }

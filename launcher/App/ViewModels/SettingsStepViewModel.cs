@@ -197,6 +197,43 @@ public sealed class SettingsStepViewModel : ViewModelBase, IWizardPage
 
     public string PrepareDesc => s.PrepareShaders ? Tr.T("Adds about 8 min here, so the game starts smoothly.") : Tr.T("The game prepares them at its first start.");
 
+    // ---- starting the game ----
+
+    /// What the Desktop and Start menu shortcuts do (LauncherSettings.ShortcutsOpenLauncher; also in Settings)
+    public bool ShortcutsOpenLauncher
+    {
+        get => s.ShortcutsOpenLauncher == true;
+        set
+        {
+            s.ShortcutsOpenLauncher = value;
+            Save();
+            RaiseAll(nameof(ShortcutsOpenLauncher), nameof(ShortcutsDesc));
+        }
+    }
+
+    public string ShortcutsDesc => ShortcutsOpenLauncher
+        ? Tr.T("They show the launcher first: its Play button, and any update.")
+        : Tr.T("They start the game straight away.");
+
+    /// Keep the textures' memory reserved (LauncherSettings.KeepTextureReserve; RX_VK_KEEP_TEXTURE_RESERVE). Windows only
+    public bool KeepReserve
+    {
+        get => s.KeepTextureReserveFor(Job.Service.Gpus);
+        set
+        {
+            s.KeepTextureReserve = value;
+            Save();
+            RaiseAll(nameof(KeepReserve), nameof(KeepReserveDesc));
+        }
+    }
+
+    /// Recommended with an AMD GPU, whatever the RAM: its Windows driver hitches where new ground loads without the reserve
+    public bool KeepReserveRecommended => Job.Service.Gpus.Contains(SystemInfo.Amd);
+
+    public string KeepReserveDesc => KeepReserve
+        ? Tr.T("Fewer stutters where new areas load on AMD cards. Uses more memory: up to 15% of your graphics card's, held in Windows' memory all session.")
+        : Tr.T("Frees that memory when Windows runs low. AMD cards may stutter where new areas load.");
+
     // ---- advanced ----
 
     public bool AdvancedOpen
