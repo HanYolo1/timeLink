@@ -91,6 +91,18 @@ struct Program {
     // (timelink) the translation's texture questions as answered, in the order asked: what makes this variant again with nothing
     // bound (the pipeline state list, vk_draw.cpp)
     std::vector<uint8_t> questions;
+    // (timelink) each texture question the translation asked, by where its handle came from, and the answer the translation used
+    // (questions' when it was given them, else the texture's then). A variant is only what the textures there answer the same:
+    // still_valid asks each again at a draw. A pipeline state list's questions were asked by another translation and given back
+    // in order; one answered the other way here made a variant that drew Zora's River's waterfalls brown (#29)
+    struct QuestionAt {
+        uint32_t offset, secondary_offset;   // (ConstBufferAddr's: the handle is word(index, offset) << shift | word(secondary...))
+        uint8_t index, secondary_index, shift_left, secondary_shift_left;   // (index 0xFF: not known, not asked again)
+        uint8_t nvn_stage;   // (the stage whose banks and c1 the words are read from: Stage::nvn_stage)
+        uint8_t kind;        // (0: the texture's type, Shader::TextureType; 1: whether its format is integer, 0 or 1)
+        uint8_t answer, has_secondary;
+    };
+    std::vector<QuestionAt> question_at;
     uint64_t codes[4]{};   // (timelink) its stages' code keys: vertex (mesh), fragment, task, the header-only stage (the state list)
     // (timelink) a compute program read from the cache without its code (vk_progcache.cpp program_cache_read_light): where its
     // SPIR-V is in timeLink_programs.bin, and how many words; 0 words: it has its module (program_cache_complete makes it)

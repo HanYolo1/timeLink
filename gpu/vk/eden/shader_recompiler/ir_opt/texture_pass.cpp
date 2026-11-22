@@ -363,7 +363,9 @@ static inline u32 GetTextureHandleCached(Environment& env, const ConstBufferAddr
 // ImageQueryDimensions case, which has none).
 static inline TextureType ReadTextureTypeCached(Environment& env, const ConstBufferAddr& cbuf) {
     if (cbuf.handle_program != ~0U) return TextureType::Color2D;
-    return env.ReadTextureType(GetTextureHandleCached(env, cbuf));
+    const u32 handle = GetTextureHandleCached(env, cbuf);
+    env.NextTextureQuestionAt(cbuf);
+    return env.ReadTextureType(handle);
 }
 static inline TexturePixelFormat ReadTexturePixelFormatCached(Environment& env,
                                                                 const ConstBufferAddr& cbuf) {
@@ -373,7 +375,9 @@ static inline TexturePixelFormat ReadTexturePixelFormatCached(Environment& env,
 static inline bool IsTexturePixelFormatIntegerCached(Environment& env,
                                                         const ConstBufferAddr& cbuf) {
     if (cbuf.handle_program != ~0U) return false;
-    return env.IsTexturePixelFormatInteger(GetTextureHandleCached(env, cbuf));
+    const u32 handle = GetTextureHandleCached(env, cbuf);
+    env.NextTextureQuestionAt(cbuf);
+    return env.IsTexturePixelFormatInteger(handle);
 }
 
 
@@ -1305,7 +1309,9 @@ u32 GetTextureHandle(Environment& env, const ConstBufferAddr& cbuf) {
 }
 
 [[maybe_unused]] TextureType ReadTextureType(Environment& env, const ConstBufferAddr& cbuf) {
-    return env.ReadTextureType(GetTextureHandle(env, cbuf));
+    const u32 handle = GetTextureHandle(env, cbuf);
+    env.NextTextureQuestionAt(cbuf);
+    return env.ReadTextureType(handle);
 }
 
 [[maybe_unused]] TexturePixelFormat ReadTexturePixelFormat(Environment& env, const ConstBufferAddr& cbuf) {
@@ -1313,7 +1319,9 @@ u32 GetTextureHandle(Environment& env, const ConstBufferAddr& cbuf) {
 }
 
 [[maybe_unused]] bool IsTexturePixelFormatInteger(Environment& env, const ConstBufferAddr& cbuf) {
-    return env.IsTexturePixelFormatInteger(GetTextureHandle(env, cbuf));
+    const u32 handle = GetTextureHandle(env, cbuf);
+    env.NextTextureQuestionAt(cbuf);
+    return env.IsTexturePixelFormatInteger(handle);
 }
 
 class Descriptors {
