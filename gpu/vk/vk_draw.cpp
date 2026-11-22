@@ -50,6 +50,7 @@
 #include "vk_gprof.h"
 #include "vk_jobs.h"
 #include "vk_shader.h"
+#include "vk_progcache.h"   // (shader_mu, programs: RX_VK_LOG_PICK)
 #include "vk_texture.h"
 #include "movie_upscale_policy.h"
 #include "skip_code.h"
@@ -7096,6 +7097,42 @@ void mask_stabilize(VkCommandBuffer cmd, Texture* tex, uint32_t level, uint32_t 
     if (told++ == 0) logf("vk: tree-shadow mask blend on #%u %ux%u, weight %.2f", tex->id, w, h, weight);
 }
 
+/// (timelink) RX_VK_LOG_PICK=<program key>[,<key>...]: for those programs, the variant a draw took and every variant the program has,
+/// in the order program_pick weighs them (it takes the first whose texture answers fit what is bound: still_valid). The first 40
+/// draws of each program are logged, then each change of the variant taken. A diagnostic: off unless set
+static void pick_log(const Program& cp) {
+    static const char* want = getenv("RX_VK_LOG_PICK");
+    if (!want || !*want) return;
+    char hex[17];
+    snprintf(hex, sizeof hex, "%016llx", (unsigned long long)cp.key);
+    if (!strstr(want, hex)) return;
+    static std::mutex mu;
+    static std::unordered_map<uint64_t, std::pair<int, uint64_t>> seen;
+    {
+        std::lock_guard lk(mu);
+        auto& [n, last] = seen[cp.key];
+        const bool tell = n++ < 40 || last != cp.variant;
+        last = cp.variant;
+        if (!tell) return;
+    }
+    std::string line;
+    {
+        std::lock_guard lk(shader_mu);
+        const auto it = programs.find(cp.key);
+        const size_t count = it != programs.end() ? it->second.size() : 0;
+        for (size_t i = 0; i < count; i++) {
+            const Program& p = *it->second[i];
+            char b[160];
+            snprintf(b, sizeof b, " [%zu] %016llx%s%s, %zu answers, %zu questions;", i, (unsigned long long)p.variant,
+                     p.ready.load(std::memory_order_acquire) ? "" : " not ready", p.failed ? " failed" : "", p.answers.size(),
+                     p.questions.size());
+            line += b;
+        }
+    }
+    logf("vk: pick %s took %016llx (%zu answers) at frame %llu; its variants:%s", hex, (unsigned long long)cp.variant,
+         cp.answers.size(), (unsigned long long)texture_frame_no(), line.c_str());
+}
+
 static bool writes_memory(const Program& p) {
     for (const Stage& st : p.stages) {
         const auto& info = st.info;
@@ -7180,6 +7217,7 @@ void draw(VkCommandBuffer cmd, NvnState& s, const DrawArgs& d) {
         ParLock lk(d.mesh);   // (graphics programs: each thread's picks, program_pick's own lock)
         cp = program_for(s, d.mesh ? ProgramKind::Mesh : ProgramKind::Graphics, types);
     }
+    if (cp) pick_log(*cp);
     if (use.on) use.program(cp, cp && cp->ready.load(std::memory_order_acquire));
     {   // (timeLink, a test) RX_VK_NO_MESH=1: task / mesh draws left out, to see what they draw; =2: the others left out
         static const int no_mesh = getenv("RX_VK_NO_MESH") ? atoi(getenv("RX_VK_NO_MESH")) : 0;
