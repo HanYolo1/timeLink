@@ -53,6 +53,7 @@
 #include "astc_bc_policy.h"
 #include "drawn_writeback.h"
 #include "vram_compact.h"
+#include "texture_reserve.h"
 #include "evict_reason.h"
 #include "keep_rendered.h"
 #include "target_overlap.h"
@@ -4452,7 +4453,13 @@ void texture_frame(uint64_t completed) {
     {
         uint64_t commit_free = 0;
         const uint64_t reserve = commit_reserve();
-        if (reserve && commit_headroom(&commit_free) && commit_free < reserve) {
+        const bool headroom_known = reserve && commit_headroom(&commit_free);
+        if (texture_reserve::give_back(headroom_known, commit_free, reserve)) {
+            // (and the blocks the textures' pool made at the start and holds for later: empty, and charged to the commit all the
+            // same. Given back once, before the budget asks the textures for anything: texture_reserve.h)
+            if (const uint64_t given = texture_held_release())
+                logf("vk: commit limit near: the textures' pool gives back the %llu MB of blocks it held for later",
+                     (unsigned long long)(given >> 20));
             const uint64_t over = reserve - commit_free;
             budget = std::min(budget, total_bytes > over ? total_bytes - over : 0);
             rule_budget = std::min(rule_budget, total_bytes > over ? total_bytes - over : 0);

@@ -351,6 +351,8 @@ struct ImageMove {
 /// The free space inside the textures' pool's blocks, what the blocks hold in all, and the size of those made at the start
 /// (kept whatever is in them); false without the pool
 bool textures_pool_usage(uint64_t* block_bytes, uint64_t* free_bytes, uint64_t* kept_bytes = nullptr);
+/// (vk_vma.cpp) The textures' pool's blocks held for later let go, near Windows' commit limit (texture_reserve.h): the bytes
+uint64_t texture_held_release();
 bool image_compact_begin(uint64_t max_bytes_a_pass, uint32_t max_moves_a_pass);
 bool image_compact_active();
 /// A pass begun: the moves VMA asks for. False: nothing left to move, the compaction is over (then *freed_bytes and
