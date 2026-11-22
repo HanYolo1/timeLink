@@ -96,8 +96,8 @@ since. What changed is mostly everything around them:
 ### [🐧 &nbsp;Download for Linux (AppImage)](https://github.com/HanYolo1/timeLink/releases)
 
 Windows without installing: [portable zip](https://github.com/HanYolo1/timeLink/releases) · Not sure?
-[the releases page](https://github.com/HanYolo1/timeLink/releases) lists every file. There is no stable release yet:
-the newest is a **release candidate**, and the nightlies are untested. For each channel's own, see
+[the releases page](https://github.com/HanYolo1/timeLink/releases) lists every file. The newest stable release is the one
+to play; release candidates try what's next, and the nightlies are untested. For each channel's own, see
 [release channels](#release-channels).
 
 **Download the launcher, not the builder.** The files on [timeLink's releases](https://github.com/HanYolo1/timeLink/releases)
@@ -116,7 +116,7 @@ timeLink doesn't come ready to play: it is built on your PC, from your own copy 
 4. Press **Play**. From then on the launcher keeps the game, and itself, [up to date](#updating).
 
 timeLink's versions started over at **v0.1.0**, and so did the launcher's: one tag names both products' releases. The
-newest is the release candidate **v0.2.0-rc.1**.
+first stable release is **v0.5.0**.
 
 ### What you need
 
@@ -159,7 +159,7 @@ there is nothing else to install.
    rights, with a Start menu shortcut) or **Run portable**. To skip the question, take
    [the portable zip](https://github.com/HanYolo1/timeLink/releases), unzip it and run
    `timeLinkLauncher.exe`.
-2. Press **Build the game** and choose the **Release candidate** channel (there is no stable release yet).
+2. Press **Build the game** and choose the **Stable** channel.
 3. Pick your game. The launcher finds `.nup` files in your Downloads, Desktop and Documents folders; if yours isn't
    listed, point it at the file, or at the `romfs` and `exefs` folders. It checks the version while the builder downloads.
 4. Choose where the game goes (`Games\timeLink` in your user folder by default), its language and the options.
