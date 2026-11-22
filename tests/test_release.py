@@ -84,7 +84,9 @@ class Copies(unittest.TestCase):
             with self.subTest(name):
                 for product, entry in module.PRODUCTS.items():
                     self.assertEqual(module.first_version(entry["first_major"], product), entry["first_version"])
-                self.assertEqual(module.required(0, product=next(iter(module.PRODUCTS)))[0], "v0.1.0")
+                # (below the first version: no stable before it, whatever tags this clone has, so a published stable
+                # such as v0.5.0 does not turn the answer into the next patch)
+                self.assertEqual(module.required(0, below="v0.1.0", product=next(iter(module.PRODUCTS)))[0], "v0.1.0")
                 self.assertEqual(module.required(3)[0], "v3.0.0")   # (a floor above 0 keeps the old form)
 
     def test_no_release_file_starts_with_a_byte_order_mark(self):

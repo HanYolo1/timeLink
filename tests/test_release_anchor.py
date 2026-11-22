@@ -83,6 +83,17 @@ class Anchor(unittest.TestCase):
                              "commits since the anchor (%d) are far from the last nightly number (%d): the anchor is "
                              "probably stale after a rewrite" % (counted, last))
 
+    def published_stables(self):
+        """This fork's stable releases (vX.Y.Z whose commit is on this fork's main), as published_rcs reads its candidates"""
+        stables = []
+        for tag in git("tag", "-l", "v*").split():
+            if "-" in tag or not release.is_version(tag, 0):
+                continue
+            commit = git("rev-list", "-n", "1", tag)
+            if commit and is_ancestor(commit, "HEAD"):
+                stables.append(tag)
+        return stables
+
     def published_rcs(self):
         """This fork's release candidates, newest first. Read from the tags rather than named, so publishing a new
         candidate does not break the test that guards the anchor.
@@ -117,10 +128,18 @@ class Anchor(unittest.TestCase):
         offered = release.next_tag(existing, 0)
         self.assertNotEqual(offered, newest,
                             "next_tag offers %s again, which is already published" % newest)
-        # (the next candidate is the one after the newest that is out: rc.2 published means rc.3 is next)
+        self.assertNotIn(offered, existing, "next_tag offers %s, which is already tagged" % offered)
         base, _, n = newest.partition("-rc.")
-        self.assertEqual(offered, "%s-rc.%d" % (base, int(n) + 1),
-                         "the next candidate follows %s, the newest that is out" % newest)
+        released = [t for t in self.published_stables() if release.version_key(t) >= release.version_key(base)]
+        if released:
+            # (a stable at or above the newest candidate's version is out, v0.5.0 after v0.3.0-rc.1: the series is over,
+            # and the next candidate is the first of the version the commits since that stable call for)
+            self.assertEqual(offered, release.required(0)[0] + "-rc.1",
+                             "after %s, the next candidate starts the next version's series" % max(released, key=release.version_key))
+        else:
+            # (the next candidate is the one after the newest that is out: rc.2 published means rc.3 is next)
+            self.assertEqual(offered, "%s-rc.%d" % (base, int(n) + 1),
+                             "the next candidate follows %s, the newest that is out" % newest)
 
     def test_the_launcher_has_no_anchor(self):
         """The launcher counts from its repository's first commit, so it has nothing to go stale."""
