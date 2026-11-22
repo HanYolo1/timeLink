@@ -426,13 +426,17 @@ uint8_t question_answer(uint8_t live) {
     if (questions_out) questions_out->push_back(live);
     return live;
 }
+// (timelink) and where each question's handle came from, with the answer used (Program::question_at, #29)
+thread_local std::vector<Program::QuestionAt>* question_at_out = nullptr;
 struct QuestionsNoted {
     explicit QuestionsNoted(Program& p) {
         p.questions.clear();
+        p.question_at.clear();
         if (questions_in) p.questions = *questions_in;
         else questions_out = &p.questions;
+        question_at_out = &p.question_at;
     }
-    ~QuestionsNoted() { questions_out = nullptr; }
+    ~QuestionsNoted() { questions_out = nullptr, question_at_out = nullptr; }
 };
 thread_local const std::vector<Program::Answer>* answers_in = nullptr;   // (and the variant's answers then)
 
@@ -473,19 +477,48 @@ public:
         }
         return 0;
     }
+    void NextTextureQuestionAt(const Shader::ConstBufferAddr& a) override {
+        next_at = Program::QuestionAt{};
+        next_at.offset = a.offset, next_at.secondary_offset = a.secondary_offset;
+        next_at.index = a.index < 0xFF ? (uint8_t)a.index : 0xFF, next_at.secondary_index = (uint8_t)std::min<u32>(a.secondary_index, 0xFF);
+        next_at.shift_left = (uint8_t)std::min<u32>(a.shift_left, 0xFF);
+        next_at.secondary_shift_left = (uint8_t)std::min<u32>(a.secondary_shift_left, 0xFF);
+        next_at.has_secondary = a.has_secondary ? 1 : 0;
+        next_known = true;
+    }
     Shader::TextureType ReadTextureType(u32 handle) override {
         texture_questions++;
-        if (forced && handle) return (Shader::TextureType)forced->answer(handle, 0, (uint8_t)Shader::TextureType::Color2D);
-        return static_cast<Shader::TextureType>(question_answer(static_cast<uint8_t>(handle_texture_type(handle))));
+        if (forced && handle) {
+            next_known = false;
+            return (Shader::TextureType)forced->answer(handle, 0, (uint8_t)Shader::TextureType::Color2D);
+        }
+        return static_cast<Shader::TextureType>(asked(0, static_cast<uint8_t>(handle_texture_type(handle))));
     }
     Shader::TexturePixelFormat ReadTexturePixelFormat(u32) override {
         return Shader::TexturePixelFormat{};   // (only for formatless image loads, which the device has)
     }
     bool IsTexturePixelFormatInteger(u32 handle) override {
         texture_questions++;
-        if (forced && handle) return forced->answer(handle, 1, 0) != 0;
-        return question_answer(handle_is_integer(handle) ? 1 : 0) != 0;
+        if (forced && handle) {
+            next_known = false;
+            return forced->answer(handle, 1, 0) != 0;
+        }
+        return asked(1, handle_is_integer(handle) ? 1 : 0) != 0;
     }
+    /// A question answered (question_answer), noted with where its handle came from (NextTextureQuestionAt; not known: index 0xFF)
+    uint8_t asked(uint8_t kind, uint8_t live) {
+        const uint8_t a = question_answer(live);
+        if (question_at_out) {
+            Program::QuestionAt q = next_known ? next_at : Program::QuestionAt{};
+            if (!next_known) q.index = 0xFF;
+            q.nvn_stage = (uint8_t)nvn.stage, q.kind = kind, q.answer = a;
+            question_at_out->push_back(q);
+        }
+        next_known = false;
+        return a;
+    }
+    Program::QuestionAt next_at{};
+    bool next_known = false;
     int texture_questions = 0;   // (the variant then depends on the bound textures: Program::answers)
     u32 ReadViewportTransformState() override {
         return 1;
@@ -993,12 +1026,45 @@ void record_answers(Program& p, const NvnState& s) {
 }
 /// Whether the textures bound now answer what the variant's translation was told (a variant whose translation
 /// asked nothing stands for any, and an unbound slot takes any)
+// (timelink) and whether the textures the translation's questions asked about answer them the same now: the handle each was read
+// from, read again from this draw's banks as descriptor_handle reads a slot's. The answers above only name the single descriptors,
+// and two translations that answered one question differently can both fit them: whichever the program's list had first was drawn,
+// a pipeline state list's of another translation among them (#29). RX_VK_VARIANT_QUESTIONS=0: the answers alone, as before
+std::atomic<int64_t> questions_turned_down{0};
+bool questions_fit(const NvnState& s, const Program& p) {
+    static const bool off = [] {
+        const char* e = getenv("RX_VK_VARIANT_QUESTIONS");
+        const bool o = e && !strcmp(e, "0");
+        logf("vk: a variant is reused while %s (RX_VK_VARIANT_QUESTIONS=0: the answers alone)",
+             o ? "the textures of its single descriptors answer the same" : "its texture questions and answers are answered the same");
+        return o;
+    }();
+    if (off) return true;
+    for (const Program::QuestionAt& q : p.question_at) {
+        if (q.index == 0xFF) continue;   // (where it came from is not known)
+        const Stage* st = nullptr;
+        for (const Stage& k : p.stages)
+            if (k.nvn_stage == q.nvn_stage) st = &k;
+        if (!st) continue;
+        auto shifted = [](uint32_t w, uint8_t shift) { return shift < 32 ? w << shift : 0u; };
+        const uint32_t lhs = shifted(stage_cbuf_word(s, *st, q.index, q.offset), q.shift_left);
+        const uint32_t rhs = q.has_secondary ? shifted(stage_cbuf_word(s, *st, q.secondary_index, q.secondary_offset), q.secondary_shift_left)
+                                             : shifted(stage_cbuf_word(s, *st, q.index, q.offset), q.secondary_shift_left);
+        const uint32_t h = lhs | rhs;
+        const uint8_t now = q.kind == 0 ? (uint8_t)handle_texture_type(h) : (handle_is_integer(h) ? 1 : 0);
+        if (now != q.answer) {
+            questions_turned_down.fetch_add(1, std::memory_order_relaxed);
+            return false;
+        }
+    }
+    return true;
+}
 bool still_valid(const NvnState& s, const Program& p) {
     for (const Program::Answer& a : p.answers) {
         const uint32_t h = answer_handle(s, p, a);
         if (h && canonical_answer(p, a, answer_of(h, a.image)) != canonical_answer(p, a, a.type)) return false;
     }
-    return true;
+    return questions_fit(s, p);
 }
 
 } // namespace
@@ -1948,9 +2014,12 @@ const Program* program_for(const NvnState& s, ProgramKind kind, const uint8_t co
     }
     const bool compute = kind == ProgramKind::Compute;
     static int64_t st_hit, st_none, st_differ, st_calls, st_by_tex;   // (logged now and then: how the cache does)
-    if (++st_calls % 200000 == 0)
+    if (++st_calls % 200000 == 0) {
         logf("vk: program picks: %lld kept (%lld by the last picks' textures, a uniform buffer bound since), %lld new, %lld with other textures (of %lld)",
              (long long)st_hit, (long long)st_by_tex, (long long)st_none, (long long)st_differ, (long long)st_calls);
+        logf("vk: variants turned down by their texture questions: %lld so far (RX_VK_VARIANT_QUESTIONS)",
+             (long long)questions_turned_down.load(std::memory_order_relaxed));
+    }
     const uint64_t stages = prog_stage_sig(s.prog);
     const uint64_t bind = s.bind_gen, reg = registrations_generation(), ub = ub_generation();
     // (timelink) the pair of the last picks stood only while nothing at all was bound anew, and OoT binds a uniform buffer for nearly every

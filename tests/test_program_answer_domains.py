@@ -46,6 +46,10 @@ uint32_t stage_cbuf_word(const NvnState&, const Stage&, uint32_t, uint32_t offse
 uint32_t stage_handle(const NvnState&, const Stage&, uint32_t, uint32_t) { std::abort(); }
 uint8_t texture_answer(uint32_t h) { return h ? answers[h] : 0xff; }
 uint32_t texture_slot_version(int id) { return 10+id; }
+// (still_valid's texture questions, questions_fit: the programs here asked none, so these are never asked)
+Shader::TextureType handle_texture_type(uint32_t) { return Shader::TextureType::Color2D; }
+bool handle_is_integer(uint32_t) { return false; }
+void logf(const char*, ...) {}
 #include MATCHER_FUNCTIONS
 static unsigned failed=0,checked=0;
 static void check(bool b,const char* what){checked++;if(!b){failed++;fprintf(stderr,"FAIL: %s\n",what);}}
@@ -137,9 +141,14 @@ def main():
         markers.append('bool answers_fit(')
     if 'uint8_t declared_answer(' in source:   # (what an unbound slot answers: record_answers' and program_find_plain's)
         markers.append('uint8_t declared_answer(')
+    if 'bool questions_fit(' in source:   # (still_valid asks the translation's texture questions again, #29)
+        markers.append('bool questions_fit(')
     markers += ['uint64_t answers_hash(', 'size_t generated_stage(', 'std::vector<Program::Answer> answers_here(', 'void record_answers(', 'bool still_valid(',
                 'void answer_handles(', 'uint32_t answer_stage_mask(']
     functions = '\n\n'.join(block(source, marker) for marker in markers)
+    if 'bool questions_fit(' in functions:   # (and the count it keeps)
+        line = source[source.rfind('\n', 0, source.index('questions_turned_down{')) + 1:]
+        functions = line[:line.index(';') + 1] + '\n\n' + functions
     if 'd.type_fixed' in functions:   # (the baseline has no such rule: nothing to hold the pass to)
         texture_pass = (vk / 'eden/shader_recompiler/ir_opt/texture_pass.cpp').read_text(encoding='utf-8')
         for needed in ('.type_fixed = !type_asked,', '].type_fixed &= desc.type_fixed;'):

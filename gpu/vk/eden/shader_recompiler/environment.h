@@ -79,6 +79,10 @@ public:
 
     [[nodiscard]] virtual u32 ReadCbufValue(u32 cbuf_index, u32 cbuf_offset) = 0;
 
+    /// (timelink) Where the handle of the next ReadTextureType or IsTexturePixelFormatInteger comes from: the translation's
+    /// questions are checked again at a draw by the texture these addresses name then (vk_shader.cpp, Program::question_at)
+    virtual void NextTextureQuestionAt(const ConstBufferAddr&) {}
+
     [[nodiscard]] virtual TextureType ReadTextureType(u32 raw_handle) = 0;
 
     [[nodiscard]] virtual TexturePixelFormat ReadTexturePixelFormat(u32 raw_handle) = 0;

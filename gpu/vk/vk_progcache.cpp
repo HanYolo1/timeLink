@@ -46,14 +46,20 @@
 namespace mkwvk {
 
 /// (timelink) The cache's own format: raise it with any change to what a record holds or how the file or its index is laid out
-constexpr uint32_t kProgramCacheFormat = 1;
-// (what a record holds as it lies in memory, as format 1 has it: a build that changes one stops here. Raise kProgramCacheFormat, then
+constexpr uint32_t kProgramCacheFormat = 2;   // (2: each record holds its questions' addresses, Program::question_at, #29)
+// (what a record holds as it lies in memory, as format 2 has it: a build that changes one stops here. Raise kProgramCacheFormat, then
 // change these to the new layout)
 static_assert(sizeof(Program::Answer) == 6 && offsetof(Program::Answer, stage) == 0 && offsetof(Program::Answer, desc) == 2 &&
               offsetof(Program::Answer, type) == 4 && offsetof(Program::Answer, image) == 5 &&
               std::is_trivially_copyable_v<Program::Answer>, "Program::Answer's layout is in the program cache's records");
 static_assert(std::is_same_v<decltype(Program::answers), std::vector<Program::Answer>>, "the answers are written whole");
 static_assert(std::is_same_v<decltype(Program::questions), std::vector<uint8_t>>, "the questions are written as bytes");
+static_assert(sizeof(Program::QuestionAt) == 16 && offsetof(Program::QuestionAt, offset) == 0 &&
+              offsetof(Program::QuestionAt, secondary_offset) == 4 && offsetof(Program::QuestionAt, index) == 8 &&
+              offsetof(Program::QuestionAt, nvn_stage) == 12 && offsetof(Program::QuestionAt, has_secondary) == 15 &&
+              std::is_trivially_copyable_v<Program::QuestionAt> &&
+              std::is_same_v<decltype(Program::question_at), std::vector<Program::QuestionAt>>,
+              "Program::QuestionAt's layout is in the program cache's records");
 static_assert(std::is_same_v<decltype(Stage::c1), std::vector<uint8_t>>, "Stage::c1 is written as bytes");
 static_assert(std::is_same_v<decltype(Stage::nvn_stage), int> && sizeof(Stage::vk_stage) == 4, "a stage's two words");
 static_assert(std::is_same_v<decltype(Program::workgroup), std::array<uint32_t, 3>> &&
@@ -285,6 +291,7 @@ void put_head(std::vector<uint8_t>& o, const Program& p) {
     put(o, (uint32_t)((p.compute ? 1 : 0) | (p.mesh ? 2 : 0) | (p.fallback ? 4 : 0) | (p.fallback_task ? 8 : 0)));
     put_list(o, p.answers);
     put_list(o, p.questions);
+    put_list(o, p.question_at);
     put(o, p.workgroup);
     put(o, p.shared_memory);
     put(o, (uint32_t)p.fallback_topology);
@@ -298,6 +305,7 @@ void get_head(Reader& r, Program& p) {
     p.compute = (kind & 1) != 0, p.mesh = (kind & 2) != 0, p.fallback = (kind & 4) != 0, p.fallback_task = (kind & 8) != 0;
     r.list(p.answers);
     r.list(p.questions);
+    r.list(p.question_at);
     p.workgroup = r.get<std::array<uint32_t, 3>>();
     p.shared_memory = r.get<uint32_t>();
     p.fallback_topology = (VkPrimitiveTopology)r.get<uint32_t>();

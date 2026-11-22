@@ -1,6 +1,6 @@
 """A program record's head is read whole by both readers of timeLink_programs.bin.
 
-program_cache_save writes, before a program's stages, its kind, texture answers and questions, workgroup, shared memory and the
+program_cache_save writes, before a program's stages, its kind, texture answers, questions and the questions' addresses, workgroup, shared memory and the
 mesh fallback's five words. program_cache_read read all of them; program_cache_each (the prediction's, vk_predict.cpp) stopped
 after shared memory and took the fallback's first two words for the stage count: 0 for every program that is not a fallback one,
 so no kept program reached the prediction ("predicted 0 pipelines ... for 0 program variants"). The head is now written by one
@@ -72,6 +72,12 @@ struct Program {   // (the fields of vk_shader.h's Program that a record's head 
     };
     std::vector<Answer> answers;
     std::vector<uint8_t> questions;
+    struct QuestionAt {
+        uint32_t offset, secondary_offset;
+        uint8_t index, secondary_index, shift_left, secondary_shift_left;
+        uint8_t nvn_stage, kind, answer, has_secondary;
+    };
+    std::vector<QuestionAt> question_at;
 };
 """ + "\n".join(parts) + r"""
 int fails = 0;
@@ -91,6 +97,9 @@ void check(const char* name, const Program& p, uint64_t stages) {
     WANT(q.fallback_record_words == p.fallback_record_words && q.fallback_payload_words == p.fallback_payload_words);
     WANT(q.fallback_task_threads == p.fallback_task_threads);
     WANT(q.answers.size() == p.answers.size() && q.questions == p.questions);
+    WANT(q.question_at.size() == p.question_at.size());
+    for (size_t i = 0; i < q.question_at.size() && i < p.question_at.size(); i++)
+        WANT(!std::memcmp(&q.question_at[i], &p.question_at[i], sizeof q.question_at[i]));
     for (size_t i = 0; i < q.answers.size() && i < p.answers.size(); i++)
         WANT(q.answers[i].stage == p.answers[i].stage && q.answers[i].desc == p.answers[i].desc && q.answers[i].type == p.answers[i].type);
 }
@@ -98,6 +107,7 @@ int main() {
     Program plain;
     plain.answers = {{1, 3, 0x81, false}};
     plain.questions = {1, 0, 2};
+    plain.question_at = {{0x30, 0x34, 2, 3, 0, 16, 1, 0, 2, 1}, {0x110, 0, 0xFF, 0, 0, 0, 1, 1, 0, 0}};
     plain.shared_memory = 256;
     check("graphics", plain, 2);
     Program fb;
